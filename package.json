@@ -18,10 +18,10 @@
     "@swc/core": "^1.2.241",
     "@types/gradient-string": "^1.1.2",
     "@types/node": "^17.0.31",
-    "@typescript-eslint/eslint-plugin": "^5.43.0",
-    "@typescript-eslint/parser": "^5.43.0",
+    "@typescript-eslint/eslint-plugin": "^5.45.1",
+    "@typescript-eslint/parser": "^5.45.1",
     "@vladfrangu/async_event_emitter": "^2.0.1",
-    "eslint": "^8.22.0",
+    "eslint": "^8.29.0",
     "rimraf": "^3.0.2",
     "typescript": "^4.9.3"
   },
