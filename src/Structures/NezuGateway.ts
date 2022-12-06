@@ -1,20 +1,25 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-len */
 import EventEmitter from "node:events";
+import gradient from "gradient-string";
+import { pino } from "pino";
+import { default as IORedis } from "ioredis";
 import { SessionInfo, WebSocketManager, WorkerShardingStrategy } from "@discordjs/ws";
 import { GatewayIntentBits } from "discord-api-types/v10";
 import { REST } from "@discordjs/rest";
-import Redis from "ioredis";
 import { Result } from "@sapphire/result";
-import pino from "pino";
 import { resolve } from "node:path";
 import { Util } from "../Utilities/Util.js";
 import { ListenerStore } from "../Stores/ListenerStore.js";
 import { container, Piece, Store, StoreRegistry } from "@sapphire/pieces";
 import { createBanner } from "@skyra/start-banner";
-import gradient from "gradient-string";
 import { Constants } from "../Utilities/Constants.js";
 import { RedisCollection } from "@nezuchan/redis-collection";
+import { ActivityType } from "discord-api-types/v9";
+import { PresenceUpdateStatus } from "discord-api-types/payloads";
+
+const { default: Redis } = IORedis;
+const packageJson = Util.loadJSON<{ version: string }>("../../package.json");
 
 export class NezuGateway extends EventEmitter {
     public rest = new REST({
@@ -27,7 +32,8 @@ export class NezuGateway extends EventEmitter {
         username: process.env.REDIS_USERNAME!,
         password: process.env.REDIS_PASSWORD!,
         host: process.env.REDIS_HOST,
-        port: Number(process.env.REDIS_PORT!)
+        port: Number(process.env.REDIS_PORT!),
+        db: Number(process.env.REDIS_DB! ?? 0)
     });
 
     public logger = pino({
@@ -48,13 +54,24 @@ export class NezuGateway extends EventEmitter {
     });
 
     public ws = new WebSocketManager({
-        intents:
+        intents: process.env.GATEWAY_INTENTS ? Number(process.env.GATEWAY_INTENTS) :
             GatewayIntentBits.Guilds |
             GatewayIntentBits.MessageContent |
             GatewayIntentBits.GuildMembers |
             GatewayIntentBits.GuildMessages |
             GatewayIntentBits.GuildVoiceStates,
         token: process.env.DISCORD_TOKEN!,
+        initialPresence: {
+            activities: [
+                {
+                    name: process.env.GATEWAY_PRESENCE_NAME ?? `NezukoChan Gateway ${packageJson.version}`,
+                    type: process.env.GATEWAY_PRESENCE_TYPE ? Number(process.env.GATEWAY_PRESENCE_TYPE) : ActivityType.Playing
+                }
+            ],
+            since: Date.now(),
+            status: PresenceUpdateStatus.Online,
+            afk: false
+        },
         rest: this.rest,
         updateSessionInfo: async (shardId: number, sessionInfo: SessionInfo | null) => {
             if (sessionInfo) {
@@ -105,7 +122,6 @@ export class NezuGateway extends EventEmitter {
         await Promise.all([...this.stores.values()].map((store: Store<Piece>) => store.loadAll()));
         await this.ws.connect();
 
-        const packageJson = await import("../../package.json", { assert: { type: "json" } });
         console.log(
             gradient.vice.multiline(
                 createBanner({
@@ -127,7 +143,7 @@ export class NezuGateway extends EventEmitter {
                         String.raw`╲________╱╲___╱____╱ ╲______╱ ╲________╱╲________╱╲___╱____╱   ╲_____╱ `
                     ],
                     extra: [
-                        ` Nezu Gateway: v${packageJson.default.version}`,
+                        ` Nezu Gateway: v${packageJson.version}`,
                         ` └ ShardCount: ${this.ws.options.shardCount ?? 1} shards`
                     ]
                 })

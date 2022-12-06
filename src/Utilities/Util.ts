@@ -1,3 +1,5 @@
+import fs from "node:fs";
+
 /* eslint-disable @typescript-eslint/no-extraneous-class */
 export class Util {
     public static formatDate(dateFormat: Intl.DateTimeFormat, date: Date | number = new Date()): string {
@@ -6,5 +8,9 @@ export class Util {
             .replace(/<year>/g, data.find(d => d.type === "year")!.value)
             .replace(/<month>/g, data.find(d => d.type === "month")!.value)
             .replace(/<day>/g, data.find(d => d.type === "day")!.value);
+    }
+
+    public static loadJSON<T>(path: string): T {
+        return JSON.parse(fs.readFileSync(new URL(path, import.meta.url)) as unknown as string) as T;
     }
 }

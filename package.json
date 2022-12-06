@@ -45,7 +45,7 @@
   "dependencies": {
     "@discordjs/rest": "^1.0.1",
     "@discordjs/ws": "^0.5.0",
-    "@nezuchan/redis-collection": "^1.2.0",
+    "@nezuchan/redis-collection": "^1.2.2",
     "@sapphire/pieces": "^3.5.0",
     "@sapphire/result": "^2.4.0",
     "@sapphire/utilities": "^3.9.1",
