@@ -1,10 +1,10 @@
 {
-  "name": "template",
+  "name": "@nezuchan/nezu-gateway",
   "version": "1.0.0",
-  "description": "A TypeScript template project.",
+  "description": "A standalone service for connecting to the Discord gateway.",
   "main": "dist",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm run build && node --experimental-specifier-resolution=node -r dotenv/config dist/index.js",
     "lint": "eslint src --ext ts",
     "lint:fix": "eslint src --fix --ext ts",
     "build": "swc src -d dist"
@@ -15,11 +15,13 @@
   "devDependencies": {
     "@hazmi35/eslint-config": "^8.6.0",
     "@swc/cli": "^0.1.57",
-    "@swc/core": "^1.3.20",
+    "@swc/core": "^1.2.241",
+    "@types/gradient-string": "^1.1.2",
     "@types/node": "^17.0.31",
-    "@typescript-eslint/eslint-plugin": "^5.44.0",
-    "@typescript-eslint/parser": "^5.44.0",
-    "eslint": "^8.28.0",
+    "@typescript-eslint/eslint-plugin": "^5.43.0",
+    "@typescript-eslint/parser": "^5.43.0",
+    "@vladfrangu/async_event_emitter": "^2.0.1",
+    "eslint": "^8.22.0",
     "rimraf": "^3.0.2",
     "typescript": "^4.9.3"
   },
@@ -36,6 +38,23 @@
       "plugin:@typescript-eslint/recommended",
       "@hazmi35/eslint-config/typescript"
     ],
-    "rules": {}
+    "rules": {
+      "@typescript-eslint/explicit-function-return-type": "off"
+    }
+  },
+  "dependencies": {
+    "@discordjs/rest": "^1.0.1",
+    "@discordjs/ws": "^0.5.0",
+    "@nezuchan/redis-collection": "^1.2.0",
+    "@sapphire/pieces": "^3.5.0",
+    "@sapphire/result": "^2.4.0",
+    "@sapphire/utilities": "^3.9.1",
+    "@skyra/start-banner": "^1.0.2",
+    "discord-api-types": "^0.37.3",
+    "dotenv": "^16.0.1",
+    "gradient-string": "^2.0.1",
+    "ioredis": "^5.2.2",
+    "pino": "^8.4.2",
+    "pino-pretty": "^9.0.1"
   }
 }
