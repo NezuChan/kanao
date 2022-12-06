@@ -1,4 +1,5 @@
 export enum CommonEvents {
     Ready = "ready",
-    ListenerError = "listenerError"
+    ListenerError = "listenerError",
+    TaskError = "taskError"
 }

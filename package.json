@@ -7,13 +7,13 @@
     "start": "npm run build && node --experimental-specifier-resolution=node -r dotenv/config dist/index.js",
     "lint": "eslint src --ext ts",
     "lint:fix": "eslint src --fix --ext ts",
-    "build": "swc src -d dist"
+    "build": "rimraf dist && swc src -d dist"
   },
   "type": "module",
   "author": "KagChi",
   "license": "GPL-3.0",
   "devDependencies": {
-    "@hazmi35/eslint-config": "^8.6.0",
+    "@hazmi35/eslint-config": "^8.7.1",
     "@swc/cli": "^0.1.57",
     "@swc/core": "^1.2.241",
     "@types/gradient-string": "^1.1.2",
@@ -45,9 +45,11 @@
   "dependencies": {
     "@discordjs/rest": "^1.0.1",
     "@discordjs/ws": "^0.5.0",
+    "@nezuchan/cordis-brokers": "^1.5.8",
     "@nezuchan/redis-collection": "^1.2.2",
     "@sapphire/pieces": "^3.5.0",
     "@sapphire/result": "^2.4.0",
+    "@sapphire/time-utilities": "^1.7.8",
     "@sapphire/utilities": "^3.9.1",
     "@skyra/start-banner": "^1.0.2",
     "discord-api-types": "^0.37.3",

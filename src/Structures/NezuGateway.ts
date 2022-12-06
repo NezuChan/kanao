@@ -17,6 +17,8 @@ import { Constants } from "../Utilities/Constants.js";
 import { RedisCollection } from "@nezuchan/redis-collection";
 import { ActivityType } from "discord-api-types/v9";
 import { PresenceUpdateStatus } from "discord-api-types/payloads";
+import { RpcPublisher, RoutingSubscriber, createAmqp } from "@nezuchan/cordis-brokers";
+import { TaskStore } from "../Stores/TaskStore.js";
 
 const { default: Redis } = IORedis;
 const packageJson = Util.loadJSON<{ version: string }>("../../package.json");
@@ -33,7 +35,7 @@ export class NezuGateway extends EventEmitter {
         password: process.env.REDIS_PASSWORD!,
         host: process.env.REDIS_HOST,
         port: Number(process.env.REDIS_PORT!),
-        db: Number(process.env.REDIS_DB! ?? 0)
+        db: Number(process.env.REDIS_DB ?? 0)
     });
 
     public logger = pino({
@@ -54,12 +56,14 @@ export class NezuGateway extends EventEmitter {
     });
 
     public ws = new WebSocketManager({
-        intents: process.env.GATEWAY_INTENTS ? Number(process.env.GATEWAY_INTENTS) :
-            GatewayIntentBits.Guilds |
+        intents: process.env.GATEWAY_INTENTS
+            ? Number(process.env.GATEWAY_INTENTS)
+            : GatewayIntentBits.Guilds |
             GatewayIntentBits.MessageContent |
             GatewayIntentBits.GuildMembers |
             GatewayIntentBits.GuildMessages |
             GatewayIntentBits.GuildVoiceStates,
+        largeThreshold: Number(process.env.GATEWAY_LARGE_THRESHOLD ?? 250),
         token: process.env.DISCORD_TOKEN!,
         initialPresence: {
             activities: [
@@ -101,6 +105,11 @@ export class NezuGateway extends EventEmitter {
         }
     });
 
+    public tasks!: {
+        sender: RpcPublisher<string, Record<string, any>>;
+        receiver: RoutingSubscriber<string, Record<string, any>>;
+    };
+
     public constructor() {
         super();
     }
@@ -116,7 +125,18 @@ export class NezuGateway extends EventEmitter {
 
     public async connect() {
         container.gateway = this;
+        const { channel } = await createAmqp(process.env.AMQP_HOST!);
+
+        this.tasks = {
+            sender: new RpcPublisher(channel),
+            receiver: new RoutingSubscriber(channel)
+        };
+
+        await this.tasks.receiver.init({ name: Constants.TASKS_RECV, keys: "*", durable: true, exchangeType: "topic", useExchangeBinding: true });
+        await this.tasks.sender.init({ name: Constants.TASKS_SEND, autoAck: true });
+
         this.stores.register(new ListenerStore());
+        this.stores.register(new TaskStore());
         this.rest.setToken(process.env.DISCORD_TOKEN!);
         this.ws.setStrategy(new WorkerShardingStrategy(this.ws, { shardsPerWorker: 6 }));
         await Promise.all([...this.stores.values()].map((store: Store<Piece>) => store.loadAll()));

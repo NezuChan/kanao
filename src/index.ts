@@ -3,7 +3,7 @@ const gateway = new NezuGateway();
 
 try {
     await gateway.connect();
-} catch(e) {
+} catch (e) {
     gateway.logger.error(e, "An error occurred while connecting to Discord");
     process.exit(1);
 }

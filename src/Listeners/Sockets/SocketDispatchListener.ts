@@ -1,7 +1,7 @@
 import { WebSocketShardEvents } from "@discordjs/ws";
 import { GatewayDispatchPayload } from "discord-api-types/v10";
-import { Listener, ListenerOptions } from "../Stores/Listener.js";
-import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
+import { Listener, ListenerOptions } from "../../Stores/Listener.js";
+import { ApplyOptions } from "../../Utilities/Decorators/ApplyOptions.js";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: WebSocketShardEvents.Dispatch,

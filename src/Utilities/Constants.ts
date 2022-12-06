@@ -23,6 +23,9 @@ export class Constants {
     public static KEYS_SUFFIX = "_keys";
     public static EXPIRY_KEYS = "expiry_keys";
 
+    public static readonly TASKS_SEND = "scheduled-tasks.send";
+    public static readonly TASKS_RECV = "scheduled-tasks.recv";
+
     public static guild_key(id: string): string {
         return `${Constants.GUILD_KEY}:${id}`;
     }
