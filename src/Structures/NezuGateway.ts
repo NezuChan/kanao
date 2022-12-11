@@ -84,10 +84,7 @@ export class NezuGateway extends EventEmitter {
                     hash: Constants.SESSIONS_KEY
                 });
 
-                const result = await Result.fromAsync(async () => {
-                    await this.redis.set("shard_count", sessionInfo.shardCount);
-                    return collection.set(`${shardId}`, sessionInfo);
-                });
+                const result = await Result.fromAsync(async () => collection.set(`${shardId}`, sessionInfo));
 
                 if (result.isErr()) this.logger.error(result.unwrapErr(), "Failed to update session info");
             }
@@ -141,6 +138,9 @@ export class NezuGateway extends EventEmitter {
         this.ws.setStrategy(new WorkerShardingStrategy(this.ws, { shardsPerWorker: 6 }));
         await Promise.all([...this.stores.values()].map((store: Store<Piece>) => store.loadAll()));
         await this.ws.connect();
+        const shardCount = await this.ws.getShardCount();
+
+        await this.redis.set("shard_count", shardCount);
 
         console.log(
             gradient.vice.multiline(
@@ -164,7 +164,7 @@ export class NezuGateway extends EventEmitter {
                     ],
                     extra: [
                         ` Nezu Gateway: v${packageJson.version}`,
-                        ` └ ShardCount: ${this.ws.options.shardCount ?? 1} shards`
+                        ` └ ShardCount: ${shardCount} shards`
                     ]
                 })
             )

@@ -17,8 +17,10 @@ export class SpawnNewShardTask extends Task {
         this.container.gateway.logger.info("Spawning new shard...");
         const sessionInfo = await this.container.gateway.ws.fetchGatewayInformation(true);
         const shardCount = await this.container.gateway.ws.getShardCount();
+
         if (sessionInfo.shards !== shardCount) {
             await this.container.gateway.ws.updateShardCount(sessionInfo.shards);
+            await this.container.gateway.redis.set("shard_count", shardCount);
             return this.container.gateway.logger.info(`Spawned new shards, shard count is now ${sessionInfo.shards}`);
         }
 
