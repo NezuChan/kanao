@@ -84,7 +84,7 @@ export class NezuGateway extends EventEmitter {
                     hash: Constants.SESSIONS_KEY
                 });
 
-                const result = await Result.fromAsync(async () => collection.set(`${shardId}`, sessionInfo));
+                const result = await Result.fromAsync(() => collection.set(`${shardId}`, sessionInfo));
 
                 if (result.isErr()) this.logger.error(result.unwrapErr(), "Failed to update session info");
             }
