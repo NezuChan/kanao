@@ -17,7 +17,7 @@
     "@swc/cli": "^0.1.57",
     "@swc/core": "^1.2.241",
     "@types/gradient-string": "^1.1.2",
-    "@types/node": "^17.0.31",
+    "@types/node": "^18.11.15",
     "@typescript-eslint/eslint-plugin": "^5.46.1",
     "@typescript-eslint/parser": "^5.46.1",
     "@vladfrangu/async_event_emitter": "^2.0.1",
