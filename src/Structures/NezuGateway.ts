@@ -135,10 +135,10 @@ export class NezuGateway extends EventEmitter {
         this.stores.register(new ListenerStore());
         this.stores.register(new TaskStore());
         this.rest.setToken(process.env.DISCORD_TOKEN!);
-        this.ws.setStrategy(new WorkerShardingStrategy(this.ws, { shardsPerWorker: 6 }));
         await Promise.all([...this.stores.values()].map((store: Store<Piece>) => store.loadAll()));
         await this.ws.connect();
         const shardCount = await this.ws.getShardCount();
+        this.ws.setStrategy(new WorkerShardingStrategy(this.ws, { shardsPerWorker: 14 }));
 
         await this.redis.set("shard_count", shardCount);
 
