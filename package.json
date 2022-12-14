@@ -57,6 +57,7 @@
     "gradient-string": "^2.0.2",
     "ioredis": "^5.2.4",
     "pino": "^8.7.0",
-    "pino-pretty": "^9.1.1"
+    "pino-pretty": "^9.1.1",
+    "zlib-sync": "^0.1.7"
   }
 }

@@ -8,7 +8,7 @@ import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
     emitter: container.gateway
 }))
 
-export class DispatchListener extends Listener {
+export class MessageCreateListener extends Listener {
     public run(payload: unknown): void {
         console.log(payload);
     }

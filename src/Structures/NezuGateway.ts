@@ -4,7 +4,7 @@ import EventEmitter from "node:events";
 import gradient from "gradient-string";
 import { pino } from "pino";
 import { default as IORedis } from "ioredis";
-import { SessionInfo, WebSocketManager, WorkerShardingStrategy } from "@discordjs/ws";
+import { CompressionMethod, SessionInfo, WebSocketManager, WorkerShardingStrategy } from "@discordjs/ws";
 import { GatewayIntentBits } from "discord-api-types/v10";
 import { REST } from "@discordjs/rest";
 import { Result } from "@sapphire/result";
@@ -76,6 +76,7 @@ export class NezuGateway extends EventEmitter {
             status: PresenceUpdateStatus.Online,
             afk: false
         },
+        compression: CompressionMethod.ZlibStream,
         rest: this.rest,
         updateSessionInfo: async (shardId: number, sessionInfo: SessionInfo | null) => {
             if (sessionInfo) {
@@ -98,6 +99,7 @@ export class NezuGateway extends EventEmitter {
             const result = await Result.fromAsync(() => collection.get(`${shardId}`));
             if (result.isErr()) return null;
             const sessionInfo = result.unwrap();
+            await collection.delete(`${shardId}`);
             return sessionInfo ? sessionInfo : null;
         }
     });
