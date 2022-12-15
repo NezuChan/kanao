@@ -14,7 +14,7 @@ export class SocketDebugListener extends Listener {
         if ((/Got heartbeat ack after (?<ping>\d+)/).test(payload.message)) {
             const collection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.STATUSES_KEY });
             const ping = Number((/Got heartbeat ack after (?<ping>\d+)/).exec(payload.message)![1]);
-            await collection.set(`${payload.shardId}`, { ping, sharId: payload.shardId });
+            await collection.set(`${payload.shardId}`, { ping, shardId: payload.shardId });
         }
 
         this.container.gateway.logger.debug(payload);
