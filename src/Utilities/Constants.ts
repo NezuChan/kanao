@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/no-extraneous-class */
 export class Constants {
-    public static EXCHANGE = "gateway";
-    public static QUEUE_RECV = "gateway.recv";
-    public static QUEUE_SEND = "gateway.send";
+    public static EXCHANGE = "nezu-gateway";
+    public static QUEUE_RECV = "nezu-gateway.recv";
+    public static QUEUE_SEND = "nezu-gateway.send";
 
     public static SESSIONS_KEY = "gateway_sessions";
     public static STATUSES_KEY = "gateway_statuses";

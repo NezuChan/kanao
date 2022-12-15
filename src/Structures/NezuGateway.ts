@@ -19,7 +19,7 @@ import { Constants } from "../Utilities/Constants.js";
 import { RedisCollection } from "@nezuchan/redis-collection";
 import { ActivityType } from "discord-api-types/v9";
 import { PresenceUpdateStatus } from "discord-api-types/payloads";
-import { RpcPublisher, RoutingSubscriber, createAmqp } from "@nezuchan/cordis-brokers";
+import { RpcPublisher, RoutingSubscriber, createAmqp, RoutingPublisher } from "@nezuchan/cordis-brokers";
 import { TaskStore } from "../Stores/TaskStore.js";
 
 const { default: Redis } = IORedis;
@@ -116,6 +116,11 @@ export class NezuGateway extends EventEmitter {
         receiver: RoutingSubscriber<string, Record<string, any>>;
     };
 
+    public amqp!: {
+        sender: RoutingPublisher<string, Record<string, any>>;
+        receiver: RoutingSubscriber<string, Record<string, any>>;
+    };
+
     public constructor() {
         super();
     }
@@ -139,6 +144,14 @@ export class NezuGateway extends EventEmitter {
             sender: new RpcPublisher(channel),
             receiver: new RoutingSubscriber(channel)
         };
+
+        this.amqp = {
+            sender: new RoutingPublisher(channel),
+            receiver: new RoutingSubscriber(channel)
+        };
+
+        await this.amqp.sender.init({ name: Constants.QUEUE_RECV, useExchangeBinding: true, exchangeType: "fanout", queue: Constants.EXCHANGE });
+        await this.amqp.receiver.init({ queue: Constants.QUEUE_SEND, keys: "*", durable: true });
 
         await this.tasks.receiver.init({ name: Constants.TASKS_RECV, keys: "*", durable: true, exchangeType: "topic", useExchangeBinding: true });
         await this.tasks.sender.init({ name: Constants.TASKS_SEND, autoAck: true });
