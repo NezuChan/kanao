@@ -13,7 +13,7 @@ export class Constants {
     public static BOT_USER_KEY = "bot_user";
     public static GUILD_KEY = "guild";
     public static CHANNEL_KEY = "channel";
-    public static MESSAGE_KEY = "MESSAGE_KEY";
+    public static MESSAGE_KEY = "message";
     public static ROLE_KEY = "role";
     public static EMOJI_KEY = "emoji";
     public static MEMBER_KEY = "member";

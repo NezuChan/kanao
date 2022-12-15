@@ -12,11 +12,11 @@ import { Util } from "../Utilities/Util.js";
 }))
 
 export class MessageDeleteBulkListener extends Listener {
-    public async run(payload: GatewayMessageDeleteBulkDispatch): Promise<void> {
+    public async run(payload: { data: GatewayMessageDeleteBulkDispatch }): Promise<void> {
         const messageCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.MESSAGE_KEY });
 
         if (Util.optionalEnv("STATE_MESSAGE", "true")) {
-            const messages = await messageCollection.filter((_, key) => payload.d.ids.includes(key));
+            const messages = await messageCollection.filter((_, key) => payload.data.d.ids.includes(key));
             for (const [key] of messages) await messageCollection.delete(key);
         }
     }

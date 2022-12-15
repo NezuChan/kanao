@@ -12,30 +12,30 @@ import { Util } from "../Utilities/Util.js";
 }))
 
 export class MessageUpdateListener extends Listener {
-    public async run(payload: GatewayMessageUpdateDispatch): Promise<void> {
+    public async run(payload: { data: GatewayMessageUpdateDispatch }): Promise<void> {
         if (Util.optionalEnv("STATE_MESSAGE", "true")) {
             const messageCollection = new RedisCollection<string, GatewayMessageUpdateDispatch["d"]>({ redis: this.container.gateway.redis, hash: Constants.MESSAGE_KEY });
             const memberCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.MEMBER_KEY });
             const userCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.USER_KEY });
 
-            const message = await messageCollection.get(payload.d.id);
+            const message = await messageCollection.get(payload.data.d.id);
             if (message) {
-                if (Util.optionalEnv("STATE_MEMBER", "true")) await memberCollection.set(payload.d.author!.id, payload.d.member);
-                if (Util.optionalEnv("STATE_USER", "true")) await userCollection.set(payload.d.author!.id, payload.d.author);
-                if (Util.optionalEnv("STATE_MESSAGE", "true")) await messageCollection.set(payload.d.id, payload.d as unknown as string);
+                if (Util.optionalEnv("STATE_MEMBER", "true")) await memberCollection.set(payload.data.d.author!.id, payload.data.d.member);
+                if (Util.optionalEnv("STATE_USER", "true")) await userCollection.set(payload.data.d.author!.id, payload.data.d.author);
+                if (Util.optionalEnv("STATE_MESSAGE", "true")) await messageCollection.set(payload.data.d.id, payload.data.d as unknown as string);
 
-                if (message.attachments) message.attachments = payload.d.attachments;
-                if (message.content) message.content = payload.d.content;
-                if (message.embeds) message.embeds = payload.d.embeds;
-                if (message.flags) message.flags = payload.d.flags;
-                if (message.mentions.length) message.mentions = payload.d.mentions;
-                if (message.mention_everyone) message.mention_everyone = payload.d.mention_everyone;
-                if (message.mention_roles) message.mention_roles = payload.d.mention_roles;
-                if (message.pinned) message.pinned = payload.d.pinned;
-                if (message.timestamp) message.timestamp = payload.d.timestamp;
-                if (message.tts) message.tts = payload.d.tts;
+                if (message.attachments) message.attachments = payload.data.d.attachments;
+                if (message.content) message.content = payload.data.d.content;
+                if (message.embeds) message.embeds = payload.data.d.embeds;
+                if (message.flags) message.flags = payload.data.d.flags;
+                if (message.mentions.length) message.mentions = payload.data.d.mentions;
+                if (message.mention_everyone) message.mention_everyone = payload.data.d.mention_everyone;
+                if (message.mention_roles) message.mention_roles = payload.data.d.mention_roles;
+                if (message.pinned) message.pinned = payload.data.d.pinned;
+                if (message.timestamp) message.timestamp = payload.data.d.timestamp;
+                if (message.tts) message.tts = payload.data.d.tts;
 
-                await messageCollection.set(payload.d.id, message as unknown as string);
+                await messageCollection.set(payload.data.d.id, message as unknown as string);
             }
         }
     }

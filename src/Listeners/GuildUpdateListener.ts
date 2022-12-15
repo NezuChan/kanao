@@ -6,7 +6,7 @@ import { Constants } from "../Utilities/Constants.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
-    name: GatewayDispatchEvents.Member,
+    name: GatewayDispatchEvents.GuildUpdate,
     emitter: container.gateway
 }))
 

@@ -12,9 +12,9 @@ import { Util } from "../Utilities/Util.js";
 }))
 
 export class MessageDeleteListener extends Listener {
-    public async run(payload: GatewayMessageDeleteDispatch): Promise<void> {
+    public async run(payload: { data: GatewayMessageDeleteDispatch }): Promise<void> {
         const messageCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.MESSAGE_KEY });
 
-        if (Util.optionalEnv("STATE_MESSAGE", "true")) await messageCollection.set(payload.d.id, payload.d);
+        if (Util.optionalEnv("STATE_MESSAGE", "true")) await messageCollection.set(payload.data.d.id, payload.data.d);
     }
 }
