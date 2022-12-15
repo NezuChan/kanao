@@ -58,6 +58,7 @@
     "ioredis": "^5.2.4",
     "pino": "^8.7.0",
     "pino-pretty": "^9.1.1",
+    "prometheus-middleware": "^1.1.1",
     "zlib-sync": "^0.1.7"
   }
 }

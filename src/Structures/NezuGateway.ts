@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-len */
 import EventEmitter from "node:events";
 import gradient from "gradient-string";
+import APM from "prometheus-middleware";
 import { pino } from "pino";
 import { default as IORedis } from "ioredis";
 import { CompressionMethod, SessionInfo, WebSocketManager, WorkerShardingStrategy } from "@discordjs/ws";
@@ -29,6 +31,11 @@ export class NezuGateway extends EventEmitter {
     });
 
     public stores = new StoreRegistry();
+
+    public prometheus = new APM({
+        PORT: 3000,
+        METRICS_ROUTE: process.env.PROMETHEUS_PATH ?? "/metrics"
+    });
 
     public redis = new Redis({
         username: process.env.REDIS_USERNAME!,
@@ -124,6 +131,8 @@ export class NezuGateway extends EventEmitter {
 
     public async connect() {
         container.gateway = this;
+
+        if (process.env.PROMETHEUS_ENABLED === "true") this.prometheus.init();
         const { channel } = await createAmqp(process.env.AMQP_HOST!);
 
         this.tasks = {
