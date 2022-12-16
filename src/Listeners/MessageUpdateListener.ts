@@ -25,7 +25,7 @@ export class MessageUpdateListener extends Listener {
                     old: message
                 }, { persistent: false });
 
-                if (Util.optionalEnv("STATE_MEMBER", "true")) await memberCollection.set(payload.data.d.author!.id, payload.data.d.member);
+                if (Util.optionalEnv("STATE_MEMBER", "true")) await memberCollection.set(`${payload.data.d.guild_id!}:${payload.data.d.author!.id}`, payload.data.d.member);
                 if (Util.optionalEnv("STATE_USER", "true")) await userCollection.set(payload.data.d.author!.id, payload.data.d.author);
                 if (Util.optionalEnv("STATE_MESSAGE", "true")) await messageCollection.set(payload.data.d.id, payload.data.d as unknown as string);
 
