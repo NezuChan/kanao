@@ -17,6 +17,7 @@ export class VoiceStateUpdateListener extends Listener {
         const old = await voiceStateCollection.get(`${payload.data.d.guild_id!}:${payload.data.d.user_id}`);
 
         this.container.gateway.amqp.sender.publish(payload.data.t, { ...payload, old }, { persistent: false });
+        this.container.gateway.amqp.sender.publish(payload.data.t, payload, { persistent: false });
 
         switch (payload.data.d.channel_id) {
             case null:

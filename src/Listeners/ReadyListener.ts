@@ -11,6 +11,7 @@ import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 
 export class ReadyListener extends Listener {
     public async run(payload: { data: GatewayReadyDispatch }): Promise<void> {
+        this.container.gateway.amqp.sender.publish(payload.data.t, payload, { persistent: false });
         await this.container.gateway.redis.set(Constants.BOT_USER_KEY, JSON.stringify(payload.data.d.user));
     }
 }

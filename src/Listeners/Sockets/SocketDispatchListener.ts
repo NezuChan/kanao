@@ -23,6 +23,7 @@ export class DispatchListener extends Listener {
             case GatewayDispatchEvents.MessageDelete:
             case GatewayDispatchEvents.MessageUpdate:
             case GatewayDispatchEvents.VoiceStateUpdate:
+            case GatewayDispatchEvents.Ready:
                 this.container.gateway.emit(payload.data.t, payload);
                 break;
             default:
