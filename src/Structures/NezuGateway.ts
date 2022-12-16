@@ -164,7 +164,7 @@ export class NezuGateway extends EventEmitter {
         const shardCount = await this.ws.getShardCount();
         this.ws.setStrategy(new WorkerShardingStrategy(this.ws, { shardsPerWorker: 14 }));
 
-        await this.redis.set("shard_count", shardCount);
+        await this.redis.set(Constants.SHARDS_KEY, shardCount);
 
         console.log(
             gradient.vice.multiline(

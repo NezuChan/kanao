@@ -1,5 +1,6 @@
 import { Time } from "@sapphire/time-utilities";
 import { Task, TaskOptions } from "../Stores/Task.js";
+import { Constants } from "../Utilities/Constants.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 
 @ApplyOptions<TaskOptions>({
@@ -20,7 +21,7 @@ export class SpawnNewShardTask extends Task {
 
         if (sessionInfo.shards !== shardCount) {
             await this.container.gateway.ws.updateShardCount(sessionInfo.shards);
-            await this.container.gateway.redis.set("shard_count", shardCount);
+            await this.container.gateway.redis.set(Constants.SHARDS_KEY, shardCount);
             return this.container.gateway.logger.info(`Spawned new shards, shard count is now ${sessionInfo.shards}`);
         }
 
