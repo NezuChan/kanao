@@ -30,9 +30,9 @@ export class GuildMemberUpdateListener extends Listener {
         if (Util.optionalEnv<boolean>("STATE_USER", "true") || cast<APIUser>(JSON.parse(botUser ?? "{ id: null }")).id === payload.data.d.user.id) await userCollection.set(payload.data.d.user.id, payload.data.d.user);
         if (Util.optionalEnv("STATE_MEMBER", "true") || cast<APIUser>(JSON.parse(botUser ?? "{ id: null }").id === payload.data.d.user.id)) {
             await memberCollection.set(payload.data.d.user.id, {
+                ...old,
                 ...payload.data.d,
-                user: Util.optionalEnv<boolean>("STATE_USER", "true") ? { } : payload.data.d.user,
-                ...await memberCollection.get(payload.data.d.user.id)
+                user: Util.optionalEnv<boolean>("STATE_USER", "true") ? { } : payload.data.d.user
             });
         }
     }
