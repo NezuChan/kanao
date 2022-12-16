@@ -164,6 +164,14 @@ export class NezuGateway extends EventEmitter {
         await this.ws.connect();
         const shardCount = await this.ws.getShardCount();
 
+        const gatewayStatusCollection = new RedisCollection({ redis: this.redis, hash: Constants.STATUSES_KEY });
+        await gatewayStatusCollection.clear();
+        let shardId = -1;
+        while (shardId < (shardCount - 1)) {
+            shardId += 1;
+            await gatewayStatusCollection.set(`${shardId}`, { shardId, ping: -1 });
+        }
+
         await this.redis.set(Constants.SHARDS_KEY, shardCount);
 
         console.log(
