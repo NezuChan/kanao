@@ -1,3 +1,4 @@
+import { Result } from "@sapphire/result";
 import { GatewaySendPayload } from "discord-api-types/v10";
 import { Listener, ListenerOptions } from "../../Stores/Listener.js";
 import { ApplyOptions } from "../../Utilities/Decorators/ApplyOptions.js";
@@ -9,10 +10,10 @@ import { ApplyOptions } from "../../Utilities/Decorators/ApplyOptions.js";
 }))
 
 export class SocketRecevierListener extends Listener {
-    public async run(payload: Payload): Promise<void> {
+    public run(payload: Payload): void {
         switch (payload.data.op) {
             case 0:
-                await this.container.gateway.ws.send(payload.data.shard, payload.data.data);
+                void Result.fromAsync(() => this.container.gateway.ws.send(payload.data.shard, payload.data.data));
                 break;
             default:
                 this.container.gateway.logger.warn(`Unknown OP Code: ${payload.data.op}`);
