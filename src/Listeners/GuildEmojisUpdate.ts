@@ -17,5 +17,10 @@ export class GuildEmojisUpdate extends Listener {
         const emojis = await channelCollection.filter((_, key) => key.startsWith(payload.data.d.guild_id));
         for (const [key] of emojis) await channelCollection.delete(key);
         for (const emoji of payload.data.d.emojis) if (emoji.id) await channelCollection.set(`${payload.data.d.guild_id}:${emoji.id}`, emoji);
+
+        this.container.gateway.amqp.sender.publish(payload.data.t, {
+            ...payload,
+            old: emojis
+        }, { persistent: false });
     }
 }

@@ -17,6 +17,13 @@ export class GuildMemberRemoveListener extends Listener {
         const userCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.USER_KEY });
         const presenceCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.PRESENCE_KEY });
 
+        const old = await memberCollection.get(payload.data.d.user.id);
+
+        this.container.gateway.amqp.sender.publish(payload.data.t, {
+            ...payload,
+            old
+        }, { persistent: false });
+
         if (Util.optionalEnv<boolean>("STATE_USER", "true")) await userCollection.delete(payload.data.d.user.id);
         if (Util.optionalEnv<boolean>("STATE_PRESENCE", "true")) await presenceCollection.delete(`${payload.data.d.guild_id}:${payload.data.d.user.id}`);
         if (Util.optionalEnv("STATE_MEMBER", "true")) await memberCollection.delete(payload.data.d.user.id);

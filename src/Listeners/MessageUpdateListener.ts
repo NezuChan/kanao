@@ -20,6 +20,11 @@ export class MessageUpdateListener extends Listener {
 
             const message = await messageCollection.get(payload.data.d.id);
             if (message) {
+                this.container.gateway.amqp.sender.publish(payload.data.t, {
+                    ...payload,
+                    old: message
+                }, { persistent: false });
+
                 if (Util.optionalEnv("STATE_MEMBER", "true")) await memberCollection.set(payload.data.d.author!.id, payload.data.d.member);
                 if (Util.optionalEnv("STATE_USER", "true")) await userCollection.set(payload.data.d.author!.id, payload.data.d.author);
                 if (Util.optionalEnv("STATE_MESSAGE", "true")) await messageCollection.set(payload.data.d.id, payload.data.d as unknown as string);
