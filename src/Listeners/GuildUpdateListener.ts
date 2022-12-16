@@ -14,6 +14,13 @@ export class GuildUpdateListener extends Listener {
     public async run(payload: { data: GatewayGuildUpdateDispatch }): Promise<void> {
         const guildCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.GUILD_KEY });
 
+        const old = await guildCollection.get(payload.data.d.id);
+
+        this.container.gateway.amqp.sender.publish(payload.data.t, {
+            ...payload,
+            old
+        }, { persistent: false });
+
         await guildCollection.set(payload.data.d.id, payload.data.d);
     }
 }

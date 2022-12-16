@@ -23,6 +23,10 @@ export class GuildCreateListener extends Listener {
         const emojiCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.EMOJI_KEY });
         const presenceCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.PRESENCE_KEY });
 
+        const old = await collection.get(payload.data.d.id);
+
+        if (!old) this.container.gateway.amqp.sender.publish(payload.data.t, payload, { persistent: false });
+
         for (const member of payload.data.d.members) {
             if (Util.optionalEnv<boolean>("STATE_USER", "true")) await userCollection.set(member.user!.id, member.user);
             if (Util.optionalEnv<boolean>("STATE_MEMBER", "true")) await memberCollection.set(`${payload.data.d.id}:${member.user!.id}`, { ...member, user: Util.optionalEnv<boolean>("STATE_USER", "true") ? { } : member.user });

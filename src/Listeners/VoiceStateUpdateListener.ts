@@ -14,6 +14,10 @@ export class VoiceStateUpdateListener extends Listener {
     public async run(payload: { data: GatewayVoiceStateUpdateDispatch }): Promise<void> {
         const voiceStateCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.VOICE_KEY });
 
+        const old = await voiceStateCollection.get(`${payload.data.d.guild_id!}:${payload.data.d.user_id}`);
+
+        this.container.gateway.amqp.sender.publish(payload.data.t, { ...payload, old }, { persistent: false });
+
         switch (payload.data.d.channel_id) {
             case null:
                 await voiceStateCollection.delete(`${payload.data.d.guild_id!}:${payload.data.d.user_id}`);

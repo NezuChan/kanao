@@ -17,6 +17,12 @@ export class MessageDeleteBulkListener extends Listener {
 
         if (Util.optionalEnv("STATE_MESSAGE", "true")) {
             const messages = await messageCollection.filter((_, key) => payload.data.d.ids.includes(key));
+
+            this.container.gateway.amqp.sender.publish(payload.data.t, {
+                ...payload,
+                old: messages
+            }, { persistent: false });
+
             for (const [key] of messages) await messageCollection.delete(key);
         }
     }

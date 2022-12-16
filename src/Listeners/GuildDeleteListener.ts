@@ -34,6 +34,21 @@ export class GuildDeleteListener extends Listener {
         for (const [key] of presences) await presenceCollection.delete(key);
         for (const [key] of emojis) await emojiCollection.delete(key);
 
+        if (!payload.data.d.unavailable) {
+            this.container.gateway.amqp.sender.publish(payload.data.t, {
+                ...payload,
+                old: {
+                    ...await collection.get(payload.data.d.id) ?? {},
+                    roles: roles.toJSON(),
+                    emojis: emojis.toJSON(),
+                    members: members.toJSON(),
+                    channels: channels.toJSON(),
+                    voiceStates: voiceStates.toJSON(),
+                    presences: presences.toJSON()
+                }
+            }, { persistent: false });
+        }
+
         await collection.delete(payload.data.d.id);
     }
 }

@@ -20,6 +20,13 @@ export class GuildMemberUpdateListener extends Listener {
         const userCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.USER_KEY });
         const botUser = await this.container.gateway.redis.get(Constants.BOT_USER_KEY);
 
+        const old = await memberCollection.get(payload.data.d.user.id);
+
+        this.container.gateway.amqp.sender.publish(payload.data.t, {
+            ...payload,
+            old
+        }, { persistent: false });
+
         if (Util.optionalEnv<boolean>("STATE_USER", "true") || cast<APIUser>(JSON.parse(botUser ?? "{ id: null }")).id === payload.data.d.user.id) await userCollection.set(payload.data.d.user.id, payload.data.d.user);
         if (Util.optionalEnv("STATE_MEMBER", "true") || cast<APIUser>(JSON.parse(botUser ?? "{ id: null }").id === payload.data.d.user.id)) {
             await memberCollection.set(payload.data.d.user.id, {
