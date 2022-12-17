@@ -21,7 +21,7 @@
     "@typescript-eslint/eslint-plugin": "^5.46.1",
     "@typescript-eslint/parser": "^5.46.1",
     "@vladfrangu/async_event_emitter": "^2.1.2",
-    "eslint": "^8.29.0",
+    "eslint": "^8.30.0",
     "rimraf": "^3.0.2",
     "typescript": "^4.9.4"
   },
