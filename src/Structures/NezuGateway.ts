@@ -21,8 +21,9 @@ import { ActivityType } from "discord-api-types/v9";
 import { PresenceUpdateStatus } from "discord-api-types/payloads";
 import { RpcPublisher, RoutingSubscriber, createAmqp, RoutingPublisher } from "@nezuchan/cordis-brokers";
 import { TaskStore } from "../Stores/TaskStore.js";
+import { cast } from "@sapphire/utilities";
 
-const { default: Redis } = IORedis;
+const { default: Redis, Cluster } = IORedis;
 const packageJson = Util.loadJSON<{ version: string }>("../../package.json");
 
 export class NezuGateway extends EventEmitter {
@@ -37,13 +38,26 @@ export class NezuGateway extends EventEmitter {
         METRICS_ROUTE: process.env.PROMETHEUS_PATH ?? "/metrics"
     });
 
-    public redis = new Redis({
-        username: process.env.REDIS_USERNAME!,
-        password: process.env.REDIS_PASSWORD!,
-        host: process.env.REDIS_HOST,
-        port: Number(process.env.REDIS_PORT!),
-        db: Number(process.env.REDIS_DB ?? 0)
-    });
+    public redis =
+        cast<IORedis.ClusterNode[]>(JSON.parse(process.env.REDIS_CLUSTERS ?? "[]")).length
+            ? new Cluster(
+                cast<IORedis.ClusterNode[]>(JSON.parse(process.env.REDIS_CLUSTERS!)),
+                {
+                    scaleReads: cast<IORedis.NodeRole>(process.env.REDIS_CLUSTER_SCALE_READS ?? "slavee"),
+                    redisOptions: {
+                        password: process.env.REDIS_PASSWORD,
+                        username: process.env.REDIS_USERNAME,
+                        db: parseInt(process.env.REDIS_DB ?? "0")
+                    }
+                }
+            )
+            : new Redis({
+                username: process.env.REDIS_USERNAME!,
+                password: process.env.REDIS_PASSWORD!,
+                host: process.env.REDIS_HOST,
+                port: Number(process.env.REDIS_PORT!),
+                db: Number(process.env.REDIS_DB ?? 0)
+            });
 
     public logger = pino({
         name: "nezu-gateway",
