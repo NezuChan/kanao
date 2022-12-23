@@ -1,4 +1,4 @@
-FROM node:16-alpine3.14 as build-stage
+FROM node:18-alpine3.14 as build-stage
 
 LABEL name "NezukoChan Gateway (Docker Build)"
 LABEL maintainer "KagChi"
@@ -19,7 +19,7 @@ RUN npm prune --production
 
 RUN git submodule update --force --recursive --init --remote
 
-FROM node:16-alpine3.14
+FROM node:18-alpine3.14
 
 LABEL name "NezukoChan Gateway Production"
 LABEL maintainer "KagChi"
