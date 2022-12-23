@@ -43,7 +43,7 @@ export class NezuGateway extends EventEmitter {
             ? new Cluster(
                 cast<IORedis.ClusterNode[]>(JSON.parse(process.env.REDIS_CLUSTERS!)),
                 {
-                    scaleReads: cast<IORedis.NodeRole>(process.env.REDIS_CLUSTER_SCALE_READS ?? "slavee"),
+                    scaleReads: cast<IORedis.NodeRole>(process.env.REDIS_CLUSTER_SCALE_READS ?? "slave"),
                     redisOptions: {
                         password: process.env.REDIS_PASSWORD,
                         username: process.env.REDIS_USERNAME,
