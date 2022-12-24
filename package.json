@@ -4,7 +4,7 @@
   "description": "A standalone service for connecting to the Discord gateway.",
   "main": "dist",
   "scripts": {
-    "start": "npm run build && node --experimental-specifier-resolution=node -r dotenv/config dist/index.js",
+    "start": "npm run build && node -r dotenv/config dist/index.js",
     "lint": "eslint src --ext ts",
     "lint:fix": "eslint src --fix --ext ts",
     "build": "rimraf dist && swc src -d dist"
