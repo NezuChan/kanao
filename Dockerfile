@@ -1,11 +1,7 @@
-FROM node:18-alpine3.14 as build-stage
+FROM ghcr.io/hazmi35/node:18-dev-alpine as build-stage
 
 LABEL name "NezukoChan Gateway (Docker Build)"
 LABEL maintainer "KagChi"
-
-WORKDIR /tmp/build
-
-RUN apk add --no-cache build-base git python3
 
 COPY package.json .
 
@@ -19,14 +15,10 @@ RUN npm prune --production
 
 RUN git submodule update --force --recursive --init --remote
 
-FROM node:18-alpine3.14
+FROM ghcr.io/hazmi35/node:18-alpine
 
 LABEL name "NezukoChan Gateway Production"
 LABEL maintainer "KagChi"
-
-WORKDIR /app
-
-RUN apk add --no-cache tzdata git
 
 COPY --from=build-stage /tmp/build/package.json .
 COPY --from=build-stage /tmp/build/package-lock.json .
@@ -35,4 +27,4 @@ COPY --from=build-stage /tmp/build/dist ./dist
 
 VOLUME [ "/app/logs" ]
 
-CMD node --experimental-specifier-resolution=node -r dotenv/config dist/index.js
+CMD node -r dotenv/config dist/index.js
