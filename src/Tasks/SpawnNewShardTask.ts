@@ -23,15 +23,6 @@ export class SpawnNewShardTask extends Task {
         const sessionInfo = await this.container.gateway.ws.fetchGatewayInformation(true);
         const shardCount = await this.container.gateway.ws.getShardCount();
 
-        if (sessionInfo.shards !== shardCount) {
-            await this.container.gateway.ws.updateShardCount(sessionInfo.shards);
-            await this.container.gateway.redis.set(Constants.SHARDS_KEY, shardCount);
-            return this.container.gateway.logger.info(`Spawned new shards, shard count is now ${sessionInfo.shards}`);
-        }
-
-        this.container.gateway.logger.info("No need to spawn new shards, it's already at the maximum shard count.");
-        this.container.gateway.logger.info("Rescheduling task...");
-
         await this.container.gateway.redis.hset(Constants.SPAWN_NEW_SHARD_TASK, "lastRun", Date.now());
         await this.container.gateway.redis.expire(Constants.SPAWN_NEW_SHARD_TASK, (Time.Minute * 20) - (Time.Second * 10));
 
@@ -41,5 +32,14 @@ export class SpawnNewShardTask extends Task {
             type: "add",
             data: this.options.taskOptions.data
         });
+
+        if (sessionInfo.shards !== shardCount) {
+            await this.container.gateway.ws.updateShardCount(sessionInfo.shards);
+            await this.container.gateway.redis.set(Constants.SHARDS_KEY, shardCount);
+
+            return this.container.gateway.logger.info(`Spawned new shards, shard count is now ${sessionInfo.shards}`);
+        }
+
+        this.container.gateway.logger.info("No need to spawn new shards, it's already at the maximum shard count.");
     }
 }
