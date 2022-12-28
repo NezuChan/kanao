@@ -39,6 +39,12 @@ jobs:
       - name: Extract flavor
         id: flavor
         run: if [ "${{ github.event_name }}" = "release" ]; then echo ::set-output name=name::; else echo ::set-output name=name::-dev; fi
+      
+      - name: Extract repository and lowercase it
+      - id: string
+        uses: ASzc/change-string-case-action@v2
+        with:
+          string: ${{ github.repository }}
 
       - name: Generate Docker image metadata
         uses: docker/metadata-action@57396166ad8aefe6098280995947635806a0e6ea # v4.1.1
@@ -47,7 +53,7 @@ jobs:
           flavor: |
             latest=auto
             suffix=${{ steps.flavor.outputs.name }}
-          images: ghcr.io/nezuchan/nezu-gateway
+          images: "ghcr.io/${{ steps.string.outputs.lowercase }}"
           tags: |
             ${{ steps.tags.outputs.name }}
             latest
