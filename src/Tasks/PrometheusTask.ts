@@ -67,7 +67,7 @@ export class PrometheusTask extends Task {
         }
 
         await this.container.gateway.redis.hset(Constants.PROMETHEUS_TASK, "lastRun", Date.now());
-        await this.container.gateway.redis.expire(Constants.PROMETHEUS_TASK, (Time.Minute * 20) - (Time.Second * 10));
+        await this.container.gateway.redis.expire(Constants.PROMETHEUS_TASK, Time.Second * 8);
 
         await this.container.gateway.tasks.sender.post({
             name: this.name,
@@ -88,6 +88,9 @@ export class PrometheusTask extends Task {
                 type: "add",
                 data: this.options.taskOptions.data
             });
+
+            await this.container.gateway.redis.hset(Constants.PROMETHEUS_TASK, "lastRun", Date.now());
+            await this.container.gateway.redis.expire(Constants.PROMETHEUS_TASK, Time.Second * 8);
         });
         this.container.gateway.tasks.receiver.on(this.name, this._run.bind(this));
         return super.onLoad();

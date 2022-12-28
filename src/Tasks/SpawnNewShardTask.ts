@@ -55,6 +55,9 @@ export class SpawnNewShardTask extends Task {
                 type: "add",
                 data: this.options.taskOptions.data
             });
+
+            await this.container.gateway.redis.hset(Constants.SPAWN_NEW_SHARD_TASK, "lastRun", Date.now());
+            await this.container.gateway.redis.expire(Constants.SPAWN_NEW_SHARD_TASK, (Time.Minute * 20) - (Time.Second * 10));
         });
         this.container.gateway.tasks.receiver.on(this.name, this._run.bind(this));
         return super.onLoad();
