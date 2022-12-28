@@ -1,4 +1,4 @@
-name: compile
+name: Lint code & compile test
 
 on:
   push:
