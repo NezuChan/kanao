@@ -26,4 +26,7 @@ export class Constants {
 
     public static readonly TASKS_SEND = "scheduled-tasks.send";
     public static readonly TASKS_RECV = "scheduled-tasks.recv";
+
+    public static readonly PROMETHEUS_TASK = "prometheus-task";
+    public static readonly SPAWN_NEW_SHARD_TASK = "spawn-new-shard-task";
 }
