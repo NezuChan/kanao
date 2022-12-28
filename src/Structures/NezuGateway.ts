@@ -43,7 +43,7 @@ export class NezuGateway extends EventEmitter {
             ? new Cluster(
                 cast<IORedis.ClusterNode[]>(JSON.parse(process.env.REDIS_CLUSTERS!)),
                 {
-                    scaleReads: cast<IORedis.NodeRole>(process.env.REDIS_CLUSTER_SCALE_READS ?? "slave"),
+                    scaleReads: cast<IORedis.NodeRole>(process.env.REDIS_CLUSTER_SCALE_READS ?? "all"),
                     redisOptions: {
                         password: process.env.REDIS_PASSWORD,
                         username: process.env.REDIS_USERNAME,
@@ -69,10 +69,14 @@ export class NezuGateway extends EventEmitter {
             })
         },
         transport: {
-            targets: [
-                { target: "pino/file", level: "info", options: { destination: resolve(process.cwd(), "logs", `nezu-gateway-${this.date()}.log`) } },
-                { target: "pino-pretty", level: process.env.NODE_ENV === "production" ? "info" : "trace", options: { translateTime: "SYS:yyyy-mm-dd HH:MM:ss.l o" } }
-            ]
+            targets: process.env.STORE_LOGS === "true"
+                ? [
+                    { target: "pino/file", level: "info", options: { destination: resolve(process.cwd(), "logs", `nezu-gateway-${this.date()}.log`) } },
+                    { target: "pino-pretty", level: process.env.NODE_ENV === "production" ? "info" : "trace", options: { translateTime: "SYS:yyyy-mm-dd HH:MM:ss.l o" } }
+                ]
+                : [
+                    { target: "pino-pretty", level: process.env.NODE_ENV === "production" ? "info" : "trace", options: { translateTime: "SYS:yyyy-mm-dd HH:MM:ss.l o" } }
+                ]
         }
     });
 
@@ -86,6 +90,13 @@ export class NezuGateway extends EventEmitter {
             GatewayIntentBits.GuildVoiceStates,
         largeThreshold: Number(process.env.GATEWAY_LARGE_THRESHOLD ?? 250),
         token: process.env.DISCORD_TOKEN!,
+        shardCount: Number(process.env.GATEWAY_SHARD_COUNT ?? 0) <= 0 ? null : Number(process.env.GATEWAY_SHARD_COUNT),
+        shardIds: process.env.GATEWAY_SHARD_START && process.env.GATEWAY_SHARD_END
+            ? {
+                start: Number(process.env.GATEWAY_SHARD_START),
+                end: Number(process.env.GATEWAY_SHARD_END)
+            }
+            : null,
         initialPresence: {
             activities: [
                 {
@@ -152,7 +163,7 @@ export class NezuGateway extends EventEmitter {
         container.gateway = this;
 
         if (process.env.PROMETHEUS_ENABLED === "true") this.prometheus.init();
-        const { channel } = await createAmqp(process.env.AMQP_HOST!);
+        const { channel } = await createAmqp(process.env.AMQP_HOST ?? process.env.AMQP_URL!);
 
         this.tasks = {
             sender: new RpcPublisher(channel),
@@ -174,7 +185,7 @@ export class NezuGateway extends EventEmitter {
         this.stores.register(new TaskStore());
         this.rest.setToken(process.env.DISCORD_TOKEN!);
         await Promise.all([...this.stores.values()].map((store: Store<Piece>) => store.loadAll()));
-        this.ws.setStrategy(new WorkerShardingStrategy(this.ws, { shardsPerWorker: 14 }));
+        this.ws.setStrategy(new WorkerShardingStrategy(this.ws, { shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 14) }));
         await this.ws.connect();
         const shardCount = await this.ws.getShardCount();
 
