@@ -12,11 +12,15 @@ import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
         options: {
             delay: Time.Second * 10
         }
-    }
+    },
+    enabled: process.env.PROMETHEUS_ENABLED === "true"
 })
 
 export class PrometheusTask extends Task {
     public async run(): Promise<void> {
+        const previousTask = await this.container.gateway.redis.hget(Constants.PROMETHEUS_TASK, "lastRun");
+        if (previousTask) return this.container.gateway.logger.warn("Possible dupe [prometheusTask] task, skipping...");
+
         const socketCounter = new this.container.gateway.prometheus.client.Gauge({
             name: "ws_ping",
             help: "Websocket ping",
@@ -60,6 +64,9 @@ export class PrometheusTask extends Task {
         for (const status of gatewayStatuses) {
             socketCounter.set({ shardId: status.shardId }, Number(status.ping));
         }
+
+        await this.container.gateway.redis.hset(Constants.PROMETHEUS_TASK, "lastRun", Date.now());
+        await this.container.gateway.redis.expire(Constants.PROMETHEUS_TASK, (Time.Minute * 20) - (Time.Second * 10));
 
         await this.container.gateway.tasks.sender.post({
             name: this.name,
