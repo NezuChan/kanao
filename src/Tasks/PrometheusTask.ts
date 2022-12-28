@@ -4,6 +4,7 @@ import { Time } from "@sapphire/time-utilities";
 import { Task, TaskOptions } from "../Stores/Task.js";
 import { Constants } from "../Utilities/Constants.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
+import { Result } from "@sapphire/result";
 
 @ApplyOptions<TaskOptions>({
     taskOptions: {
@@ -74,5 +75,21 @@ export class PrometheusTask extends Task {
             type: "add",
             data: this.options.taskOptions.data
         });
+    }
+
+    public override onLoad(): unknown {
+        void Result.fromAsync(async () => {
+            const previousTask = await this.container.gateway.redis.hget(Constants.PROMETHEUS_TASK, "lastRun");
+            if (previousTask) return this.container.gateway.logger.warn("Possible dupe [prometheusTask] task, skipping...");
+
+            await this.container.gateway.tasks.sender.post({
+                name: this.name,
+                options: this.options.taskOptions.options,
+                type: "add",
+                data: this.options.taskOptions.data
+            });
+        });
+        this.container.gateway.tasks.receiver.on(this.name, this._run.bind(this));
+        return super.onLoad();
     }
 }

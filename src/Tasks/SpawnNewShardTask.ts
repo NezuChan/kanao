@@ -2,6 +2,7 @@ import { Time } from "@sapphire/time-utilities";
 import { Task, TaskOptions } from "../Stores/Task.js";
 import { Constants } from "../Utilities/Constants.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
+import { Result } from "@sapphire/result";
 
 @ApplyOptions<TaskOptions>({
     taskOptions: {
@@ -41,5 +42,21 @@ export class SpawnNewShardTask extends Task {
         }
 
         this.container.gateway.logger.info("No need to spawn new shards, it's already at the maximum shard count.");
+    }
+
+    public override onLoad(): unknown {
+        void Result.fromAsync(async () => {
+            const previousTask = await this.container.gateway.redis.hget(Constants.SPAWN_NEW_SHARD_TASK, "lastRun");
+            if (previousTask) return this.container.gateway.logger.warn("Possible dupe [spawnNewShardTask] task, skipping...");
+
+            await this.container.gateway.tasks.sender.post({
+                name: this.name,
+                options: this.options.taskOptions.options,
+                type: "add",
+                data: this.options.taskOptions.data
+            });
+        });
+        this.container.gateway.tasks.receiver.on(this.name, this._run.bind(this));
+        return super.onLoad();
     }
 }

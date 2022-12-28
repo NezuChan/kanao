@@ -15,12 +15,14 @@ export abstract class Task extends Piece {
 
     public onLoad(): unknown {
         void Result.fromAsync(async () => {
-            await this.container.gateway.tasks.sender.post({
-                name: this.name,
-                options: this.options.taskOptions.options,
-                type: "add",
-                data: this.options.taskOptions.data
-            });
+            if (this.options.taskOptions.options) {
+                await this.container.gateway.tasks.sender.post({
+                    name: this.name,
+                    options: this.options.taskOptions.options,
+                    type: "add",
+                    data: this.options.taskOptions.data
+                });
+            }
         });
         this.container.gateway.tasks.receiver.on(this.name, this._run.bind(this));
         return super.onLoad();
@@ -32,7 +34,7 @@ export abstract class Task extends Piece {
         return super.onUnload();
     }
 
-    private async _run(...args: unknown[]): Promise<void> {
+    protected async _run(...args: unknown[]): Promise<void> {
         const result = await Result.fromAsync(() => this.run(...args));
         if (result.isErr()) {
             this.container.gateway.emit(CommonEvents.TaskError, result.unwrapErr(), { piece: this });
