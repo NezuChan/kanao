@@ -29,7 +29,7 @@ const packageJson = Util.loadJSON<{ version: string }>("../../package.json");
 export class NezuGateway extends EventEmitter {
     public rest = new REST({
         api: process.env.NIRN_PROXY ?? "https://discord.com/api",
-        rejectOnRateLimit: () => process.env.NIRN_PROXY !== undefined
+        rejectOnRateLimit: () => process.env.NIRN_PROXY === undefined
     });
 
     public stores = new StoreRegistry();
