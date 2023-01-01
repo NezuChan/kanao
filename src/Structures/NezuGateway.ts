@@ -29,13 +29,13 @@ const packageJson = Util.loadJSON<{ version: string }>("../../package.json");
 export class NezuGateway extends EventEmitter {
     public rest = new REST({
         api: process.env.NIRN_PROXY ?? "https://discord.com/api",
-        rejectOnRateLimit: () => process.env.NIRN_PROXY === undefined
+        rejectOnRateLimit: process.env.NIRN_PROXY ? () => false : null
     });
 
     public stores = new StoreRegistry();
 
     public prometheus = new APM({
-        PORT: 3000,
+        PORT: process.env.PROMETHEUS_PORT ?? 9090,
         METRICS_ROUTE: process.env.PROMETHEUS_PATH ?? "/metrics"
     });
 
@@ -175,6 +175,27 @@ export class NezuGateway extends EventEmitter {
             sender: new RoutingPublisher(channel),
             receiver: new RoutingSubscriber(channel)
         };
+
+        const gatewaySessions = await new RedisCollection<SessionInfo>({
+            redis: this.redis,
+            hash: Constants.SESSIONS_KEY
+        }).valuesArray();
+
+        if (gatewaySessions.length) { this.logger.info(`Found ${gatewaySessions.length} resumeable gateway sessions in Redis`); } else {
+            this.logger.warn("No gateway sessions found in Redis, starting fresh");
+            await new RedisCollection({ redis: this.redis, hash: Constants.GUILD_KEY }).clear();
+            await new RedisCollection({ redis: this.redis, hash: Constants.CHANNEL_KEY }).clear();
+            await new RedisCollection({ redis: this.redis, hash: Constants.MESSAGE_KEY }).clear();
+            await new RedisCollection({ redis: this.redis, hash: Constants.ROLE_KEY }).clear();
+            await new RedisCollection({ redis: this.redis, hash: Constants.EMOJI_KEY }).clear();
+            await new RedisCollection({ redis: this.redis, hash: Constants.MEMBER_KEY }).clear();
+            await new RedisCollection({ redis: this.redis, hash: Constants.PRESENCE_KEY }).clear();
+            await new RedisCollection({ redis: this.redis, hash: Constants.VOICE_KEY }).clear();
+            await new RedisCollection({ redis: this.redis, hash: Constants.STATUSES_KEY }).clear();
+            await this.redis.del(Constants.BOT_USER_KEY);
+            await this.redis.del(Constants.SHARDS_KEY);
+            this.logger.warn("Cleared up existing cache collections");
+        }
 
         await this.amqp.sender.init({ name: Constants.QUEUE_RECV, useExchangeBinding: true, exchangeType: "fanout", queue: Constants.EXCHANGE });
         await this.amqp.receiver.init({ queue: Constants.QUEUE_SEND, keys: "*", durable: true });
