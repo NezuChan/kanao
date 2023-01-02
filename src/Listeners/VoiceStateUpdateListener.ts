@@ -12,11 +12,11 @@ import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 
 export class VoiceStateUpdateListener extends Listener {
     public async run(payload: { data: GatewayVoiceStateUpdateDispatch }): Promise<void> {
-        const voiceStateCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.VOICE_KEY });
+        const voiceStateCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.VOICE_KEY}` : Constants.VOICE_KEY });
 
         const old = await voiceStateCollection.get(`${payload.data.d.guild_id!}:${payload.data.d.user_id}`);
 
-        this.container.gateway.amqp.sender.publish(payload.data.t, { ...payload, old }, { persistent: false });
+        this.container.gateway.amqp.sender.publish(process.env.USE_ROUTING === "true" ? this.container.gateway.clientId : payload.data.t, { ...payload, old }, { persistent: false });
 
         switch (payload.data.d.channel_id) {
             case null:

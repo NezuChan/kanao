@@ -32,6 +32,7 @@ export class NezuGateway extends EventEmitter {
         rejectOnRateLimit: process.env.NIRN_PROXY ? () => false : null
     });
 
+    public clientId = Buffer.from(process.env.DISCORD_TOKEN!.split(".")[0], "base64").toString();
     public stores = new StoreRegistry();
 
     public prometheus = new APM({
@@ -115,7 +116,7 @@ export class NezuGateway extends EventEmitter {
             if (sessionInfo) {
                 const collection = new RedisCollection<SessionInfo>({
                     redis: this.redis,
-                    hash: Constants.SESSIONS_KEY
+                    hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.SESSIONS_KEY}` : Constants.SESSIONS_KEY
                 });
 
                 const result = await Result.fromAsync(() => collection.set(`${shardId}`, sessionInfo));
@@ -126,7 +127,7 @@ export class NezuGateway extends EventEmitter {
         retrieveSessionInfo: async (shardId: number) => {
             const collection = new RedisCollection<string, SessionInfo>({
                 redis: this.redis,
-                hash: Constants.SESSIONS_KEY
+                hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.SESSIONS_KEY}` : Constants.SESSIONS_KEY
             });
 
             const result = await Result.fromAsync(() => collection.get(`${shardId}`));
@@ -181,8 +182,11 @@ export class NezuGateway extends EventEmitter {
             hash: Constants.SESSIONS_KEY
         }).valuesArray();
 
-        if (gatewaySessions.length) { this.logger.info(`Found ${gatewaySessions.length} resumeable gateway sessions in Redis`); } else {
-            this.logger.warn("No gateway sessions found in Redis, starting fresh");
+        if (gatewaySessions.length && process.env.USE_ROUTING !== "true") {
+            this.logger.info(`Found ${gatewaySessions.length} resumeable gateway sessions in Redis`);
+        } else if (process.env.USE_ROUTING === "true") {
+            this.logger.info("Starting in routing mode, clearing all data from Redis");
+            await new RedisCollection({ redis: this.redis, hash: Constants.SESSIONS_KEY }).clear();
             await new RedisCollection({ redis: this.redis, hash: Constants.GUILD_KEY }).clear();
             await new RedisCollection({ redis: this.redis, hash: Constants.CHANNEL_KEY }).clear();
             await new RedisCollection({ redis: this.redis, hash: Constants.MESSAGE_KEY }).clear();
@@ -193,12 +197,30 @@ export class NezuGateway extends EventEmitter {
             await new RedisCollection({ redis: this.redis, hash: Constants.VOICE_KEY }).clear();
             await new RedisCollection({ redis: this.redis, hash: Constants.STATUSES_KEY }).clear();
             await this.redis.del(Constants.BOT_USER_KEY);
-            await this.redis.del(Constants.SHARDS_KEY);
+            await this.redis.del(Constants.SHARDS_KEY); this.logger.warn("Cleared up existing cache collections, switched to routing mode");
+        } else {
+            this.logger.warn("No gateway sessions found in Redis, starting fresh");
+            await new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.GUILD_KEY}` : Constants.GUILD_KEY }).clear();
+            await new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.CHANNEL_KEY}` : Constants.CHANNEL_KEY }).clear();
+            await new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.MESSAGE_KEY}` : Constants.MESSAGE_KEY }).clear();
+            await new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.ROLE_KEY}` : Constants.ROLE_KEY }).clear();
+            await new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.EMOJI_KEY}` : Constants.EMOJI_KEY }).clear();
+            await new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.MEMBER_KEY}` : Constants.MEMBER_KEY }).clear();
+            await new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.PRESENCE_KEY}` : Constants.PRESENCE_KEY }).clear();
+            await new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.VOICE_KEY}` : Constants.VOICE_KEY }).clear();
+            await new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY }).clear();
+            await this.redis.del(process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.BOT_USER_KEY}` : Constants.BOT_USER_KEY);
+            await this.redis.del(process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.SHARDS_KEY}` : Constants.SHARDS_KEY);
             this.logger.warn("Cleared up existing cache collections");
         }
 
-        await this.amqp.sender.init({ name: Constants.QUEUE_RECV, useExchangeBinding: true, exchangeType: "fanout", queue: Constants.EXCHANGE });
-        await this.amqp.receiver.init({ queue: Constants.QUEUE_SEND, keys: "*", durable: true });
+        if (process.env.USE_ROUTING === "true") {
+            await this.amqp.sender.init({ name: Constants.QUEUE_RECV, useExchangeBinding: true, exchangeType: "direct" });
+            await this.amqp.receiver.init({ queue: Constants.QUEUE_SEND, useExchangeBinding: true, keys: this.clientId });
+        } else {
+            await this.amqp.sender.init({ name: Constants.QUEUE_RECV, useExchangeBinding: true, exchangeType: "fanout", queue: Constants.EXCHANGE });
+            await this.amqp.receiver.init({ queue: Constants.QUEUE_SEND, keys: "*", durable: true });
+        }
 
         await this.tasks.receiver.init({ name: Constants.TASKS_RECV, keys: "*", durable: true, exchangeType: "topic", useExchangeBinding: true });
         await this.tasks.sender.init({ name: Constants.TASKS_SEND, autoAck: true });

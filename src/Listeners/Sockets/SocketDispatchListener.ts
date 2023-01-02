@@ -24,10 +24,16 @@ export class DispatchListener extends Listener {
             case GatewayDispatchEvents.MessageUpdate:
             case GatewayDispatchEvents.VoiceStateUpdate:
             case GatewayDispatchEvents.Ready:
+            case GatewayDispatchEvents.ChannelCreate:
+            case GatewayDispatchEvents.ChannelPinsUpdate:
+            case GatewayDispatchEvents.GuildMemberAdd:
+            case GatewayDispatchEvents.GuildMembersChunk:
+            case GatewayDispatchEvents.GuildRoleCreate:
+            case GatewayDispatchEvents.MessageCreate:
                 this.container.gateway.emit(payload.data.t, payload);
                 break;
             default:
-                this.container.gateway.amqp.sender.publish(payload.data.t, payload, { persistent: false });
+                this.container.gateway.amqp.sender.publish(process.env.USE_ROUTING === "true" ? this.container.gateway.clientId : payload.data.t, payload, { persistent: false });
                 break;
         }
     }

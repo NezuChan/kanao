@@ -14,20 +14,22 @@ export class SocketDebugListener extends Listener {
         this.container.gateway.logger.debug(payload);
 
         if ((/Got heartbeat ack after (?<ping>\d+)/).test(payload.message)) {
-            const collection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.STATUSES_KEY });
+            const collection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY });
             const ping = Number((/Got heartbeat ack after (?<ping>\d+)/).exec(payload.message)![1]);
             await collection.set(`${payload.shardId}`, { ping, shardId: payload.shardId });
         }
 
         if (payload.shardId === 0 && payload.message.includes("Invalid session; will attempt to resume: false")) {
-            await new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.GUILD_KEY }).clear();
-            await new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.CHANNEL_KEY }).clear();
-            await new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.MESSAGE_KEY }).clear();
-            await new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.ROLE_KEY }).clear();
-            await new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.EMOJI_KEY }).clear();
-            await new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.MEMBER_KEY }).clear();
-            await new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.PRESENCE_KEY }).clear();
-            await new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.VOICE_KEY }).clear();
+            await new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.GUILD_KEY}` : Constants.GUILD_KEY }).clear();
+            await new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}` : Constants.CHANNEL_KEY }).clear();
+            await new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MESSAGE_KEY}` : Constants.MESSAGE_KEY }).clear();
+            await new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.ROLE_KEY}` : Constants.ROLE_KEY }).clear();
+            await new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.EMOJI_KEY}` : Constants.EMOJI_KEY }).clear();
+            await new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MEMBER_KEY}` : Constants.MEMBER_KEY }).clear();
+            await new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.PRESENCE_KEY}` : Constants.PRESENCE_KEY }).clear();
+            await new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.VOICE_KEY}` : Constants.VOICE_KEY }).clear();
+            await new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY }).clear();
+            await this.container.gateway.redis.del(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.BOT_USER_KEY}` : Constants.BOT_USER_KEY);
             this.container.gateway.logger.warn("Received invalid session, cleared all cache collections");
         }
     }

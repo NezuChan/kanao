@@ -12,13 +12,14 @@ import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 
 export class GuildDeleteListener extends Listener {
     public async run(payload: { data: GatewayGuildDeleteDispatch }): Promise<void> {
-        const collection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.GUILD_KEY });
-        const memberCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.MEMBER_KEY });
-        const roleCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.ROLE_KEY });
-        const voiceStateCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.VOICE_KEY });
-        const channelCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.CHANNEL_KEY });
-        const emojiCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.EMOJI_KEY });
-        const presenceCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.PRESENCE_KEY });
+        const collection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.GUILD_KEY}` : Constants.GUILD_KEY });
+        const memberCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MEMBER_KEY}` : Constants.MEMBER_KEY });
+        const roleCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.ROLE_KEY}` : Constants.ROLE_KEY });
+        const voiceStateCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.VOICE_KEY}` : Constants.VOICE_KEY });
+        const channelCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}` : Constants.CHANNEL_KEY });
+        const emojiCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.EMOJI_KEY}` : Constants.EMOJI_KEY });
+        const presenceCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.PRESENCE_KEY}` : Constants.PRESENCE_KEY });
+
 
         const roles = await roleCollection.filter((_, key) => key.startsWith(payload.data.d.id));
         const emojis = await emojiCollection.filter((_, key) => key.startsWith(payload.data.d.id));
@@ -35,7 +36,7 @@ export class GuildDeleteListener extends Listener {
         for (const [key] of emojis) await emojiCollection.delete(key);
 
         if (!payload.data.d.unavailable) {
-            this.container.gateway.amqp.sender.publish(payload.data.t, {
+            this.container.gateway.amqp.sender.publish(process.env.USE_ROUTING === "true" ? this.container.gateway.clientId : payload.data.t, {
                 ...payload,
                 old: {
                     ...await collection.get(payload.data.d.id) ?? {},

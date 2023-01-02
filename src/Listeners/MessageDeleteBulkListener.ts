@@ -13,12 +13,12 @@ import { Util } from "../Utilities/Util.js";
 
 export class MessageDeleteBulkListener extends Listener {
     public async run(payload: { data: GatewayMessageDeleteBulkDispatch }): Promise<void> {
-        const messageCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.MESSAGE_KEY });
+        const messageCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MESSAGE_KEY}` : Constants.MESSAGE_KEY });
 
         if (Util.optionalEnv("STATE_MESSAGE", "true")) {
             const messages = await messageCollection.filter((_, key) => payload.data.d.ids.includes(key));
 
-            this.container.gateway.amqp.sender.publish(payload.data.t, {
+            this.container.gateway.amqp.sender.publish(process.env.USE_ROUTING === "true" ? this.container.gateway.clientId : payload.data.t, {
                 ...payload,
                 old: messages
             }, { persistent: false });

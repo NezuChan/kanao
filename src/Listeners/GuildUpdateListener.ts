@@ -12,11 +12,11 @@ import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 
 export class GuildUpdateListener extends Listener {
     public async run(payload: { data: GatewayGuildUpdateDispatch }): Promise<void> {
-        const guildCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.GUILD_KEY });
+        const guildCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.GUILD_KEY}` : Constants.GUILD_KEY });
 
         const old = await guildCollection.get(payload.data.d.id);
 
-        this.container.gateway.amqp.sender.publish(payload.data.t, {
+        this.container.gateway.amqp.sender.publish(process.env.USE_ROUTING === "true" ? this.container.gateway.clientId : payload.data.t, {
             ...payload,
             old
         }, { persistent: false });

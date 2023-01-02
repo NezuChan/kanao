@@ -13,12 +13,14 @@ import { Util } from "../Utilities/Util.js";
 
 export class MessageCreateListener extends Listener {
     public async run(payload: { data: GatewayMessageCreateDispatch }): Promise<void> {
-        const messageCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.MESSAGE_KEY });
-        const memberCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.MEMBER_KEY });
-        const userCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.USER_KEY });
+        const messageCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MESSAGE_KEY}` : Constants.MESSAGE_KEY });
+        const memberCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MEMBER_KEY}` : Constants.MEMBER_KEY });
+        const userCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.USER_KEY}` : Constants.USER_KEY });
 
         if (Util.optionalEnv("STATE_MEMBER", "true")) await memberCollection.set(`${payload.data.d.guild_id!}:${payload.data.d.author.id}`, { ...payload.data.d.member, user: Util.optionalEnv<boolean>("STATE_USER", "true") ? { } : payload.data.d.author });
         if (Util.optionalEnv("STATE_USER", "true")) await userCollection.set(payload.data.d.author.id, payload.data.d.author);
         if (Util.optionalEnv("STATE_MESSAGE", "true")) await messageCollection.set(payload.data.d.id, payload.data.d);
+
+        this.container.gateway.amqp.sender.publish(process.env.USE_ROUTING === "true" ? this.container.gateway.clientId : payload.data.t, { ...payload }, { persistent: false });
     }
 }
