@@ -13,11 +13,13 @@ import { Util } from "../Utilities/Util.js";
 
 export class ChannelCreateListener extends Listener {
     public async run(payload: { data: GatewayChannelCreateDispatch }): Promise<void> {
-        const channelCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.CHANNEL_KEY });
+        const channelCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}` : Constants.CHANNEL_KEY });
 
         if (Util.optionalEnv("STATE_CHANNEL", "true")) {
             if ("guild_id" in payload.data.d && payload.data.d.guild_id) await channelCollection.set(`${payload.data.d.guild_id}:${payload.data.d.id}`, payload.data.d);
             else await channelCollection.set(payload.data.d.id, payload.data.d);
         }
+
+        this.container.gateway.amqp.sender.publish(process.env.USE_ROUTING === "true" ? this.container.gateway.clientId : payload.data.t, { ...payload }, { persistent: false });
     }
 }

@@ -14,18 +14,18 @@ import { Util } from "../Utilities/Util.js";
 
 export class GuildCreateListener extends Listener {
     public async run(payload: { data: GatewayGuildCreateDispatch }): Promise<void> {
-        const collection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.GUILD_KEY });
-        const memberCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.MEMBER_KEY });
-        const userCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.USER_KEY });
-        const roleCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.ROLE_KEY });
-        const voiceStateCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.VOICE_KEY });
-        const channelCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.CHANNEL_KEY });
-        const emojiCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.EMOJI_KEY });
-        const presenceCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.PRESENCE_KEY });
+        const collection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.GUILD_KEY}` : Constants.GUILD_KEY });
+        const memberCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MEMBER_KEY}` : Constants.MEMBER_KEY });
+        const userCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.USER_KEY}` : Constants.USER_KEY });
+        const roleCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.ROLE_KEY}` : Constants.ROLE_KEY });
+        const voiceStateCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.VOICE_KEY}` : Constants.VOICE_KEY });
+        const channelCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}` : Constants.CHANNEL_KEY });
+        const emojiCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.EMOJI_KEY}` : Constants.EMOJI_KEY });
+        const presenceCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.PRESENCE_KEY}` : Constants.PRESENCE_KEY });
 
         const old = await collection.get(payload.data.d.id);
 
-        if (!old) this.container.gateway.amqp.sender.publish(payload.data.t, payload, { persistent: false });
+        if (!old) this.container.gateway.amqp.sender.publish(process.env.USE_ROUTING === "true" ? this.container.gateway.clientId : payload.data.t, payload, { persistent: false });
 
         for (const member of payload.data.d.members) {
             if (Util.optionalEnv<boolean>("STATE_USER", "true")) await userCollection.set(member.user!.id, member.user);

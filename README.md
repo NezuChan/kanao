@@ -20,3 +20,6 @@
 - Automatic re-sharding
 - Large treshold support
 - Redis cluster support
+
+# Information
+- Routing mode, everything in saved on redis will be prefixed with {clientId}:{key}

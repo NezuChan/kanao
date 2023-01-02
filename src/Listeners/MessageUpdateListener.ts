@@ -14,13 +14,13 @@ import { Util } from "../Utilities/Util.js";
 export class MessageUpdateListener extends Listener {
     public async run(payload: { data: GatewayMessageUpdateDispatch }): Promise<void> {
         if (Util.optionalEnv("STATE_MESSAGE", "true")) {
-            const messageCollection = new RedisCollection<string, GatewayMessageUpdateDispatch["d"]>({ redis: this.container.gateway.redis, hash: Constants.MESSAGE_KEY });
-            const memberCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.MEMBER_KEY });
-            const userCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: Constants.USER_KEY });
+            const messageCollection = new RedisCollection<string, GatewayMessageUpdateDispatch["d"]>({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MESSAGE_KEY}` : Constants.MESSAGE_KEY });
+            const memberCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MEMBER_KEY}` : Constants.MEMBER_KEY });
+            const userCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.USER_KEY}` : Constants.USER_KEY });
 
             const message = await messageCollection.get(payload.data.d.id);
             if (message) {
-                this.container.gateway.amqp.sender.publish(payload.data.t, {
+                this.container.gateway.amqp.sender.publish(process.env.USE_ROUTING === "true" ? this.container.gateway.clientId : payload.data.t, {
                     ...payload,
                     old: message
                 }, { persistent: false });
