@@ -29,7 +29,6 @@ export class SocketDebugListener extends Listener {
             await new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.PRESENCE_KEY}` : Constants.PRESENCE_KEY }).clear();
             await new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.VOICE_KEY}` : Constants.VOICE_KEY }).clear();
             await new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY }).clear();
-            await this.container.gateway.redis.del(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.BOT_USER_KEY}` : Constants.BOT_USER_KEY);
             this.container.gateway.logger.warn("Received invalid session, cleared all cache collections");
         }
     }

@@ -196,7 +196,6 @@ export class NezuGateway extends EventEmitter {
             await new RedisCollection({ redis: this.redis, hash: Constants.PRESENCE_KEY }).clear();
             await new RedisCollection({ redis: this.redis, hash: Constants.VOICE_KEY }).clear();
             await new RedisCollection({ redis: this.redis, hash: Constants.STATUSES_KEY }).clear();
-            await this.redis.del(Constants.BOT_USER_KEY);
             await this.redis.del(Constants.SHARDS_KEY); this.logger.warn("Cleared up existing cache collections, switched to routing mode");
         } else {
             this.logger.warn("No gateway sessions found in Redis, starting fresh");
@@ -209,7 +208,6 @@ export class NezuGateway extends EventEmitter {
             await new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.PRESENCE_KEY}` : Constants.PRESENCE_KEY }).clear();
             await new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.VOICE_KEY}` : Constants.VOICE_KEY }).clear();
             await new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY }).clear();
-            await this.redis.del(process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.BOT_USER_KEY}` : Constants.BOT_USER_KEY);
             await this.redis.del(process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.SHARDS_KEY}` : Constants.SHARDS_KEY);
             this.logger.warn("Cleared up existing cache collections");
         }
