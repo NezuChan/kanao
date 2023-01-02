@@ -20,6 +20,6 @@ export class ChannelCreateListener extends Listener {
             else await channelCollection.set(payload.data.d.id, payload.data.d);
         }
 
-        this.container.gateway.amqp.sender.publish(process.env.USE_ROUTING === "true" ? this.container.gateway.clientId : payload.data.t, { ...payload }, { persistent: false });
+        this.container.gateway.amqp.sender.publish(this.container.gateway.clientId, payload.data.t, { ...payload }, { persistent: false });
     }
 }

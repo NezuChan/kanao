@@ -214,7 +214,7 @@ export class NezuGateway extends EventEmitter {
 
         if (process.env.USE_ROUTING === "true") {
             await this.amqp.sender.init({ name: Constants.QUEUE_RECV, useExchangeBinding: true, exchangeType: "direct" });
-            await this.amqp.receiver.init({ queue: Constants.QUEUE_SEND, useExchangeBinding: true, keys: this.clientId });
+            await this.amqp.receiver.init({ name: Constants.QUEUE_SEND, useExchangeBinding: true, keys: this.clientId, durable: true });
         } else {
             await this.amqp.sender.init({ name: Constants.QUEUE_RECV, useExchangeBinding: true, exchangeType: "fanout", queue: Constants.EXCHANGE });
             await this.amqp.receiver.init({ queue: Constants.QUEUE_SEND, keys: "*", durable: true });

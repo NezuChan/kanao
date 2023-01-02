@@ -18,7 +18,7 @@ export class MessageDeleteBulkListener extends Listener {
         if (Util.optionalEnv("STATE_MESSAGE", "true")) {
             const messages = await messageCollection.filter((_, key) => payload.data.d.ids.includes(key));
 
-            this.container.gateway.amqp.sender.publish(process.env.USE_ROUTING === "true" ? this.container.gateway.clientId : payload.data.t, {
+            this.container.gateway.amqp.sender.publish(this.container.gateway.clientId, payload.data.t, {
                 ...payload,
                 old: messages
             }, { persistent: false });

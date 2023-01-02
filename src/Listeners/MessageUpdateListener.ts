@@ -20,7 +20,7 @@ export class MessageUpdateListener extends Listener {
 
             const message = await messageCollection.get(payload.data.d.id);
             if (message) {
-                this.container.gateway.amqp.sender.publish(process.env.USE_ROUTING === "true" ? this.container.gateway.clientId : payload.data.t, {
+                this.container.gateway.amqp.sender.publish(this.container.gateway.clientId, payload.data.t, {
                     ...payload,
                     old: message
                 }, { persistent: false });

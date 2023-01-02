@@ -25,7 +25,7 @@ export class GuildCreateListener extends Listener {
 
         const old = await collection.get(payload.data.d.id);
 
-        if (!old) this.container.gateway.amqp.sender.publish(process.env.USE_ROUTING === "true" ? this.container.gateway.clientId : payload.data.t, payload, { persistent: false });
+        if (!old) this.container.gateway.amqp.sender.publish(this.container.gateway.clientId, payload.data.t, payload, { persistent: false });
 
         for (const member of payload.data.d.members) {
             if (Util.optionalEnv<boolean>("STATE_USER", "true")) await userCollection.set(member.user!.id, member.user);

@@ -16,6 +16,6 @@ export class GuildRoleCreateListener extends Listener {
         const roleCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.ROLE_KEY}` : Constants.ROLE_KEY });
 
         if (Util.optionalEnv("STATE_ROLE", "true")) await roleCollection.set(payload.data.d.role.id, payload.data.d.role);
-        this.container.gateway.amqp.sender.publish(process.env.USE_ROUTING === "true" ? this.container.gateway.clientId : payload.data.t, { ...payload }, { persistent: false });
+        this.container.gateway.amqp.sender.publish(this.container.gateway.clientId, payload.data.t, { ...payload }, { persistent: false });
     }
 }

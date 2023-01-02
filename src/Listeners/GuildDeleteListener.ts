@@ -36,7 +36,7 @@ export class GuildDeleteListener extends Listener {
         for (const [key] of emojis) await emojiCollection.delete(key);
 
         if (!payload.data.d.unavailable) {
-            this.container.gateway.amqp.sender.publish(process.env.USE_ROUTING === "true" ? this.container.gateway.clientId : payload.data.t, {
+            this.container.gateway.amqp.sender.publish(this.container.gateway.clientId, payload.data.t, {
                 ...payload,
                 old: {
                     ...await collection.get(payload.data.d.id) ?? {},

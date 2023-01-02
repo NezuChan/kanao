@@ -19,6 +19,6 @@ export class ChannelDeleteListener extends Listener {
         if ("guild_id" in payload.data.d && payload.data.d.guild_id) await channelCollection.delete(`${payload.data.d.guild_id}:${payload.data.d.id}`);
         else await channelCollection.delete(payload.data.d.id);
 
-        this.container.gateway.amqp.sender.publish(process.env.USE_ROUTING === "true" ? this.container.gateway.clientId : payload.data.t, { ...payload, old }, { persistent: false });
+        this.container.gateway.amqp.sender.publish(this.container.gateway.clientId, payload.data.t, { ...payload, old }, { persistent: false });
     }
 }
