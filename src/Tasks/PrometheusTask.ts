@@ -43,13 +43,13 @@ export class PrometheusTask extends Task {
             help: "User count"
         });
 
-        const socketCollection = new RedisCollection<string, { shardId: string; ping: string }>({ redis: this.container.gateway.redis, hash: Constants.STATUSES_KEY });
+        const socketCollection = new RedisCollection<string, { shardId: string; ping: string }>({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY });
         const gatewayStatuses = await socketCollection.valuesArray();
 
-        const guildCollection = new RedisCollection<string, { member_count: number }>({ redis: this.container.gateway.redis, hash: Constants.GUILD_KEY });
+        const guildCollection = new RedisCollection<string, { member_count: number }>({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.GUILD_KEY}` : Constants.GUILD_KEY });
         const guilds = await guildCollection.valuesArray();
 
-        const channelCollection = new RedisCollection<string, { id: string }>({ redis: this.container.gateway.redis, hash: Constants.CHANNEL_KEY });
+        const channelCollection = new RedisCollection<string, { id: string }>({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}` : Constants.CHANNEL_KEY });
         const channels = await channelCollection.valuesArray();
 
         guildCounter.reset();
