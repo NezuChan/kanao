@@ -9,6 +9,7 @@ import { WebSocketShardEvents } from "@discordjs/ws";
 
 export class SocketResumedListener extends Listener {
     public run(payload: { shardId: number }): void {
+        this.container.gateway.resetInvalidatedOnStart = false;
         this.container.gateway.logger.info(`Shard ${payload.shardId} resumed`);
     }
 }
