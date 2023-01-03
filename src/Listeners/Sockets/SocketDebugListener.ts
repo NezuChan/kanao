@@ -19,7 +19,7 @@ export class SocketDebugListener extends Listener {
             await collection.set(`${payload.shardId}`, { ping, shardId: payload.shardId });
         }
 
-        if (payload.shardId === 0 && payload.message.includes("Invalid session; will attempt to resume: false")) {
+        if (this.container.gateway.resetInvalidatedOnStart && payload.shardId === 0 && payload.message.includes("Invalid session; will attempt to resume: false")) {
             await new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.GUILD_KEY}` : Constants.GUILD_KEY }).clear();
             await new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}` : Constants.CHANNEL_KEY }).clear();
             await new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MESSAGE_KEY}` : Constants.MESSAGE_KEY }).clear();

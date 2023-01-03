@@ -9,6 +9,6 @@ import { WebSocketShardEvents } from "@discordjs/ws";
 
 export class SocketReadyListener extends Listener {
     public run(payload: { shardId: number }): void {
-        this.container.gateway.logger.info(`Shard ${payload.shardId} ready`);
+        this.container.gateway.logger.info(`Shard ${payload.shardId} ready`); this.container.gateway.resetInvalidatedOnStart = false;
     }
 }
