@@ -56,7 +56,7 @@
     "discord-api-types": "^0.37.28",
     "dotenv": "^16.0.3",
     "gradient-string": "^2.0.2",
-    "ioredis": "^5.2.4",
+    "ioredis": "^5.2.5",
     "pino": "^8.8.0",
     "pino-pretty": "^9.1.1",
     "prometheus-middleware": "^1.1.2",
