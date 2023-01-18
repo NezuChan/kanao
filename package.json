@@ -1,6 +1,6 @@
 {
   "name": "@nezuchan/nezu-gateway",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "A standalone service for connecting to the Discord gateway.",
   "main": "dist",
   "scripts": {
