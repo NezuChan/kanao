@@ -91,6 +91,7 @@ export class NezuGateway extends EventEmitter {
             GatewayIntentBits.GuildMembers |
             GatewayIntentBits.GuildMessages |
             GatewayIntentBits.GuildVoiceStates,
+        helloTimeout: Number(process.env.GATEWAY_HELLO_TIMEOUT),
         largeThreshold: Number(process.env.GATEWAY_LARGE_THRESHOLD ?? 250),
         token: process.env.DISCORD_TOKEN!,
         shardCount: Number(process.env.GATEWAY_SHARD_COUNT ?? 0) <= 0 ? null : Number(process.env.GATEWAY_SHARD_COUNT),
