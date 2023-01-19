@@ -202,7 +202,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
     private async setupWorker(workerData: WorkerData) {
         const worker = fork(this.resolveWorkerPath(), { execArgv: [JSON.stringify(workerData)] });
 
-        await once(worker, "online");
+        await once(worker, "spawn");
         // We do this in case the user has any potentially long running code in their worker
         await this.waitForWorkerReady(worker);
 
