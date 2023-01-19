@@ -96,13 +96,13 @@ export class NezuGateway extends EventEmitter {
         handshakeTimeout: process.env.GATEWAY_HANDSHAKE_TIMEOUT ? Number(process.env.GATEWAY_HANDSHAKE_TIMEOUT) : null,
         largeThreshold: Number(process.env.GATEWAY_LARGE_THRESHOLD ?? 250),
         token: process.env.DISCORD_TOKEN!,
-        shardCount: Number(process.env.GATEWAY_SHARD_COUNT ?? 0) <= 0 ? null : Number(process.env.GATEWAY_SHARD_COUNT),
+        shardCount: process.env.GATEWAY_SHARD_COUNT ? Number(process.env.GATEWAY_SHARD_COUNT) : null,
         shardIds: process.env.GATEWAY_SHARD_START && process.env.GATEWAY_SHARD_END
             ? {
                 start: Number(process.env.GATEWAY_SHARD_START),
                 end: Number(process.env.GATEWAY_SHARD_END)
             }
-            : undefined,
+            : null,
         initialPresence: {
             activities: [
                 {
