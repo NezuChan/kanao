@@ -7,6 +7,7 @@ import APM from "prometheus-middleware";
 import { pino } from "pino";
 import { default as IORedis } from "ioredis";
 import { CompressionMethod, SessionInfo, SimpleShardingStrategy, WebSocketManager, WorkerShardingStrategy } from "@discordjs/ws";
+import { ProcessShardingStrategy } from "../Utilities/Websocket/ProcessShardingStrategy.js";
 import { GatewayIntentBits } from "discord-api-types/v10";
 import { REST } from "@discordjs/rest";
 import { Result } from "@sapphire/result";
@@ -233,10 +234,18 @@ export class NezuGateway extends EventEmitter {
         await Promise.all([...this.stores.values()].map((store: Store<Piece>) => store.loadAll()));
         if (process.env.USE_SIMPLE_SHARDING === "true") {
             this.ws.setStrategy(new SimpleShardingStrategy(this.ws));
+        } else if (process.env.USE_PROCESS_SHARDING === "true") {
+            this.ws.setStrategy(
+                new ProcessShardingStrategy(this.ws, {
+                    shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9),
+                    workerPath: "../Utilities/Websocket/DefaultProcess.js"
+                })
+            );
         } else {
             this.ws.setStrategy(
                 new WorkerShardingStrategy(this.ws, {
-                    shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9)
+                    shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9),
+                    workerPath: "../Utilities/Websocket/DefaultProcess.js"
                 })
             );
         }
