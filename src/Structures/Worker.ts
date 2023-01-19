@@ -7,7 +7,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 
-await bootstrapper.bootstrap({
+void bootstrapper.bootstrap({
     forwardEvents: [
         WebSocketShardEvents.Closed,
         WebSocketShardEvents.Debug,
