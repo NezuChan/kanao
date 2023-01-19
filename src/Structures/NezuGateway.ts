@@ -102,7 +102,7 @@ export class NezuGateway extends EventEmitter {
                 start: Number(process.env.GATEWAY_SHARD_START),
                 end: Number(process.env.GATEWAY_SHARD_END)
             }
-            : null,
+            : undefined,
         initialPresence: {
             activities: [
                 {
@@ -234,7 +234,12 @@ export class NezuGateway extends EventEmitter {
         if (process.env.USE_SIMPLE_SHARDING === "true") {
             this.ws.setStrategy(new SimpleShardingStrategy(this.ws));
         } else {
-            this.ws.setStrategy(new WorkerShardingStrategy(this.ws, { shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 14) }));
+            this.ws.setStrategy(
+                new WorkerShardingStrategy(this.ws, {
+                    shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9),
+                    workerPath: "./Worker.js"
+                })
+            );
         }
         await this.ws.connect();
         const shardCount = await this.ws.getShardCount();
