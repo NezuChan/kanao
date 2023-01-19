@@ -210,9 +210,6 @@ export class ProcessShardingStrategy implements IShardingStrategy {
             .on("error", err => {
                 throw err;
             })
-            .on("messageerror", err => {
-                throw err;
-            })
             .on("message", async (payload: WorkerReceivePayload) => this.onMessage(worker, payload));
 
         this.#workers.push(worker);
@@ -225,7 +222,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
         const path = this.options.workerPath;
 
         if (!path) {
-            return join(__dirname, "defaultProcess.js");
+            return join(__dirname, "DefaultProcess.js");
         }
 
         if (isAbsolute(path)) {
