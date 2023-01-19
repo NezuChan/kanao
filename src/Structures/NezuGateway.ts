@@ -236,8 +236,7 @@ export class NezuGateway extends EventEmitter {
         } else {
             this.ws.setStrategy(
                 new WorkerShardingStrategy(this.ws, {
-                    shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9),
-                    workerPath: "./Worker.js"
+                    shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9)
                 })
             );
         }
