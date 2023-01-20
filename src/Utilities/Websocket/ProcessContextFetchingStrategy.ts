@@ -33,6 +33,7 @@ export class ProcessContextFetchingStrategy implements IContextFetchingStrategy 
         return promise;
     }
 
+    // eslint-disable-next-line class-methods-use-this
     public updateSessionInfo(shardId: number, sessionInfo: SessionInfo | null) {
         const payload = {
             op: WorkerReceivePayloadOp.UpdateSessionInfo,

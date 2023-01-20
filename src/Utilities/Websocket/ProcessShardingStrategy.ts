@@ -200,7 +200,10 @@ export class ProcessShardingStrategy implements IShardingStrategy {
     }
 
     private async setupWorker(workerData: WorkerData) {
-        const worker = fork(this.resolveWorkerPath(), { execArgv: [JSON.stringify(workerData)] });
+        const worker = fork(this.resolveWorkerPath(), {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            env: { ...process.env, WORKER_DATA: JSON.stringify(workerData) }
+        });
 
         await once(worker, "spawn");
         // We do this in case the user has any potentially long running code in their worker
@@ -240,6 +243,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
         }
     }
 
+    // eslint-disable-next-line class-methods-use-this
     private async waitForWorkerReady(worker: ChildProcess): Promise<void> {
         return new Promise(resolve => {
             const handler = (payload: WorkerReceivePayload) => {

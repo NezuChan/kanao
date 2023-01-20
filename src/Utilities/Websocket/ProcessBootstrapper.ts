@@ -1,7 +1,18 @@
-import { WorkerBootstrapper, BootstrapOptions, WebSocketShard, WebSocketShardEvents, WorkerReceivePayload, WorkerReceivePayloadOp, WorkerSendPayload, WorkerSendPayloadOp } from "@discordjs/ws";
+import { Collection } from "@discordjs/collection";
+import { BootstrapOptions, WebSocketShard, WebSocketShardEvents, WorkerReceivePayload, WorkerReceivePayloadOp, WorkerSendPayload, WorkerSendPayloadOp, WorkerData, WebSocketShardDestroyOptions } from "@discordjs/ws";
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 
-export class ProcessBootstrapper extends WorkerBootstrapper {
+export class ProcessBootstrapper {
+    /**
+	 * The data passed to the worker thread
+	 */
+    protected readonly data = JSON.parse(process.env.WORKER_DATA!) as WorkerData;
+
+    /**
+	 * The shards that are managed by this worker
+	 */
+    protected readonly shards = new Collection<number, WebSocketShard>();
+
     /**
      * Bootstraps the child process with the provided options
      */
@@ -11,6 +22,7 @@ export class ProcessBootstrapper extends WorkerBootstrapper {
             const shard = new WebSocketShard(new ProcessContextFetchingStrategy(this.data), shardId);
             for (const event of options.forwardEvents ?? Object.values(WebSocketShardEvents)) {
                 // @ts-expect-error: Event types incompatible
+                // eslint-disable-next-line @typescript-eslint/no-loop-func
                 shard.on(event, data => {
                     const payload = {
                         op: WorkerReceivePayloadOp.Event,
@@ -34,6 +46,30 @@ export class ProcessBootstrapper extends WorkerBootstrapper {
             op: WorkerReceivePayloadOp.WorkerReady
         } satisfies WorkerReceivePayload;
         process.send!(message);
+    }
+
+    /**
+     * Helper method to initiate a shard's connection process
+     */
+    protected async connect(shardId: number): Promise<void> {
+        const shard = this.shards.get(shardId);
+        if (!shard) {
+            throw new RangeError(`Shard ${shardId} does not exist`);
+        }
+
+        await shard.connect();
+    }
+
+    /**
+     * Helper method to destroy a shard
+     */
+    protected async destroy(shardId: number, options?: WebSocketShardDestroyOptions): Promise<void> {
+        const shard = this.shards.get(shardId);
+        if (!shard) {
+            throw new RangeError(`Shard ${shardId} does not exist`);
+        }
+
+        await shard.destroy(options);
     }
 
     /**
