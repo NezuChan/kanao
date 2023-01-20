@@ -3,64 +3,7 @@ import { join, isAbsolute, resolve } from "node:path";
 import { ChildProcess, fork } from "node:child_process";
 import { Collection } from "@discordjs/collection";
 import { GatewaySendPayload } from "discord-api-types/v10";
-import { IdentifyThrottler, SessionInfo, WebSocketManager, WebSocketShardDestroyOptions, WebSocketShardEvents, WebSocketShardStatus, managerToFetchingStrategyOptions, FetchingStrategyOptions, IShardingStrategy } from "@discordjs/ws";
-
-export interface WorkerData extends FetchingStrategyOptions {
-    shardIds: number[];
-}
-
-export enum WorkerSendPayloadOp {
-    Connect,
-    Destroy,
-    Send,
-    SessionInfoResponse,
-    ShardCanIdentify,
-    FetchStatus
-}
-
-export type WorkerSendPayload =
-| { nonce: number; op: WorkerSendPayloadOp.FetchStatus; shardId: number }
-| { nonce: number; op: WorkerSendPayloadOp.SessionInfoResponse; session: SessionInfo | null }
-| { nonce: number; op: WorkerSendPayloadOp.ShardCanIdentify }
-| { op: WorkerSendPayloadOp.Connect; shardId: number }
-| { op: WorkerSendPayloadOp.Destroy; options?: WebSocketShardDestroyOptions; shardId: number }
-| { op: WorkerSendPayloadOp.Send; payload: GatewaySendPayload; shardId: number };
-
-export enum WorkerReceivePayloadOp {
-    Connected,
-    Destroyed,
-    Event,
-    RetrieveSessionInfo,
-    UpdateSessionInfo,
-    WaitForIdentify,
-    FetchStatusResponse,
-    WorkerReady
-}
-
-export type WorkerReceivePayload =
-// Can't seem to get a type-safe union based off of the event, so I'm sadly leaving data as any for now
-| { data: any; event: WebSocketShardEvents; op: WorkerReceivePayloadOp.Event; shardId: number }
-| { nonce: number; op: WorkerReceivePayloadOp.FetchStatusResponse; status: WebSocketShardStatus }
-| { nonce: number; op: WorkerReceivePayloadOp.RetrieveSessionInfo; shardId: number }
-| { nonce: number; op: WorkerReceivePayloadOp.WaitForIdentify }
-| { op: WorkerReceivePayloadOp.Connected; shardId: number }
-| { op: WorkerReceivePayloadOp.Destroyed; shardId: number }
-| { op: WorkerReceivePayloadOp.UpdateSessionInfo; session: SessionInfo | null; shardId: number }
-| { op: WorkerReceivePayloadOp.WorkerReady };
-
-/**
-* Options for a {@link WorkerShardingStrategy}
-*/
-export interface WorkerShardingStrategyOptions {
-    /**
-    * Dictates how many shards should be spawned per worker thread.
-    */
-    shardsPerWorker: number | "all";
-    /**
-    * Path to the worker file to use. The worker requires quite a bit of setup, it is recommended you leverage the {@link WorkerBootstrapper} class.
-    */
-    workerPath?: string;
-}
+import { IdentifyThrottler, WebSocketManager, WebSocketShardDestroyOptions, WebSocketShardStatus, managerToFetchingStrategyOptions, IShardingStrategy, WorkerShardingStrategyOptions, WorkerData, WorkerSendPayload, WorkerSendPayloadOp, WorkerReceivePayload, WorkerReceivePayloadOp } from "@discordjs/ws";
 
 /**
 * Strategy used to spawn threads in worker_threads
