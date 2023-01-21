@@ -4,6 +4,10 @@ import { ChildProcess, fork } from "node:child_process";
 import { Collection } from "@discordjs/collection";
 import { GatewaySendPayload } from "discord-api-types/v10";
 import { IdentifyThrottler, WebSocketManager, WebSocketShardDestroyOptions, WebSocketShardStatus, managerToFetchingStrategyOptions, IShardingStrategy, WorkerShardingStrategyOptions, WorkerData, WorkerSendPayload, WorkerSendPayloadOp, WorkerReceivePayload, WorkerReceivePayloadOp } from "@discordjs/ws";
+import * as url from "url";
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
 /**
 * Strategy used to spawn threads in worker_threads
