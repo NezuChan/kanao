@@ -6,18 +6,18 @@ export class ProcessContextFetchingStrategy implements IContextFetchingStrategy 
 
     private readonly waitForIdentifyPromises = new Collection<number, () => void>();
 
-    public constructor(public readonly options: FetchingStrategyOptions) {
-        process.on("message", (payload: WorkerSendPayload) => {
-            if (payload.op === WorkerSendPayloadOp.SessionInfoResponse) {
-                this.sessionPromises.get(payload.nonce)?.(payload.session);
-                this.sessionPromises.delete(payload.nonce);
-            }
+    public constructor(public readonly options: FetchingStrategyOptions) {}
 
-            if (payload.op === WorkerSendPayloadOp.ShardCanIdentify) {
-                this.waitForIdentifyPromises.get(payload.nonce)?.();
-                this.waitForIdentifyPromises.delete(payload.nonce);
-            }
-        });
+    public messageCallback(payload: WorkerSendPayload) {
+        if (payload.op === WorkerSendPayloadOp.SessionInfoResponse) {
+            this.sessionPromises.get(payload.nonce)?.(payload.session);
+            this.sessionPromises.delete(payload.nonce);
+        }
+
+        if (payload.op === WorkerSendPayloadOp.ShardCanIdentify) {
+            this.waitForIdentifyPromises.get(payload.nonce)?.();
+            this.waitForIdentifyPromises.delete(payload.nonce);
+        }
     }
 
     public async retrieveSessionInfo(shardId: number): Promise<SessionInfo | null> {

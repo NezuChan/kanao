@@ -154,7 +154,13 @@ export class ProcessShardingStrategy implements IShardingStrategy {
 
         worker
             .on("error", err => {
-                throw err;
+                this.manager.emit("error", err);
+            })
+            .on("close", (code, signal) => {
+                this.manager.emit("error", new Error(`Process closed with code ${code ?? "-"} and signal ${signal ?? "-"}. attempting to restart`));
+                worker.removeAllListeners();
+                this.#workers.splice(this.#workers.indexOf(worker), 1);
+                this.restartWorker(workerData);
             })
             .on("message", async (payload: WorkerReceivePayload) => this.onMessage(worker, payload));
 
@@ -162,6 +168,19 @@ export class ProcessShardingStrategy implements IShardingStrategy {
         for (const shardId of workerData.shardIds) {
             this.#workerByShardId.set(shardId, worker);
         }
+    }
+
+    private restartWorker(workerData: WorkerData) {
+        this.setupWorker(workerData).then(() => {
+            const worker = this.#workerByShardId.get(workerData.shardIds[0])!;
+            for (const shardId of workerData.shardIds) {
+                const payload = {
+                    op: WorkerSendPayloadOp.Connect,
+                    shardId
+                } satisfies WorkerSendPayload;
+                worker.send(payload);
+            }
+        }).catch(err => this.manager.emit("error", err));
     }
 
     private resolveWorkerPath(): string {
