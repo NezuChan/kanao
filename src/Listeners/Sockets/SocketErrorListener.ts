@@ -4,7 +4,7 @@ import { ApplyOptions } from "../../Utilities/Decorators/ApplyOptions.js";
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: "SocketErrorListener",
     event: "error",
-    emitter: container.gateway.ws
+    emitter: container.gateway
 }))
 
 export class SocketErrorListener extends Listener {

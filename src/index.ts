@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
-import { NezuGateway } from "./Structures/NezuGateway.js";
-const gateway = new NezuGateway();
+import { GatewayInitiator } from "./Structures/GatewayInitiator.js";
+const gateway = new GatewayInitiator();
 
 try {
     await gateway.connect();
