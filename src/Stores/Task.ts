@@ -2,15 +2,11 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { Piece } from "@sapphire/pieces";
 import { Result } from "@sapphire/result";
-import { Logger } from "pino";
 import { CommonEvents } from "../Utilities/Enums/CommonEvents.js";
 
 export abstract class Task extends Piece {
-    public readonly logger: Logger;
-
     public constructor(context: Piece.Context, public options: TaskOptions) {
         super(context, { name: options.name, ...options });
-        this.logger = this.container.gateway.logger;
     }
 
     public onLoad(): unknown {
