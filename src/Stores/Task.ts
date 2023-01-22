@@ -16,7 +16,7 @@ export abstract class Task extends Piece {
     public onLoad(): unknown {
         void Result.fromAsync(async () => {
             if (this.options.taskOptions.options) {
-                await this.container.gateway.tasks.sender.post({
+                await this.container.tasks!.sender.post({
                     name: this.name,
                     options: this.options.taskOptions.options,
                     type: "add",
@@ -24,12 +24,12 @@ export abstract class Task extends Piece {
                 });
             }
         });
-        this.container.gateway.tasks.receiver.on(this.name, this._run.bind(this));
+        this.container.tasks!.receiver.on(this.name, this._run.bind(this));
         return super.onLoad();
     }
 
     public onUnload(): unknown {
-        this.container.gateway.tasks.receiver.off(this.name, this._run.bind(this));
+        this.container.tasks!.receiver.off(this.name, this._run.bind(this));
 
         return super.onUnload();
     }
