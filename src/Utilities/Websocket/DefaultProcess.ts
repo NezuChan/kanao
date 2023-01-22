@@ -1,4 +1,4 @@
-/* eslint-disable no-case-declarations */
+    /* eslint-disable no-case-declarations */
 import { WebSocketShardEvents } from "@discordjs/ws";
 import { ProcessBootstrapper } from "./ProcessBootstrapper.js";
 import { NezuGateway } from "../../Structures/NezuGateway.js";
@@ -12,11 +12,11 @@ void bootstrapper.bootstrap({
     shardCallback: shard => {
         for (const event of Object.values(WebSocketShardEvents)) {
             if (event === WebSocketShardEvents.Dispatch) {
-                shard.on(event, data => gateway.emit(event, { ...data.data, shardId: shard.id }));
+                shard.on(event, data => gateway.emit(event, { ...data, shardId: shard.id }));
                 continue;
             }
             // @ts-expect-error Type return missmatch
-            shard.on(event, data => gateway.emit(event, { ...data, shardId: shard.id })); 
+            shard.on(event, data => gateway.emit(event, { ...data, shardId: shard.id }));
         }
     }
 });
