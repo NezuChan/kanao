@@ -19,7 +19,7 @@ import { PresenceUpdateStatus } from "discord-api-types/payloads";
 import { cast } from "@sapphire/utilities";
 import APM from "prometheus-middleware";
 import { RpcPublisher, RoutingSubscriber, createAmqp } from "@nezuchan/cordis-brokers";
-import { Piece, Store, StoreRegistry } from "@sapphire/pieces";
+import { Piece, Store, StoreRegistry, container } from "@sapphire/pieces";
 import { TaskStore } from "../Stores/TaskStore.js";
 
 const { default: Redis, Cluster } = IORedis;
@@ -177,6 +177,12 @@ export class GatewayInitiator {
             await this.amqp.receiver.init({ queue: Constants.QUEUE_SEND, keys: "*", durable: true });
         }
 
+        container.tasks = this.tasks;
+        container.prometheus = this.prometheus;
+        container.ws = this.ws;
+        container.clientId = this.clientId;
+        container.redis = this.redis;
+
         this.stores.register(new TaskStore());
         this.rest.setToken(process.env.DISCORD_TOKEN!);
         await Promise.all([...this.stores.values()].map((store: Store<Piece>) => store.loadAll()));
@@ -240,7 +246,7 @@ export class GatewayInitiator {
             await gatewayStatusCollection.set(`${shardId}`, { shardId, ping: -1 });
         }
 
-        await this.redis.set(Constants.SHARDS_KEY, shardCount);
+        await this.redis.set(`${this.clientId}:${Constants.SHARDS_KEY}`, shardCount);
 
         this.amqp.receiver.on("send", (payload: {
             type: string;
@@ -287,5 +293,15 @@ export class GatewayInitiator {
                 })
             )
         );
+    }
+}
+
+declare module "@sapphire/pieces" {
+    interface Container {
+        tasks?: GatewayInitiator["tasks"];
+        prometheus?: GatewayInitiator["prometheus"];
+        ws?: GatewayInitiator["ws"];
+        clientId?: GatewayInitiator["clientId"];
+        redis?: GatewayInitiator["redis"];
     }
 }
