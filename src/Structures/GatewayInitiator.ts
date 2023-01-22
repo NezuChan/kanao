@@ -182,6 +182,7 @@ export class GatewayInitiator {
         container.ws = this.ws;
         container.clientId = this.clientId;
         container.redis = this.redis;
+        container.logger = this.logger;
 
         this.stores.register(new TaskStore());
         this.rest.setToken(process.env.DISCORD_TOKEN!);
@@ -303,5 +304,6 @@ declare module "@sapphire/pieces" {
         ws?: GatewayInitiator["ws"];
         clientId?: GatewayInitiator["clientId"];
         redis?: GatewayInitiator["redis"];
+        logger?: GatewayInitiator["logger"];
     }
 }

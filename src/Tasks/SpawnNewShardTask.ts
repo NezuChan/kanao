@@ -17,15 +17,15 @@ import { Result } from "@sapphire/result";
 
 export class SpawnNewShardTask extends Task {
     public async run(): Promise<void> {
-        const previousTask = await this.container.gateway.redis.hget(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, "lastRun");
-        if (previousTask) return this.container.gateway.logger.warn("Possible dupe [spawnNewShardTask] task, skipping...");
+        const previousTask = await this.container.redis!.hget(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, "lastRun");
+        if (previousTask) return this.container.logger!.warn("Possible dupe [spawnNewShardTask] task, skipping...");
 
-        this.container.gateway.logger.info("Spawning new shard...");
+        this.container.logger!.info("Spawning new shard...");
         const sessionInfo = await this.container.ws!.fetchGatewayInformation(true);
         const shardCount = await this.container.ws!.getShardCount();
 
-        await this.container.gateway.redis.hset(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, "lastRun", Date.now());
-        await this.container.gateway.redis.expire(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, (Time.Minute * 20) - (Time.Second * 10));
+        await this.container.redis!.hset(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, "lastRun", Date.now());
+        await this.container.redis!.expire(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, (Time.Minute * 20) - (Time.Second * 10));
 
         await this.container.tasks!.sender.post({
             name: this.name,
@@ -38,16 +38,16 @@ export class SpawnNewShardTask extends Task {
             await this.container.ws!.updateShardCount(sessionInfo.shards);
             await this.container.redis!.set(`${this.container.clientId!}:${Constants.SHARDS_KEY}`, shardCount);
 
-            return this.container.gateway.logger.info(`Spawned new shards, shard count is now ${sessionInfo.shards}`);
+            return this.container.logger!.info(`Spawned new shards, shard count is now ${sessionInfo.shards}`);
         }
 
-        this.container.gateway.logger.info("No need to spawn new shards, it's already at the maximum shard count.");
+        this.container.logger!.info("No need to spawn new shards, it's already at the maximum shard count.");
     }
 
     public override onLoad(): unknown {
         void Result.fromAsync(async () => {
-            const previousTask = await this.container.gateway.redis.hget(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, "lastRun");
-            if (previousTask) return this.container.gateway.logger.warn("Possible dupe [spawnNewShardTask] task, skipping...");
+            const previousTask = await this.container.redis!.hget(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, "lastRun");
+            if (previousTask) return this.container.logger!.warn("Possible dupe [spawnNewShardTask] task, skipping...");
 
             await this.container.tasks!.sender.post({
                 name: this.name,
@@ -56,8 +56,8 @@ export class SpawnNewShardTask extends Task {
                 data: this.options.taskOptions.data
             });
 
-            await this.container.gateway.redis.hset(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, "lastRun", Date.now());
-            await this.container.gateway.redis.expire(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, (Time.Minute * 20) - (Time.Second * 10));
+            await this.container.redis!.hset(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, "lastRun", Date.now());
+            await this.container.redis!.expire(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, (Time.Minute * 20) - (Time.Second * 10));
         });
         this.container.tasks!.receiver.on(this.name, this._run.bind(this));
         return super.onLoad();
