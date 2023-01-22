@@ -238,15 +238,13 @@ export class NezuGateway extends EventEmitter {
         } else if (process.env.USE_PROCESS_SHARDING === "true") {
             this.ws.setStrategy(
                 new ProcessShardingStrategy(this.ws, {
-                    shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9),
-                    workerPath: "../Utilities/Websocket/DefaultProcess.js"
+                    shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9)
                 })
             );
         } else {
             this.ws.setStrategy(
                 new WorkerShardingStrategy(this.ws, {
-                    shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9),
-                    workerPath: "../Utilities/Websocket/DefaultProcess.js"
+                    shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9)
                 })
             );
         }
