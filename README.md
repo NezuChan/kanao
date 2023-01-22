@@ -23,3 +23,5 @@
 
 # Information
 - Routing mode, everything in saved on redis will be prefixed with {clientId}:{key}
+
+Being used in production by NezukoChan, Musical Tune, and more.
