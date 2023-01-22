@@ -12,7 +12,7 @@ void bootstrapper.bootstrap({
     shardCallback: shard => {
         for (const event of Object.values(WebSocketShardEvents)) {
             // @ts-expect-error Type return missmatch
-            shard.on(event, data => gateway.emit(event, data));
+            shard.on(event, data => gateway.emit(event, ...data));
         }
     }
 });
