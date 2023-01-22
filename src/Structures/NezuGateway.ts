@@ -36,7 +36,7 @@ export class NezuGateway extends EventEmitter {
 
     public clientId = Buffer.from(process.env.DISCORD_TOKEN!.split(".")[0], "base64").toString();
     public stores = new StoreRegistry();
-    public resetInvalidatedOnStart = true;
+    public resetInvalidatedOnStart = process.env.CLEAR_CACHE_ON_INVALIDATED === "true";
 
     public prometheus = new APM({
         PORT: process.env.PROMETHEUS_PORT ?? 9090,
