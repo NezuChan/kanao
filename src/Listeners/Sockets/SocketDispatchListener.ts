@@ -5,7 +5,7 @@ import { ApplyOptions } from "../../Utilities/Decorators/ApplyOptions.js";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: WebSocketShardEvents.Dispatch,
-    emitter: container.gateway.ws
+    emitter: container.gateway
 }))
 
 export class DispatchListener extends Listener {

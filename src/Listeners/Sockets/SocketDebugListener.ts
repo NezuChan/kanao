@@ -6,7 +6,7 @@ import { ApplyOptions } from "../../Utilities/Decorators/ApplyOptions.js";
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: "SocketDebugListener",
     event: "debug",
-    emitter: container.gateway.ws
+    emitter: container.gateway
 }))
 
 export class SocketDebugListener extends Listener {

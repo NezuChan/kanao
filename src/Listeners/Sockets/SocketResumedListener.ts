@@ -4,7 +4,7 @@ import { WebSocketShardEvents } from "@discordjs/ws";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: WebSocketShardEvents.Resumed,
-    emitter: container.gateway.ws
+    emitter: container.gateway
 }))
 
 export class SocketResumedListener extends Listener {

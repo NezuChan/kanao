@@ -19,26 +19,26 @@ import { Result } from "@sapphire/result";
 
 export class PrometheusTask extends Task {
     public async run(): Promise<void> {
-        const previousTask = await this.container.gateway.redis.hget(Constants.PROMETHEUS_TASK, "lastRun");
+        const previousTask = await this.container.gateway.redis.hget(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun");
         if (previousTask) return this.container.gateway.logger.warn("Possible dupe [prometheusTask] task, skipping...");
 
-        const socketCounter = new this.container.gateway.prometheus.client.Gauge({
+        const socketCounter = new this.container.prometheus!.client.Gauge({
             name: "ws_ping",
             help: "Websocket ping",
             labelNames: ["shardId"]
         });
 
-        const guildCounter = new this.container.gateway.prometheus.client.Counter({
+        const guildCounter = new this.container.prometheus!.client.Counter({
             name: "guild_count",
             help: "Guild count"
         });
 
-        const channelCounter = new this.container.gateway.prometheus.client.Counter({
+        const channelCounter = new this.container.prometheus!.client.Counter({
             name: "channel_count",
             help: "Channel count"
         });
 
-        const userCounter = new this.container.gateway.prometheus.client.Counter({
+        const userCounter = new this.container.prometheus!.client.Counter({
             name: "user_count",
             help: "User count"
         });
@@ -66,10 +66,10 @@ export class PrometheusTask extends Task {
             socketCounter.set({ shardId: status.shardId }, Number(status.ping));
         }
 
-        await this.container.gateway.redis.hset(Constants.PROMETHEUS_TASK, "lastRun", Date.now());
-        await this.container.gateway.redis.expire(Constants.PROMETHEUS_TASK, Time.Second * 8);
+        await this.container.gateway.redis.hset(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun", Date.now());
+        await this.container.gateway.redis.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, Time.Second * 8);
 
-        await this.container.gateway.tasks.sender.post({
+        await this.container.tasks!.sender.post({
             name: this.name,
             options: this.options.taskOptions.options,
             type: "add",
@@ -79,20 +79,20 @@ export class PrometheusTask extends Task {
 
     public override onLoad(): unknown {
         void Result.fromAsync(async () => {
-            const previousTask = await this.container.gateway.redis.hget(Constants.PROMETHEUS_TASK, "lastRun");
+            const previousTask = await this.container.gateway.redis.hget(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun");
             if (previousTask) return this.container.gateway.logger.warn("Possible dupe [prometheusTask] task, skipping...");
 
-            await this.container.gateway.tasks.sender.post({
+            await this.container.tasks!.sender.post({
                 name: this.name,
                 options: this.options.taskOptions.options,
                 type: "add",
                 data: this.options.taskOptions.data
             });
 
-            await this.container.gateway.redis.hset(Constants.PROMETHEUS_TASK, "lastRun", Date.now());
-            await this.container.gateway.redis.expire(Constants.PROMETHEUS_TASK, Time.Second * 8);
+            await this.container.gateway.redis.hset(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun", Date.now());
+            await this.container.gateway.redis.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, Time.Second * 8);
         });
-        this.container.gateway.tasks.receiver.on(this.name, this._run.bind(this));
+        this.container.tasks!.receiver.on(this.name, this._run.bind(this));
         return super.onLoad();
     }
 }

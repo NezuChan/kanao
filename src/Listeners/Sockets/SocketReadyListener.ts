@@ -4,7 +4,7 @@ import { WebSocketShardEvents } from "@discordjs/ws";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: WebSocketShardEvents.Ready,
-    emitter: container.gateway.ws
+    emitter: container.gateway
 }))
 
 export class SocketReadyListener extends Listener {
