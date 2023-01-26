@@ -32,6 +32,7 @@ export class ProcessBootstrapper {
                     } satisfies WorkerReceivePayload;
                     process.send!(payload);
                 });
+                shard.on("error", console.log);
             }
 
             // Any additional setup the user might want to do
@@ -51,13 +52,18 @@ export class ProcessBootstrapper {
     /**
      * Helper method to initiate a shard's connection process
      */
-    protected async connect(shardId: number): Promise<void> {
+    protected async connect(shardId: number, retries = 0): Promise<void> {
         const shard = this.shards.get(shardId);
         if (!shard) {
             throw new RangeError(`Shard ${shardId} does not exist`);
         }
 
-        await shard.connect();
+        try {
+            await shard.connect();
+        } catch {
+            await new Promise(r => setTimeout(r, Math.min(++retries * 1000, 10000)));
+            return this.connect(shardId, retries);
+        }
     }
 
     /**
