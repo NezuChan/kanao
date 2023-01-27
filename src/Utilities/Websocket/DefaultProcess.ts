@@ -9,7 +9,8 @@ await gateway.connect();
 const bootstrapper = new ProcessBootstrapper();
 void bootstrapper.bootstrap({
     forwardEvents: [
-        WebSocketShardEvents.Debug
+        WebSocketShardEvents.Debug,
+        WebSocketShardEvents.HeartbeatComplete
     ],
     shardCallback: shard => {
         for (const event of Object.values(WebSocketShardEvents)) {
