@@ -3,7 +3,7 @@
 import gradient from "gradient-string";
 import { pino } from "pino";
 import { default as IORedis } from "ioredis";
-import { CompressionMethod, SessionInfo, WorkerShardingStrategy } from "@discordjs/ws";
+import { CompressionMethod, SessionInfo, WebSocketShardEvents, WorkerShardingStrategy } from "@discordjs/ws";
 import { WebSocketManager } from "../Utilities/Websocket/WebsocketManager.js";
 import { ProcessShardingStrategy } from "../Utilities/Websocket/ProcessShardingStrategy.js";
 import { GatewayIntentBits, GatewaySendPayload } from "discord-api-types/v10";
@@ -265,6 +265,18 @@ export class GatewayInitiator {
                     this.logger.warn(`Unknown OP Code: ${payload.data.op}`);
                     break;
             }
+        });
+
+        this.ws.on(WebSocketShardEvents.Debug, async (payload: { message: string; shardId: number }) => {
+            await Result.fromAsync(async () => {
+                this.logger.debug(payload);
+
+                if ((/Got heartbeat ack after (?<ping>\d+)/).test(payload.message)) {
+                    const collection = new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY });
+                    const ping = Number((/Got heartbeat ack after (?<ping>\d+)/).exec(payload.message)![1]);
+                    await collection.set(`${payload.shardId}`, { ping, shardId: payload.shardId });
+                }
+            });
         });
 
         console.log(

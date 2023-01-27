@@ -25,7 +25,6 @@ export class NezuGateway extends EventEmitter {
     });
 
     public stores = new StoreRegistry();
-    public resetInvalidatedOnStart = process.env.CLEAR_CACHE_ON_INVALIDATED === "true";
 
     public redis =
         cast<IORedis.ClusterNode[]>(JSON.parse(process.env.REDIS_CLUSTERS ?? "[]")).length

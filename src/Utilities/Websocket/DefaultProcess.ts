@@ -8,7 +8,9 @@ await gateway.connect();
 
 const bootstrapper = new ProcessBootstrapper();
 void bootstrapper.bootstrap({
-    forwardEvents: [],
+    forwardEvents: [
+        WebSocketShardEvents.Debug
+    ],
     shardCallback: shard => {
         for (const event of Object.values(WebSocketShardEvents)) {
             // @ts-expect-error Return type missmatch
