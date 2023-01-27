@@ -239,7 +239,7 @@ export class GatewayInitiator {
         await this.ws.connect();
         const shardCount = await this.ws.getShardCount();
 
-        const gatewayStatusCollection = new RedisCollection({ redis: this.redis, hash: Constants.STATUSES_KEY });
+        const gatewayStatusCollection = new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY });
         await gatewayStatusCollection.clear();
         let shardId = -1;
         while (shardId < (shardCount - 1)) {
