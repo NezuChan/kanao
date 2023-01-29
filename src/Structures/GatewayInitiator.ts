@@ -279,6 +279,14 @@ export class GatewayInitiator {
             });
         });
 
+        this.ws.on(WebSocketShardEvents.Ready, (payload: { shardId: number }) => {
+            this.logger.info(`Shard ${payload.shardId} ready`);
+        });
+
+        this.ws.on(WebSocketShardEvents.Resumed, (payload: { shardId: number }) => {
+            this.logger.info(`Shard ${payload.shardId} Resumed`);
+        });
+
         console.log(
             gradient.vice.multiline(
                 createBanner({

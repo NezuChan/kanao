@@ -9,13 +9,14 @@ await gateway.connect();
 const bootstrapper = new ProcessBootstrapper();
 void bootstrapper.bootstrap({
     forwardEvents: [
+        WebSocketShardEvents.Closed,
         WebSocketShardEvents.Debug,
-        WebSocketShardEvents.HeartbeatComplete
+        WebSocketShardEvents.HeartbeatComplete,
+        WebSocketShardEvents.Hello,
+        WebSocketShardEvents.Ready,
+        WebSocketShardEvents.Resumed
     ],
     shardCallback: shard => {
-        for (const event of Object.values(WebSocketShardEvents)) {
-            // @ts-expect-error Return type missmatch
-            shard.on(event, data => gateway.emit(event, { ...data, shardId: shard.id }));
-        }
+        shard.on(WebSocketShardEvents.Dispatch, data => gateway.emit(WebSocketShardEvents.Dispatch, { ...data, shardId: shard.id }));
     }
 });
