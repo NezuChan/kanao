@@ -1,8 +1,6 @@
 /* eslint-disable class-methods-use-this */
-import { RedisCollection } from "@nezuchan/redis-collection";
-import { GatewayDispatchEvents, GatewayMessageDeleteDispatch } from "discord-api-types/v10";
+import { APIMessage, GatewayDispatchEvents, GatewayMessageDeleteDispatch } from "discord-api-types/v10";
 import { Listener, ListenerOptions } from "../Stores/Listener.js";
-import { Constants } from "../Utilities/Constants.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 import { Util } from "../Utilities/Util.js";
 
@@ -13,15 +11,13 @@ import { Util } from "../Utilities/Util.js";
 
 export class MessageDeleteListener extends Listener {
     public async run(payload: { data: GatewayMessageDeleteDispatch }): Promise<void> {
-        const messageCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MESSAGE_KEY}` : Constants.MESSAGE_KEY });
-
-        const old = await messageCollection.get(payload.data.d.id);
+        const old = await this.container.gateway.cache.messages.get(payload.data.d.id);
 
         this.container.gateway.amqp.sender.publish(this.container.gateway.clientId, payload.data.t, {
             ...payload,
             old
         }, { persistent: false });
 
-        if (Util.optionalEnv("STATE_MESSAGE", "true")) await messageCollection.set(payload.data.d.id, payload.data.d);
+        if (Util.optionalEnv("STATE_MESSAGE", "true")) await this.container.gateway.cache.messages.set(payload.data.d.id, payload.data.d as APIMessage);
     }
 }

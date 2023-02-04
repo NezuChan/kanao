@@ -1,8 +1,6 @@
 /* eslint-disable class-methods-use-this */
-import { RedisCollection } from "@nezuchan/redis-collection";
 import { GatewayDispatchEvents, GatewayGuildDeleteDispatch } from "discord-api-types/v10";
 import { Listener, ListenerOptions } from "../Stores/Listener.js";
-import { Constants } from "../Utilities/Constants.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
@@ -12,34 +10,25 @@ import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 
 export class GuildDeleteListener extends Listener {
     public async run(payload: { data: GatewayGuildDeleteDispatch }): Promise<void> {
-        const collection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.GUILD_KEY}` : Constants.GUILD_KEY });
-        const memberCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MEMBER_KEY}` : Constants.MEMBER_KEY });
-        const roleCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.ROLE_KEY}` : Constants.ROLE_KEY });
-        const voiceStateCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.VOICE_KEY}` : Constants.VOICE_KEY });
-        const channelCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}` : Constants.CHANNEL_KEY });
-        const emojiCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.EMOJI_KEY}` : Constants.EMOJI_KEY });
-        const presenceCollection = new RedisCollection({ redis: this.container.gateway.redis, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.PRESENCE_KEY}` : Constants.PRESENCE_KEY });
+        const roles = await this.container.gateway.cache.roles.filter((_, key) => key.startsWith(payload.data.d.id));
+        const emojis = await this.container.gateway.cache.emojis.filter((_, key) => key.startsWith(payload.data.d.id));
+        const members = await this.container.gateway.cache.members.filter((_, key) => key.startsWith(payload.data.d.id));
+        const channels = await this.container.gateway.cache.channels.filter((_, key) => key.startsWith(payload.data.d.id));
+        const voiceStates = await this.container.gateway.cache.states.filter((_, key) => key.startsWith(payload.data.d.id));
+        const presences = await this.container.gateway.cache.presences.filter((_, key) => key.startsWith(payload.data.d.id));
 
-
-        const roles = await roleCollection.filter((_, key) => key.startsWith(payload.data.d.id));
-        const emojis = await emojiCollection.filter((_, key) => key.startsWith(payload.data.d.id));
-        const members = await memberCollection.filter((_, key) => key.startsWith(payload.data.d.id));
-        const channels = await channelCollection.filter((_, key) => key.startsWith(payload.data.d.id));
-        const voiceStates = await voiceStateCollection.filter((_, key) => key.startsWith(payload.data.d.id));
-        const presences = await presenceCollection.filter((_, key) => key.startsWith(payload.data.d.id));
-
-        for (const [key] of roles) await roleCollection.delete(key);
-        for (const [key] of members) await memberCollection.delete(key);
-        for (const [key] of channels) await channelCollection.delete(key);
-        for (const [key] of voiceStates) await voiceStateCollection.delete(key);
-        for (const [key] of presences) await presenceCollection.delete(key);
-        for (const [key] of emojis) await emojiCollection.delete(key);
+        for (const [key] of roles) await this.container.gateway.cache.roles.delete(key);
+        for (const [key] of members) await this.container.gateway.cache.members.delete(key);
+        for (const [key] of channels) await this.container.gateway.cache.channels.delete(key);
+        for (const [key] of voiceStates) await this.container.gateway.cache.states.delete(key);
+        for (const [key] of presences) await this.container.gateway.cache.presences.delete(key);
+        for (const [key] of emojis) await this.container.gateway.cache.emojis.delete(key);
 
         if (!payload.data.d.unavailable) {
             this.container.gateway.amqp.sender.publish(this.container.gateway.clientId, payload.data.t, {
                 ...payload,
                 old: {
-                    ...await collection.get(payload.data.d.id) ?? {},
+                    ...await this.container.gateway.cache.guilds.get(payload.data.d.id) ?? {},
                     roles: roles.toJSON(),
                     emojis: emojis.toJSON(),
                     members: members.toJSON(),
@@ -50,6 +39,6 @@ export class GuildDeleteListener extends Listener {
             }, { persistent: false });
         }
 
-        await collection.delete(payload.data.d.id);
+        await this.container.gateway.cache.guilds.delete(payload.data.d.id);
     }
 }
