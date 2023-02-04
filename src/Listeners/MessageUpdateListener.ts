@@ -3,6 +3,7 @@ import { GatewayDispatchEvents, GatewayMessageUpdateDispatch } from "discord-api
 import { Listener, ListenerOptions } from "../Stores/Listener.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 import { Util } from "../Utilities/Util.js";
+import { Constants } from "../Utilities/Constants.js";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: GatewayDispatchEvents.MessageUpdate,
@@ -19,9 +20,18 @@ export class MessageUpdateListener extends Listener {
                     old: message
                 }, { persistent: false });
 
-                if (Util.optionalEnv("STATE_MEMBER", "true")) await this.container.gateway.cache.members.set(`${payload.data.d.guild_id!}:${payload.data.d.author!.id}`, payload.data.d.member);
-                if (Util.optionalEnv("STATE_USER", "true")) await this.container.gateway.cache.users.set(payload.data.d.author!.id, payload.data.d.author);
-                if (Util.optionalEnv("STATE_MESSAGE", "true")) await this.container.gateway.cache.members.set(payload.data.d.id, payload.data.d as unknown as string);
+                if (Util.optionalEnv("STATE_MEMBER", "true")) {
+                    await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MESSAGE_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.MESSAGE_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.guild_id!}:${payload.data.d.author!.id}`);
+                    await this.container.gateway.cache.members.set(`${payload.data.d.guild_id!}:${payload.data.d.author!.id}`, { ...payload.data.d.member, user: Util.optionalEnv<boolean>("STATE_USER", "true") ? { } : payload.data.d.author });
+                }
+                if (Util.optionalEnv("STATE_USER", "true")) {
+                    await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.USER_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.USER_KEY}${Constants.KEYS_SUFFIX}`, payload.data.d.author!.id);
+                    await this.container.gateway.cache.users.set(payload.data.d.author!.id, payload.data.d.author);
+                }
+                if (Util.optionalEnv("STATE_MESSAGE", "true")) {
+                    await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MEMBER_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.MEMBER_KEY}${Constants.KEYS_SUFFIX}`, payload.data.d.id);
+                    await this.container.gateway.cache.members.set(payload.data.d.id, payload.data.d);
+                }
 
                 if (message.attachments.length) message.attachments = payload.data.d.attachments ?? [];
                 if (message.content) message.content = payload.data.d.content ?? "";

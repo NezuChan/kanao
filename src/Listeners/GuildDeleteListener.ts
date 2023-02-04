@@ -2,6 +2,7 @@
 import { GatewayDispatchEvents, GatewayGuildDeleteDispatch } from "discord-api-types/v10";
 import { Listener, ListenerOptions } from "../Stores/Listener.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
+import { Constants } from "../Utilities/Constants.js";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: GatewayDispatchEvents.GuildDelete,
@@ -17,6 +18,7 @@ export class GuildDeleteListener extends Listener {
         const voiceStates = await this.container.gateway.cache.states.filter((_, key) => key.startsWith(payload.data.d.id));
         const presences = await this.container.gateway.cache.presences.filter((_, key) => key.startsWith(payload.data.d.id));
 
+        // TODO: Use SETS Indexing
         for (const [key] of roles) await this.container.gateway.cache.roles.delete(key);
         for (const [key] of members) await this.container.gateway.cache.members.delete(key);
         for (const [key] of channels) await this.container.gateway.cache.channels.delete(key);
@@ -39,6 +41,7 @@ export class GuildDeleteListener extends Listener {
             }, { persistent: false });
         }
 
+        await this.container.gateway.redis.srem(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.GUILD_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.GUILD_KEY}${Constants.KEYS_SUFFIX}`, payload.data.d.id);
         await this.container.gateway.cache.guilds.delete(payload.data.d.id);
     }
 }

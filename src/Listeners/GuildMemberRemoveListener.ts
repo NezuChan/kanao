@@ -3,6 +3,7 @@ import { GatewayDispatchEvents, GatewayGuildMemberRemoveDispatch } from "discord
 import { Listener, ListenerOptions } from "../Stores/Listener.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 import { Util } from "../Utilities/Util.js";
+import { Constants } from "../Utilities/Constants.js";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: GatewayDispatchEvents.GuildMemberRemove,
@@ -18,8 +19,17 @@ export class GuildMemberRemoveListener extends Listener {
             old
         }, { persistent: false });
 
-        if (Util.optionalEnv<boolean>("STATE_USER", "true")) await this.container.gateway.cache.users.delete(payload.data.d.user.id);
-        if (Util.optionalEnv<boolean>("STATE_PRESENCE", "true")) await this.container.gateway.cache.presences.delete(`${payload.data.d.guild_id}:${payload.data.d.user.id}`);
-        if (Util.optionalEnv("STATE_MEMBER", "true")) await this.container.gateway.cache.members.delete(payload.data.d.user.id);
+        if (Util.optionalEnv<boolean>("STATE_USER", "true")) {
+            await this.container.gateway.redis.srem(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.USER_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.USER_KEY}${Constants.KEYS_SUFFIX}`, payload.data.d.user.id);
+            await this.container.gateway.cache.users.delete(payload.data.d.user.id);
+        }
+        if (Util.optionalEnv<boolean>("STATE_PRESENCE", "true")) {
+            await this.container.gateway.redis.srem(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.PRESENCE_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.PRESENCE_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.guild_id}:${payload.data.d.user.id}`);
+            await this.container.gateway.cache.presences.delete(`${payload.data.d.guild_id}:${payload.data.d.user.id}`);
+        }
+        if (Util.optionalEnv("STATE_MEMBER", "true")) {
+            await this.container.gateway.redis.srem(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MEMBER_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.MEMBER_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.guild_id}:${payload.data.d.user.id}`);
+            await this.container.gateway.cache.members.delete(payload.data.d.user.id);
+        }
     }
 }

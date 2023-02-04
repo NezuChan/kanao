@@ -18,7 +18,9 @@ export class MessageDeleteBulkListener extends Listener {
                 ...payload,
                 old: messages
             }, { persistent: false });
+            // Use SETS Indexing
 
+            // await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MEMBER_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.MEMBER_KEY}${Constants.KEYS_SUFFIX}`, payload.data.d.id);
             for (const [key] of messages) await this.container.gateway.cache.messages.delete(key);
         }
     }
