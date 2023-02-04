@@ -11,7 +11,6 @@ import { ListenerStore } from "../Stores/ListenerStore.js";
 import { container, Piece, Store, StoreRegistry } from "@sapphire/pieces";
 import { Constants } from "../Utilities/Constants.js";
 import { createAmqp, RoutingPublisher } from "@nezuchan/cordis-brokers";
-import { TaskStore } from "../Stores/TaskStore.js";
 import { cast } from "@sapphire/utilities";
 import { RedisCollection } from "@nezuchan/redis-collection";
 import { APIEmoji, APIMessage } from "discord-api-types/v10";
@@ -117,7 +116,6 @@ export class NezuGateway extends EventEmitter {
         }
 
         this.stores.register(new ListenerStore());
-        this.stores.register(new TaskStore());
         this.rest.setToken(process.env.DISCORD_TOKEN!);
         await Promise.all([...this.stores.values()].map((store: Store<Piece>) => store.loadAll()));
     }
