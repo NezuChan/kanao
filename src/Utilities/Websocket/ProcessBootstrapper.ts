@@ -32,8 +32,8 @@ export class ProcessBootstrapper {
                     } satisfies WorkerReceivePayload;
                     process.send!(payload);
                 });
-                shard.on("error", console.log);
             }
+            shard.on("error", console.log);
 
             // Any additional setup the user might want to do
             await options.shardCallback?.(shard);
