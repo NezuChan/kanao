@@ -3,7 +3,7 @@
 import gradient from "gradient-string";
 import { pino } from "pino";
 import { default as IORedis } from "ioredis";
-import { CompressionMethod, SessionInfo, WebSocketShardEvents, WorkerShardingStrategy } from "@discordjs/ws";
+import { CompressionMethod, SessionInfo, WebSocketShardEvents } from "@discordjs/ws";
 import { WebSocketManager } from "../Utilities/Websocket/WebsocketManager.js";
 import { ProcessShardingStrategy } from "../Utilities/Websocket/ProcessShardingStrategy.js";
 import { GatewayIntentBits, GatewaySendPayload } from "discord-api-types/v10";
@@ -215,7 +215,13 @@ export class GatewayInitiator {
             this.logger.warn("Cleared up existing cache collections");
         }
 
-        if (process.env.USE_PROCESS_SHARDING === "true") {
+        this.ws.setStrategy(
+            new ProcessShardingStrategy(this.ws, {
+                shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9)
+            })
+        );
+
+        /* if (process.env.USE_PROCESS_SHARDING === "true") {
             this.ws.setStrategy(
                 new ProcessShardingStrategy(this.ws, {
                     shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9)
@@ -224,10 +230,12 @@ export class GatewayInitiator {
         } else {
             this.ws.setStrategy(
                 new WorkerShardingStrategy(this.ws, {
-                    shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9)
+                    shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9),
+                    workerPath: "./dist/Utilities/Websocket/DefaultProcess.js"
                 })
             );
-        }
+        } */
+
         await this.ws.connect();
         const shardCount = await this.ws.getShardCount();
         await this.cache.statuses.clear();
@@ -264,10 +272,6 @@ export class GatewayInitiator {
                     await collection.set(`${payload.shardId}`, { ping, shardId: payload.shardId });
                 }
             });
-        });
-
-        this.ws.on(WebSocketShardEvents.Ready, (payload: { shardId: number }) => {
-            this.logger.info(`Shard ${payload.shardId} ready`);
         });
 
         this.ws.on(WebSocketShardEvents.Resumed, (payload: { shardId: number }) => {

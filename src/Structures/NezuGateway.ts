@@ -11,10 +11,9 @@ import { ListenerStore } from "../Stores/ListenerStore.js";
 import { container, Piece, Store, StoreRegistry } from "@sapphire/pieces";
 import { Constants } from "../Utilities/Constants.js";
 import { createAmqp, RoutingPublisher } from "@nezuchan/cordis-brokers";
-import { TaskStore } from "../Stores/TaskStore.js";
 import { cast } from "@sapphire/utilities";
 import { RedisCollection } from "@nezuchan/redis-collection";
-import { APIMessage } from "discord-api-types/v10";
+import { APIEmoji, APIMessage } from "discord-api-types/v10";
 
 const { default: Redis, Cluster } = IORedis;
 
@@ -60,7 +59,7 @@ export class NezuGateway extends EventEmitter {
         messages: new RedisCollection<APIMessage, APIMessage>({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.MESSAGE_KEY}` : Constants.MESSAGE_KEY }),
         sessions: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.SESSIONS_KEY}` : Constants.SESSIONS_KEY }),
         statuses: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY }),
-        emojis: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.EMOJI_KEY}` : Constants.EMOJI_KEY })
+        emojis: new RedisCollection<APIEmoji, APIEmoji>({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.EMOJI_KEY}` : Constants.EMOJI_KEY })
     };
 
     public logger = pino({
@@ -117,7 +116,6 @@ export class NezuGateway extends EventEmitter {
         }
 
         this.stores.register(new ListenerStore());
-        this.stores.register(new TaskStore());
         this.rest.setToken(process.env.DISCORD_TOKEN!);
         await Promise.all([...this.stores.values()].map((store: Store<Piece>) => store.loadAll()));
     }

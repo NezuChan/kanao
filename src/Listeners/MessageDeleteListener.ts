@@ -1,8 +1,9 @@
 /* eslint-disable class-methods-use-this */
-import { APIMessage, GatewayDispatchEvents, GatewayMessageDeleteDispatch } from "discord-api-types/v10";
+import { GatewayDispatchEvents, GatewayMessageDeleteDispatch } from "discord-api-types/v10";
 import { Listener, ListenerOptions } from "../Stores/Listener.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 import { Util } from "../Utilities/Util.js";
+import { Constants } from "../Utilities/Constants.js";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: GatewayDispatchEvents.MessageDelete,
@@ -18,6 +19,9 @@ export class MessageDeleteListener extends Listener {
             old
         }, { persistent: false });
 
-        if (Util.optionalEnv("STATE_MESSAGE", "true")) await this.container.gateway.cache.messages.set(payload.data.d.id, payload.data.d as APIMessage);
+        if (Util.optionalEnv("STATE_MESSAGE", "true")) {
+            await this.container.gateway.redis.srem(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MESSAGE_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.MESSAGE_KEY}${Constants.KEYS_SUFFIX}`, payload.data.d.id);
+            await this.container.gateway.cache.messages.delete(payload.data.d.id);
+        }
     }
 }
