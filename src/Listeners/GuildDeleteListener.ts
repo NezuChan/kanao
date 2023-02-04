@@ -11,14 +11,13 @@ import { Constants } from "../Utilities/Constants.js";
 
 export class GuildDeleteListener extends Listener {
     public async run(payload: { data: GatewayGuildDeleteDispatch }): Promise<void> {
-        const roles = await this.container.gateway.cache.roles.filter((_, key) => key.startsWith(payload.data.d.id));
-        const emojis = await this.container.gateway.cache.emojis.filter((_, key) => key.startsWith(payload.data.d.id));
-        const members = await this.container.gateway.cache.members.filter((_, key) => key.startsWith(payload.data.d.id));
-        const channels = await this.container.gateway.cache.channels.filter((_, key) => key.startsWith(payload.data.d.id));
-        const voiceStates = await this.container.gateway.cache.states.filter((_, key) => key.startsWith(payload.data.d.id));
-        const presences = await this.container.gateway.cache.presences.filter((_, key) => key.startsWith(payload.data.d.id));
+        const roles = await this.container.gateway.redis.smembers(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.ROLE_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.ROLE_KEY}${Constants.KEYS_SUFFIX}`).then(x => x.filter(y => y.startsWith(payload.data.d.id)));
+        const emojis = await this.container.gateway.redis.smembers(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.EMOJI_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.EMOJI_KEY}${Constants.KEYS_SUFFIX}`).then(x => x.filter(y => y.startsWith(payload.data.d.id)));
+        const members = await this.container.gateway.redis.smembers(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MEMBER_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.MEMBER_KEY}${Constants.KEYS_SUFFIX}`).then(x => x.filter(y => y.startsWith(payload.data.d.id)));
+        const channels = await this.container.gateway.redis.smembers(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}`).then(x => x.filter(y => y.startsWith(payload.data.d.id)));
+        const voiceStates = await this.container.gateway.redis.smembers(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.VOICE_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.VOICE_KEY}${Constants.KEYS_SUFFIX}`).then(x => x.filter(y => y.startsWith(payload.data.d.id)));
+        const presences = await this.container.gateway.redis.smembers(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.PRESENCE_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.PRESENCE_KEY}${Constants.KEYS_SUFFIX}`).then(x => x.filter(y => y.startsWith(payload.data.d.id)));
 
-        // TODO: Use SETS Indexing
         for (const [key] of roles) await this.container.gateway.cache.roles.delete(key);
         for (const [key] of members) await this.container.gateway.cache.members.delete(key);
         for (const [key] of channels) await this.container.gateway.cache.channels.delete(key);
@@ -29,15 +28,7 @@ export class GuildDeleteListener extends Listener {
         if (!payload.data.d.unavailable) {
             this.container.gateway.amqp.sender.publish(this.container.gateway.clientId, payload.data.t, {
                 ...payload,
-                old: {
-                    ...await this.container.gateway.cache.guilds.get(payload.data.d.id) ?? {},
-                    roles: roles.toJSON(),
-                    emojis: emojis.toJSON(),
-                    members: members.toJSON(),
-                    channels: channels.toJSON(),
-                    voiceStates: voiceStates.toJSON(),
-                    presences: presences.toJSON()
-                }
+                old: await this.container.gateway.cache.guilds.get(payload.data.d.id)
             }, { persistent: false });
         }
 
