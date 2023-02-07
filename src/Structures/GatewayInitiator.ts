@@ -318,7 +318,7 @@ export class GatewayInitiator {
         await this.cache.presences.clear();
         await this.cache.states.clear();
         await this.cache.statuses.clear();
-        await this.redis.del(process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.SHARDS_KEY}` : Constants.SHARDS_KEY);
+        await this.redis.unlink(process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.SHARDS_KEY}` : Constants.SHARDS_KEY);
     }
 }
 
