@@ -87,9 +87,9 @@ export class GatewayInitiator {
             GatewayIntentBits.GuildMembers |
             GatewayIntentBits.GuildMessages |
             GatewayIntentBits.GuildVoiceStates,
-        helloTimeout: process.env.GATEWAY_HELLO_TIMEOUT ? Number(process.env.GATEWAY_HELLO_TIMEOUT) : null,
-        readyTimeout: process.env.GATEWAY_READY_TIMEOUT ? Number(process.env.GATEWAY_READY_TIMEOUT) : null,
-        handshakeTimeout: process.env.GATEWAY_HANDSHAKE_TIMEOUT ? Number(process.env.GATEWAY_HANDSHAKE_TIMEOUT) : null,
+        helloTimeout: process.env.GATEWAY_HELLO_TIMEOUT ? Number(process.env.GATEWAY_HELLO_TIMEOUT) : undefined,
+        readyTimeout: process.env.GATEWAY_READY_TIMEOUT ? Number(process.env.GATEWAY_READY_TIMEOUT) : undefined,
+        handshakeTimeout: process.env.GATEWAY_HANDSHAKE_TIMEOUT ? Number(process.env.GATEWAY_HANDSHAKE_TIMEOUT) : undefined,
         largeThreshold: Number(process.env.GATEWAY_LARGE_THRESHOLD ?? 250),
         token: process.env.DISCORD_TOKEN!,
         shardCount: process.env.GATEWAY_SHARD_COUNT ? Number(process.env.GATEWAY_SHARD_COUNT) : null,
@@ -98,7 +98,7 @@ export class GatewayInitiator {
                 start: Number(process.env.GATEWAY_SHARD_START),
                 end: Number(process.env.GATEWAY_SHARD_END)
             }
-            : null,
+            : undefined,
         initialPresence: {
             activities: [
                 {
@@ -263,19 +263,11 @@ export class GatewayInitiator {
             }
         });
 
-        this.ws.on(WebSocketShardEvents.Debug, async (payload: { message: string; shardId: number }) => {
-            await Result.fromAsync(async () => {
-                this.logger.debug(payload);
-                if ((/Got heartbeat ack after (?<ping>\d+)/).test(payload.message)) {
-                    const collection = new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY });
-                    const ping = Number((/Got heartbeat ack after (?<ping>\d+)/).exec(payload.message)![1]);
-                    await collection.set(`${payload.shardId}`, { ping, shardId: payload.shardId });
-                }
-            });
-        });
+        this.ws.on(WebSocketShardEvents.Debug, (payload: { message: string; shardId: number }) => this.logger.debug(payload));
+        this.ws.on(WebSocketShardEvents.Resumed, (payload: { shardId: number }) => this.logger.info(`Shard ${payload.shardId} Resumed`));
 
-        this.ws.on(WebSocketShardEvents.Resumed, (payload: { shardId: number }) => {
-            this.logger.info(`Shard ${payload.shardId} Resumed`);
+        this.ws.on(WebSocketShardEvents.HeartbeatComplete, async (payload: { shardId: number; latency: number }) => {
+            await this.cache.statuses.set(`${payload.shardId}`, { ping: payload.latency, latency: payload.latency, shardId: payload.shardId });
         });
 
         console.log(
