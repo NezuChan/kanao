@@ -114,45 +114,21 @@ export class GatewayInitiator {
         rest: this.rest,
         updateSessionInfo: async (shardId: number, sessionInfo: SessionInfo | null) => {
             if (sessionInfo) {
-                const collection = new RedisCollection<SessionInfo>({
-                    redis: this.redis,
-                    hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.SESSIONS_KEY}` : Constants.SESSIONS_KEY
-                });
-
-                const result = await Result.fromAsync(() => collection.set(`${shardId}`, sessionInfo));
+                const result = await Result.fromAsync(() => this.cache.sessions.set(`${shardId}`, sessionInfo));
 
                 if (result.isErr()) this.logger.error(result.unwrapErr(), "Failed to update session info");
             }
         },
         retrieveSessionInfo: async (shardId: number) => {
-            const collection = new RedisCollection<string, SessionInfo>({
-                redis: this.redis,
-                hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.SESSIONS_KEY}` : Constants.SESSIONS_KEY
-            });
-
-            const result = await Result.fromAsync(() => collection.get(`${shardId}`));
+            const result = await Result.fromAsync(() => this.cache.sessions.get(`${shardId}`));
             if (result.isErr()) return null;
             const sessionInfo = result.unwrap();
-            await collection.delete(`${shardId}`);
+            await this.cache.sessions.delete(`${shardId}`);
             return sessionInfo ? sessionInfo : null;
         }
     });
 
     public stores = new StoreRegistry();
-
-    public cache = {
-        users: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.USER_KEY}` : Constants.USER_KEY }),
-        members: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.MEMBER_KEY}` : Constants.MEMBER_KEY }),
-        channels: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.CHANNEL_KEY}` : Constants.CHANNEL_KEY }),
-        guilds: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.GUILD_KEY}` : Constants.GUILD_KEY }),
-        states: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.VOICE_KEY}` : Constants.VOICE_KEY }),
-        roles: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.ROLE_KEY}` : Constants.ROLE_KEY }),
-        presences: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.PRESENCE_KEY}` : Constants.PRESENCE_KEY }),
-        messages: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.MESSAGE_KEY}` : Constants.MESSAGE_KEY }),
-        sessions: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.SESSIONS_KEY}` : Constants.SESSIONS_KEY }),
-        statuses: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY }),
-        emojis: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.EMOJI_KEY}` : Constants.EMOJI_KEY })
-    };
 
     public tasks!: {
         sender: RpcPublisher<string, Record<string, any>>;
@@ -161,6 +137,11 @@ export class GatewayInitiator {
 
     public amqp!: {
         receiver: RoutingSubscriber<string, Record<string, any>>;
+    };
+
+    public cache = {
+        sessions: new RedisCollection<SessionInfo, SessionInfo>({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.SESSIONS_KEY}` : Constants.SESSIONS_KEY }),
+        statuses: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY })
     };
 
     public date(): string {
@@ -202,16 +183,16 @@ export class GatewayInitiator {
         this.rest.setToken(process.env.DISCORD_TOKEN!);
         await Promise.all([...this.stores.values()].map((store: Store<Piece>) => store.loadAll()));
 
-        const gatewaySessions = await new RedisCollection<SessionInfo>({ redis: this.redis, hash: Constants.SESSIONS_KEY }).size;
+        const gatewaySessions = await this.cache.sessions.size;
         if (gatewaySessions && process.env.USE_ROUTING !== "true") {
             this.logger.info(`Found ${gatewaySessions} resumeable gateway sessions in Redis`);
         } else if (process.env.USE_ROUTING === "true") {
-            this.logger.info("Starting in routing mode, clearing all data from Redis");
-            await this.clearCaches();
+            this.logger.info("Starting in routing mode, clearing all non routed data from Redis");
+            await this.clearCaches(false);
             this.logger.warn("Cleared up existing cache collections, switched to routing mode");
         } else {
             this.logger.warn("No gateway sessions found in Redis, starting fresh");
-            await this.clearCaches();
+            await this.clearCaches(process.env.USE_ROUTING === "true");
             this.logger.warn("Cleared up existing cache collections");
         }
 
@@ -299,18 +280,20 @@ export class GatewayInitiator {
         );
     }
 
-    public async clearCaches() {
-        await this.cache.statuses.clear();
-        await this.cache.guilds.clear();
-        await this.cache.channels.clear();
-        await this.cache.messages.clear();
-        await this.cache.roles.clear();
-        await this.cache.emojis.clear();
-        await this.cache.members.clear();
-        await this.cache.presences.clear();
-        await this.cache.states.clear();
-        await this.cache.statuses.clear();
-        await this.redis.unlink(process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.SHARDS_KEY}` : Constants.SHARDS_KEY);
+    public async clearCaches(route: boolean) {
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.USER_KEY}` : Constants.USER_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.MEMBER_KEY}` : Constants.MEMBER_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.CHANNEL_KEY}` : Constants.CHANNEL_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.GUILD_KEY}` : Constants.GUILD_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.VOICE_KEY}` : Constants.VOICE_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.ROLE_KEY}` : Constants.ROLE_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.PRESENCE_KEY}` : Constants.PRESENCE_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.MESSAGE_KEY}` : Constants.MESSAGE_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.SESSIONS_KEY}` : Constants.SESSIONS_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.EMOJI_KEY}` : Constants.EMOJI_KEY }).clear();
+
+        await this.redis.unlink(route ? `${this.clientId}:${Constants.SHARDS_KEY}` : Constants.SHARDS_KEY);
     }
 }
 
