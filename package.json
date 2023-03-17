@@ -52,7 +52,7 @@
     "@sapphire/async-queue": "^1.5.0",
     "@sapphire/pieces": "^3.6.0",
     "@sapphire/result": "^2.6.0",
-    "@sapphire/time-utilities": "^1.7.8",
+    "@sapphire/time-utilities": "^1.7.9",
     "@sapphire/utilities": "^3.11.0",
     "@skyra/start-banner": "^1.0.2",
     "@types/amqplib": "^0.10.1",
