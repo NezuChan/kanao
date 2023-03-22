@@ -80,6 +80,9 @@ export class GatewayInitiator {
 
     public clientId = Buffer.from(process.env.DISCORD_TOKEN!.split(".")[0], "base64").toString();
     public ws = new WebSocketManager({
+        buildStrategy: (manager: WebSocketManager) => new ProcessShardingStrategy(manager, {
+            shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9)
+        }),
         intents: process.env.GATEWAY_INTENTS
             ? Number(process.env.GATEWAY_INTENTS)
             : GatewayIntentBits.Guilds |
@@ -195,27 +198,6 @@ export class GatewayInitiator {
             await this.clearCaches(process.env.USE_ROUTING === "true");
             this.logger.warn("Cleared up existing cache collections");
         }
-
-        this.ws.setStrategy(
-            new ProcessShardingStrategy(this.ws, {
-                shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9)
-            })
-        );
-
-        /* if (process.env.USE_PROCESS_SHARDING === "true") {
-            this.ws.setStrategy(
-                new ProcessShardingStrategy(this.ws, {
-                    shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9)
-                })
-            );
-        } else {
-            this.ws.setStrategy(
-                new WorkerShardingStrategy(this.ws, {
-                    shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9),
-                    workerPath: "./dist/Utilities/Websocket/DefaultProcess.js"
-                })
-            );
-        } */
 
         await this.ws.connect();
         const shardCount = await this.ws.getShardCount();
