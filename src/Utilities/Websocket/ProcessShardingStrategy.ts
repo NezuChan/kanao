@@ -3,7 +3,7 @@ import { join, isAbsolute, resolve } from "node:path";
 import { ChildProcess, fork } from "node:child_process";
 import { Collection } from "@discordjs/collection";
 import { GatewaySendPayload } from "discord-api-types/v10";
-import { IdentifyThrottler, WebSocketManager, WebSocketShardDestroyOptions, WebSocketShardStatus, managerToFetchingStrategyOptions, IShardingStrategy, WorkerShardingStrategyOptions, WorkerData, WorkerSendPayload, WorkerSendPayloadOp, WorkerReceivePayload, WorkerReceivePayloadOp } from "@discordjs/ws";
+import { IdentifyThrottler, WebSocketManager, WebSocketShardDestroyOptions, WebSocketShardStatus, managerToFetchingStrategyOptions, IShardingStrategy, WorkerShardingStrategyOptions, WorkerData, WorkerSendPayload, WorkerSendPayloadOp, WorkerReceivePayload, WorkerReceivePayloadOp, WebSocketShardEvents } from "@discordjs/ws";
 import * as url from "url";
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -157,13 +157,14 @@ export class ProcessShardingStrategy implements IShardingStrategy {
         await this.waitForWorkerReady(worker);
 
         worker
-            .on("error", err => {
-                throw err;
+            .on("error", error => {
+                this.manager.emit(WebSocketShardEvents.Error, { error, shardId: workerData.shardIds[0] });
             })
-            .on("messageerror", err => {
-                throw err;
+            .on("messageerror", error => {
+                this.manager.emit(WebSocketShardEvents.Error, { error, shardId: workerData.shardIds[0] });
             })
-            .on("close", () => {
+            .on("close", (code, signal) => {
+                this.manager.emit(WebSocketShardEvents.Error, { error: new Error(`Process closed with code ${code ?? "-"} and signal ${signal ?? "-"}. attempting to restart`), shardId: workerData.shardIds[0] });
                 worker.removeAllListeners();
                 this.#workers.splice(this.#workers.indexOf(worker), 1);
                 this.restartWorker(workerData);
@@ -177,7 +178,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
     }
 
     private restartWorker(workerData: WorkerData) {
-        void this.setupWorker(workerData).then(() => {
+        this.setupWorker(workerData).then(() => {
             const worker = this.#workerByShardId.get(workerData.shardIds[0])!;
             for (const shardId of workerData.shardIds) {
                 const payload = {
@@ -186,7 +187,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
                 } satisfies WorkerSendPayload;
                 worker.send(payload);
             }
-        });
+        }).catch(error => this.manager.emit(WebSocketShardEvents.Error, { error, shardId: workerData.shardIds[0] }));
     }
 
     private resolveWorkerPath(): string {
