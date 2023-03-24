@@ -3,9 +3,9 @@ FROM ghcr.io/hazmi35/node:18-dev-alpine as build-stage
 LABEL name "NezukoChan Gateway (Docker Build)"
 LABEL maintainer "KagChi"
 
-COPY package.json .
+COPY package*.json .
 
-RUN npm install
+RUN npm ci
 
 COPY . .
 
