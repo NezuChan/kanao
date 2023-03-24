@@ -35,30 +35,31 @@ export class GatewayInitiator {
         rejectOnRateLimit: process.env.NIRN_PROXY ? () => false : null
     });
 
-    public logger = createLogger("nezu-gateway", process.env.STORE_LOGS === "true", process.env.LOKI_HOST ? new URL(process.env.LOKI_HOST) : undefined);
-
     public redis =
-        cast<IORedis.ClusterNode[]>(JSON.parse(process.env.REDIS_CLUSTERS ?? "[]")).length
-            ? new Cluster(
-                cast<IORedis.ClusterNode[]>(JSON.parse(process.env.REDIS_CLUSTERS!)),
-                {
-                    scaleReads: cast<IORedis.NodeRole>(process.env.REDIS_CLUSTER_SCALE_READS ?? "all"),
-                    redisOptions: {
-                        password: process.env.REDIS_PASSWORD,
-                        username: process.env.REDIS_USERNAME,
-                        db: parseInt(process.env.REDIS_DB ?? "0")
-                    }
-                }
-            )
-            : new Redis({
-                username: process.env.REDIS_USERNAME!,
-                password: process.env.REDIS_PASSWORD!,
-                host: process.env.REDIS_HOST,
-                port: Number(process.env.REDIS_PORT!),
-                db: Number(process.env.REDIS_DB ?? 0)
-            });
+    cast<IORedis.ClusterNode[]>(JSON.parse(process.env.REDIS_CLUSTERS ?? "[]")).length
+    ? new Cluster(
+        cast<IORedis.ClusterNode[]>(JSON.parse(process.env.REDIS_CLUSTERS!)),
+        {
+            scaleReads: cast<IORedis.NodeRole>(process.env.REDIS_CLUSTER_SCALE_READS ?? "all"),
+            redisOptions: {
+                password: process.env.REDIS_PASSWORD,
+                username: process.env.REDIS_USERNAME,
+                db: parseInt(process.env.REDIS_DB ?? "0")
+            }
+        }
+        )
+        : new Redis({
+            username: process.env.REDIS_USERNAME!,
+            password: process.env.REDIS_PASSWORD!,
+            host: process.env.REDIS_HOST,
+            port: Number(process.env.REDIS_PORT!),
+            db: Number(process.env.REDIS_DB ?? 0)
+        });
 
     public clientId = Buffer.from(process.env.DISCORD_TOKEN!.split(".")[0], "base64").toString();
+
+    public logger = createLogger("nezu-gateway", this.clientId, process.env.STORE_LOGS === "true", process.env.LOKI_HOST ? new URL(process.env.LOKI_HOST) : undefined);
+
     public ws = new WebSocketManager({
         buildStrategy: (manager: WebSocketManager) => new ProcessShardingStrategy(manager, {
             shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9)
