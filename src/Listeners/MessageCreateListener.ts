@@ -22,7 +22,7 @@ export class MessageCreateListener extends Listener {
         }
         if (Util.optionalEnv("STATE_MESSAGE", "true")) {
             await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MEMBER_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.MEMBER_KEY}${Constants.KEYS_SUFFIX}`, payload.data.d.id);
-            await this.container.gateway.cache.members.set(payload.data.d.id, payload.data.d);
+            await this.container.gateway.cache.messages.set(payload.data.d.id, payload.data.d);
         }
 
         this.container.gateway.amqp.sender.publish(this.container.gateway.clientId, payload.data.t, { ...payload }, { persistent: false });
