@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable class-methods-use-this */
 import gradient from "gradient-string";
-import { pino } from "pino";
 import { default as IORedis } from "ioredis";
 import { CompressionMethod, SessionInfo, WebSocketShardEvents } from "@discordjs/ws";
 import { WebSocketManager } from "../Utilities/Websocket/WebsocketManager.js";
@@ -9,7 +8,6 @@ import { ProcessShardingStrategy } from "../Utilities/Websocket/ProcessShardingS
 import { GatewayIntentBits, GatewaySendPayload } from "discord-api-types/v10";
 import { REST } from "@discordjs/rest";
 import { Result } from "@sapphire/result";
-import { resolve } from "node:path";
 import { Util } from "../Utilities/Util.js";
 import { createBanner } from "@skyra/start-banner";
 import { Constants } from "../Utilities/Constants.js";
@@ -21,6 +19,7 @@ import APM from "prometheus-middleware";
 import { RpcPublisher, RoutingSubscriber, createAmqp } from "@nezuchan/cordis-brokers";
 import { Piece, Store, StoreRegistry, container } from "@sapphire/pieces";
 import { TaskStore } from "../Stores/TaskStore.js";
+import { createLogger } from "../Utilities/Logger.js";
 
 const { default: Redis, Cluster } = IORedis;
 const packageJson = Util.loadJSON<{ version: string }>("../../package.json");
@@ -36,26 +35,7 @@ export class GatewayInitiator {
         rejectOnRateLimit: process.env.NIRN_PROXY ? () => false : null
     });
 
-    public logger = pino({
-        name: "nezu-gateway",
-        timestamp: true,
-        level: process.env.NODE_ENV === "production" ? "info" : "trace",
-        formatters: {
-            bindings: () => ({
-                pid: "NezukoChan Gateway"
-            })
-        },
-        transport: {
-            targets: process.env.STORE_LOGS === "true"
-                ? [
-                    { target: "pino/file", level: "info", options: { destination: resolve(process.cwd(), "logs", `nezu-gateway-${this.date()}.log`) } },
-                    { target: "pino-pretty", level: process.env.NODE_ENV === "production" ? "info" : "trace", options: { translateTime: "SYS:yyyy-mm-dd HH:MM:ss.l o" } }
-                ]
-                : [
-                    { target: "pino-pretty", level: process.env.NODE_ENV === "production" ? "info" : "trace", options: { translateTime: "SYS:yyyy-mm-dd HH:MM:ss.l o" } }
-                ]
-        }
-    });
+    public logger = createLogger("nezu-gateway", process.env.STORE_LOGS === "true", process.env.LOKI_HOST ? new URL(process.env.LOKI_HOST) : undefined);
 
     public redis =
         cast<IORedis.ClusterNode[]>(JSON.parse(process.env.REDIS_CLUSTERS ?? "[]")).length
