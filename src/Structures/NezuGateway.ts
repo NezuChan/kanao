@@ -2,10 +2,8 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-len */
 import EventEmitter from "node:events";
-import { pino } from "pino";
 import { default as IORedis } from "ioredis";
 import { REST } from "@discordjs/rest";
-import { resolve } from "node:path";
 import { Util } from "../Utilities/Util.js";
 import { ListenerStore } from "../Stores/ListenerStore.js";
 import { container, Piece, Store, StoreRegistry } from "@sapphire/pieces";
@@ -14,6 +12,7 @@ import { createAmqp, RoutingPublisher } from "@nezuchan/cordis-brokers";
 import { cast } from "@sapphire/utilities";
 import { RedisCollection } from "@nezuchan/redis-collection";
 import { APIEmoji, APIMessage } from "discord-api-types/v10";
+import { createLogger } from "../Utilities/Logger.js";
 
 const { default: Redis, Cluster } = IORedis;
 
@@ -62,26 +61,7 @@ export class NezuGateway extends EventEmitter {
         emojis: new RedisCollection<APIEmoji, APIEmoji>({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.EMOJI_KEY}` : Constants.EMOJI_KEY })
     };
 
-    public logger = pino({
-        name: "nezu-gateway",
-        timestamp: true,
-        level: process.env.NODE_ENV === "production" ? "info" : "trace",
-        formatters: {
-            bindings: () => ({
-                pid: "NezukoChan Gateway"
-            })
-        },
-        transport: {
-            targets: process.env.STORE_LOGS === "true"
-                ? [
-                    { target: "pino/file", level: "info", options: { destination: resolve(process.cwd(), "logs", `nezu-gateway-${this.date()}.log`) } },
-                    { target: "pino-pretty", level: process.env.NODE_ENV === "production" ? "info" : "trace", options: { translateTime: "SYS:yyyy-mm-dd HH:MM:ss.l o" } }
-                ]
-                : [
-                    { target: "pino-pretty", level: process.env.NODE_ENV === "production" ? "info" : "trace", options: { translateTime: "SYS:yyyy-mm-dd HH:MM:ss.l o" } }
-                ]
-        }
-    });
+    public logger = createLogger("nezu-gateway", process.env.STORE_LOGS === "true", process.env.LOKI_HOST ? new URL(process.env.LOKI_HOST) : undefined);
 
     public amqp!: {
         sender: RoutingPublisher<string, Record<string, any>>;
