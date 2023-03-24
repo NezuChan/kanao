@@ -35,8 +35,6 @@ export class GatewayInitiator {
         rejectOnRateLimit: process.env.NIRN_PROXY ? () => false : null
     });
 
-    public logger = createLogger("nezu-gateway", process.env.STORE_LOGS === "true", process.env.LOKI_HOST ? new URL(process.env.LOKI_HOST) : undefined);
-
     public redis =
         cast<IORedis.ClusterNode[]>(JSON.parse(process.env.REDIS_CLUSTERS ?? "[]")).length
             ? new Cluster(
@@ -59,6 +57,9 @@ export class GatewayInitiator {
             });
 
     public clientId = Buffer.from(process.env.DISCORD_TOKEN!.split(".")[0], "base64").toString();
+
+    public logger = createLogger("nezu-gateway", this.clientId, process.env.STORE_LOGS === "true", process.env.LOKI_HOST ? new URL(process.env.LOKI_HOST) : undefined);
+
     public ws = new WebSocketManager({
         buildStrategy: (manager: WebSocketManager) => new ProcessShardingStrategy(manager, {
             shardsPerWorker: Number(process.env.GATEWAY_SHARDS_PERWORKERS ?? 9)

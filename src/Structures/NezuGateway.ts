@@ -61,7 +61,7 @@ export class NezuGateway extends EventEmitter {
         emojis: new RedisCollection<APIEmoji, APIEmoji>({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.EMOJI_KEY}` : Constants.EMOJI_KEY })
     };
 
-    public logger = createLogger("nezu-gateway", process.env.STORE_LOGS === "true", process.env.LOKI_HOST ? new URL(process.env.LOKI_HOST) : undefined);
+    public logger = createLogger("nezu-gateway", this.clientId, process.env.STORE_LOGS === "true", process.env.LOKI_HOST ? new URL(process.env.LOKI_HOST) : undefined);
 
     public amqp!: {
         sender: RoutingPublisher<string, Record<string, any>>;
