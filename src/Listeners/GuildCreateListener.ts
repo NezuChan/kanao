@@ -19,7 +19,7 @@ export class GuildCreateListener extends Listener {
 
         for (const member of payload.data.d.members) {
             if (Util.optionalEnv<boolean>("STATE_USER", "true")) {
-                await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MEMBER_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.MEMBER_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.id}:${member.user!.id}`);
+                await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.USER_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.USER_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.id}:${member.user!.id}`);
                 await this.container.gateway.cache.users.set(member.user!.id, member.user);
             }
             if (Util.optionalEnv<boolean>("STATE_MEMBER", "true")) {
