@@ -30,6 +30,8 @@ export class DispatchListener extends Listener {
             case GatewayDispatchEvents.GuildMembersChunk:
             case GatewayDispatchEvents.GuildRoleCreate:
             case GatewayDispatchEvents.MessageCreate:
+            case GatewayDispatchEvents.GuildRoleUpdate:
+            case GatewayDispatchEvents.GuildRoleDelete:
                 this.container.gateway.emit(payload.data.t, payload);
                 break;
             default:
