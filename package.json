@@ -64,6 +64,6 @@
     "discord-api-types": "^0.37.37",
     "eslint": "^8.37.0",
     "rimraf": "^4.4.1",
-    "typescript": "^5.0.2"
+    "typescript": "^5.0.3"
   }
 }
