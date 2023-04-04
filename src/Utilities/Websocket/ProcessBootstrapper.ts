@@ -33,7 +33,6 @@ export class ProcessBootstrapper {
                     process.send!(payload);
                 });
             }
-            shard.on(WebSocketShardEvents.Error, console.log);
 
             // Any additional setup the user might want to do
             await options.shardCallback?.(shard);
