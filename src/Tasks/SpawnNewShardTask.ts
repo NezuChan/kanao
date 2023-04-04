@@ -18,7 +18,10 @@ import { Result } from "@sapphire/result";
 export class SpawnNewShardTask extends Task {
     public async run(): Promise<void> {
         const previousTask = await this.container.redis!.hget(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, "lastRun");
-        if (previousTask) return this.container.logger!.warn("Possible dupe [spawnNewShardTask] task, skipping...");
+        if (previousTask) {
+            await this.container.redis!.expire(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, (Time.Minute * 20) - (Time.Second * 10));
+            return this.container.logger!.warn("Possible dupe [spawnNewShardTask] task, skipping...");
+        }
 
         this.container.logger!.info("Spawning new shard...");
         const sessionInfo = await this.container.ws!.fetchGatewayInformation(true);
@@ -47,7 +50,10 @@ export class SpawnNewShardTask extends Task {
     public override onLoad(): unknown {
         void Result.fromAsync(async () => {
             const previousTask = await this.container.redis!.hget(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, "lastRun");
-            if (previousTask) return this.container.logger!.warn("Possible dupe [spawnNewShardTask] task, skipping...");
+            if (previousTask) {
+                await this.container.redis!.expire(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, (Time.Minute * 20) - (Time.Second * 10));
+                return this.container.logger!.warn("Possible dupe [spawnNewShardTask] task, skipping...");
+            }
 
             await this.container.tasks!.sender.post({
                 name: this.name,

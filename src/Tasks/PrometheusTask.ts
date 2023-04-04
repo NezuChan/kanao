@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/naming-convention */
 import { RedisCollection } from "@nezuchan/redis-collection";
 import { Time } from "@sapphire/time-utilities";
@@ -20,7 +22,10 @@ import { Result } from "@sapphire/result";
 export class PrometheusTask extends Task {
     public async run(): Promise<void> {
         const previousTask = await this.container.redis!.hget(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun");
-        if (previousTask) return this.container.logger!.warn("Possible dupe [prometheusTask] task, skipping...");
+        if (previousTask) {
+            await this.container.redis!.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, Time.Second * 8);
+            return this.container.logger!.warn("Possible dupe [prometheusTask] task, skipping...");
+        }
 
         const socketCounter = new this.container.prometheus!.client.Gauge({
             name: "ws_ping",
@@ -43,27 +48,33 @@ export class PrometheusTask extends Task {
             help: "User count"
         });
 
-        const socketCollection = new RedisCollection<string, { shardId: string; ping: string }>({ redis: this.container.redis!, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY });
-        const gatewayStatuses = await socketCollection.valuesArray();
+        const guild_keys = await this.container.redis!.smembers(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}`);
+        const channel_keys = await this.container.redis!.smembers(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}`);
+        let member_count = 0;
 
-        const guildCollection = new RedisCollection<string, { member_count: number }>({ redis: this.container.redis!, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.GUILD_KEY}` : Constants.GUILD_KEY });
-        const guilds = await guildCollection.valuesArray();
+        const guildCollection = new RedisCollection<string, { id: string; member_count: number }>({ redis: this.container.redis!, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.GUILD_KEY}` : Constants.GUILD_KEY });
 
-        const channelCollection = new RedisCollection<string, { id: string }>({ redis: this.container.redis!, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}` : Constants.CHANNEL_KEY });
-        const channels = await channelCollection.valuesArray();
+        for (const guildKey of guild_keys) {
+            const guild = await guildCollection.get(guildKey);
+            if (guild) member_count += guild.member_count ?? 0;
+        }
 
         guildCounter.reset();
-        guildCounter.inc(guilds.length);
+        guildCounter.inc(guild_keys.length);
 
         channelCounter.reset();
-        channelCounter.inc(channels.length);
+        channelCounter.inc(channel_keys.length);
 
         userCounter.reset();
-        userCounter.inc(guilds.reduce((acc, cur) => acc + cur.member_count, 0));
+        userCounter.inc(member_count);
 
         socketCounter.reset();
-        for (const status of gatewayStatuses) {
-            socketCounter.set({ shardId: status.shardId }, Number(status.ping));
+
+        const socketCollection = new RedisCollection<string, { shardId: string; latency: string }>({ redis: this.container.redis!, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY });
+        const shardCount = this.container.ws?.options.shardCount ?? 1;
+        for (let i = 0; i < shardCount; i++) {
+            const socketStatus = await socketCollection.get(i.toString());
+            if (socketStatus) socketCounter.set({ shardId: socketStatus.shardId }, Number(socketStatus.latency));
         }
 
         await this.container.redis!.hset(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun", Date.now());
@@ -80,7 +91,10 @@ export class PrometheusTask extends Task {
     public override onLoad(): unknown {
         void Result.fromAsync(async () => {
             const previousTask = await this.container.redis!.hget(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun");
-            if (previousTask) return this.container.logger!.warn("Possible dupe [prometheusTask] task, skipping...");
+            if (previousTask) {
+                await this.container.redis!.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, Time.Second * 8);
+                return this.container.logger!.warn("Possible dupe [prometheusTask] task, skipping...");
+            }
 
             await this.container.tasks!.sender.post({
                 name: this.name,
