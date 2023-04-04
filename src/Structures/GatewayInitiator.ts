@@ -209,6 +209,7 @@ export class GatewayInitiator {
 
         this.ws.on(WebSocketShardEvents.Debug, (payload: { message: string; shardId: number }) => this.logger.debug(payload));
         this.ws.on(WebSocketShardEvents.Resumed, (payload: { shardId: number }) => this.logger.info(`Shard ${payload.shardId} Resumed`));
+        this.ws.on(WebSocketShardEvents.Error, (payload: { error: Error; shardId: number }) => this.logger.error(payload.error, `Shard ${payload.shardId} throwed error`));
 
         this.ws.on(WebSocketShardEvents.HeartbeatComplete, async (payload: { shardId: number; latency: number }) => {
             await this.cache.statuses.set(`${payload.shardId}`, { ping: payload.latency, latency: payload.latency, shardId: payload.shardId });
