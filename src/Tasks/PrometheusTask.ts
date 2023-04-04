@@ -20,35 +20,35 @@ import { Result } from "@sapphire/result";
 })
 
 export class PrometheusTask extends Task {
+    public guildCounter = new this.container.prometheus!.client.Counter({
+        name: "guild_count",
+        help: "Guild count"
+    });
+
+    public channelCounter = new this.container.prometheus!.client.Counter({
+        name: "channel_count",
+        help: "Channel count"
+    });
+
+    public socketCounter = new this.container.prometheus!.client.Gauge({
+        name: "ws_ping",
+        help: "Websocket ping",
+        labelNames: ["shardId"]
+    });
+
+    public userCounter = new this.container.prometheus!.client.Counter({
+        name: "user_count",
+        help: "User count"
+    });
+
     public async run(): Promise<void> {
         const previousTask = await this.container.redis!.hget(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun");
         if (previousTask) {
-            await this.container.redis!.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, Time.Second * 8);
+            await this.container.redis!.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, 8);
             return this.container.logger!.warn("Possible dupe [prometheusTask] task, skipping...");
         }
 
-        const socketCounter = new this.container.prometheus!.client.Gauge({
-            name: "ws_ping",
-            help: "Websocket ping",
-            labelNames: ["shardId"]
-        });
-
-        const guildCounter = new this.container.prometheus!.client.Counter({
-            name: "guild_count",
-            help: "Guild count"
-        });
-
-        const channelCounter = new this.container.prometheus!.client.Counter({
-            name: "channel_count",
-            help: "Channel count"
-        });
-
-        const userCounter = new this.container.prometheus!.client.Counter({
-            name: "user_count",
-            help: "User count"
-        });
-
-        const guild_keys = await this.container.redis!.smembers(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}`);
+        const guild_keys = await this.container.redis!.smembers(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.GUILD_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.GUILD_KEY}${Constants.KEYS_SUFFIX}`);
         const channel_keys = await this.container.redis!.smembers(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}`);
         let member_count = 0;
 
@@ -59,26 +59,26 @@ export class PrometheusTask extends Task {
             if (guild) member_count += guild.member_count ?? 0;
         }
 
-        guildCounter.reset();
-        guildCounter.inc(guild_keys.length);
+        this.guildCounter.reset();
+        this.guildCounter.inc(guild_keys.length === 0 ? await guildCollection.size : guild_keys.length);
 
-        channelCounter.reset();
-        channelCounter.inc(channel_keys.length);
+        this.channelCounter.reset();
+        this.channelCounter.inc(channel_keys.length);
 
-        userCounter.reset();
-        userCounter.inc(member_count);
+        this.userCounter.reset();
+        this.userCounter.inc(member_count);
 
-        socketCounter.reset();
+        this.socketCounter.reset();
 
         const socketCollection = new RedisCollection<string, { shardId: string; latency: string }>({ redis: this.container.redis!, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY });
         const shardCount = this.container.ws?.options.shardCount ?? 1;
         for (let i = 0; i < shardCount; i++) {
             const socketStatus = await socketCollection.get(i.toString());
-            if (socketStatus) socketCounter.set({ shardId: socketStatus.shardId }, Number(socketStatus.latency));
+            if (socketStatus) this.socketCounter.set({ shardId: socketStatus.shardId }, Number(socketStatus.latency));
         }
 
         await this.container.redis!.hset(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun", Date.now());
-        await this.container.redis!.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, Time.Second * 8);
+        await this.container.redis!.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, 8);
 
         await this.container.tasks!.sender.post({
             name: this.name,
@@ -86,13 +86,16 @@ export class PrometheusTask extends Task {
             type: "add",
             data: this.options.taskOptions.data
         });
+        await this.container.redis!.hget(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun");
+        await this.container.redis!.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, 8);
+        this.container.logger!.info("Updated prometheus metrics");
     }
 
     public override onLoad(): unknown {
         void Result.fromAsync(async () => {
             const previousTask = await this.container.redis!.hget(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun");
             if (previousTask) {
-                await this.container.redis!.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, Time.Second * 8);
+                await this.container.redis!.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, 8);
                 return this.container.logger!.warn("Possible dupe [prometheusTask] task, skipping...");
             }
 
@@ -104,9 +107,8 @@ export class PrometheusTask extends Task {
             });
 
             await this.container.redis!.hset(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun", Date.now());
-            await this.container.redis!.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, Time.Second * 8);
+            await this.container.redis!.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, 8);
         });
-        this.container.tasks!.receiver.on(this.name, this._run.bind(this));
         return super.onLoad();
     }
 }

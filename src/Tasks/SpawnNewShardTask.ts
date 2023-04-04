@@ -19,7 +19,7 @@ export class SpawnNewShardTask extends Task {
     public async run(): Promise<void> {
         const previousTask = await this.container.redis!.hget(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, "lastRun");
         if (previousTask) {
-            await this.container.redis!.expire(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, (Time.Minute * 20) - (Time.Second * 10));
+            await this.container.redis!.expire(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, ((Time.Minute * 20) / 1000) - 10);
             return this.container.logger!.warn("Possible dupe [spawnNewShardTask] task, skipping...");
         }
 
@@ -28,7 +28,7 @@ export class SpawnNewShardTask extends Task {
         const shardCount = await this.container.ws!.getShardCount();
 
         await this.container.redis!.hset(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, "lastRun", Date.now());
-        await this.container.redis!.expire(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, (Time.Minute * 20) - (Time.Second * 10));
+        await this.container.redis!.expire(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, ((Time.Minute * 20) / 1000) - 10);
 
         await this.container.tasks!.sender.post({
             name: this.name,
@@ -36,6 +36,9 @@ export class SpawnNewShardTask extends Task {
             type: "add",
             data: this.options.taskOptions.data
         });
+
+        await this.container.redis!.hget(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, "lastRun");
+        await this.container.redis!.expire(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, ((Time.Minute * 20) / 1000) - 10);
 
         if (sessionInfo.shards !== shardCount) {
             await this.container.ws!.updateShardCount(sessionInfo.shards);
@@ -51,7 +54,7 @@ export class SpawnNewShardTask extends Task {
         void Result.fromAsync(async () => {
             const previousTask = await this.container.redis!.hget(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, "lastRun");
             if (previousTask) {
-                await this.container.redis!.expire(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, (Time.Minute * 20) - (Time.Second * 10));
+                await this.container.redis!.expire(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, ((Time.Minute * 20) / 1000) - 10);
                 return this.container.logger!.warn("Possible dupe [spawnNewShardTask] task, skipping...");
             }
 
@@ -63,7 +66,7 @@ export class SpawnNewShardTask extends Task {
             });
 
             await this.container.redis!.hset(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, "lastRun", Date.now());
-            await this.container.redis!.expire(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, (Time.Minute * 20) - (Time.Second * 10));
+            await this.container.redis!.expire(`${this.container.clientId!}:${Constants.SPAWN_NEW_SHARD_TASK}`, ((Time.Minute * 20) / 1000) - 10);
         });
         this.container.tasks!.receiver.on(this.name, this._run.bind(this));
         return super.onLoad();

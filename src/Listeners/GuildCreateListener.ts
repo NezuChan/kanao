@@ -73,6 +73,7 @@ export class GuildCreateListener extends Listener {
         payload.data.d.members = [];
         payload.data.d.roles = [];
 
+        await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.GUILD_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.GUILD_KEY}${Constants.KEYS_SUFFIX}`, payload.data.d.id);
         await this.container.gateway.cache.guilds.set(payload.data.d.id, payload.data.d);
     }
 }

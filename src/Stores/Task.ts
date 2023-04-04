@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { Piece } from "@sapphire/pieces";
 import { Result } from "@sapphire/result";
-import { CommonEvents } from "../Utilities/Enums/CommonEvents.js";
 
 export abstract class Task extends Piece {
     public constructor(context: Piece.Context, public options: TaskOptions) {
@@ -10,16 +9,6 @@ export abstract class Task extends Piece {
     }
 
     public onLoad(): unknown {
-        void Result.fromAsync(async () => {
-            if (this.options.taskOptions.options) {
-                await this.container.tasks!.sender.post({
-                    name: this.name,
-                    options: this.options.taskOptions.options,
-                    type: "add",
-                    data: this.options.taskOptions.data
-                });
-            }
-        });
         this.container.tasks!.receiver.on(this.name, this._run.bind(this));
         return super.onLoad();
     }
@@ -33,7 +22,7 @@ export abstract class Task extends Piece {
     protected async _run(...args: unknown[]): Promise<void> {
         const result = await Result.fromAsync(() => this.run(...args));
         if (result.isErr()) {
-            this.container.gateway.emit(CommonEvents.TaskError, result.unwrapErr(), { piece: this });
+            this.container.logger!.error(result.unwrapErr());
         }
     }
 

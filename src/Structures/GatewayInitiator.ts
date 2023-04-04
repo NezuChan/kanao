@@ -156,6 +156,9 @@ export class GatewayInitiator {
             await this.amqp.receiver.init({ queue: Constants.QUEUE_SEND, keys: "*", durable: true });
         }
 
+        await this.tasks.receiver.init({ name: Constants.TASKS_RECV, keys: "*", durable: true, exchangeType: "topic", useExchangeBinding: true });
+        await this.tasks.sender.init({ name: Constants.TASKS_SEND, autoAck: true });
+
         container.tasks = this.tasks;
         container.prometheus = this.prometheus;
         container.ws = this.ws;
@@ -185,7 +188,7 @@ export class GatewayInitiator {
         await this.cache.statuses.clear();
         let shardId = -1;
         while (shardId < (shardCount - 1)) {
-            shardId += 1; await this.cache.statuses.set(`${shardId}`, { shardId, ping: -1 });
+            shardId += 1; await this.cache.statuses.set(`${shardId}`, { shardId, ping: -1, latency: -1 });
         }
         await this.redis.set(process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.SHARDS_KEY}` : Constants.SHARDS_KEY, shardCount);
 
