@@ -7,7 +7,6 @@ import { cast } from "@sapphire/utilities";
 import { AsyncEventEmitter } from "@vladfrangu/async_event_emitter";
 import EventEmitter from "node:events";
 import { Logger } from "pino";
-import { CommonEvents } from "../Utilities/Enums/CommonEvents.js";
 
 export abstract class Listener extends Piece {
     public readonly emitter: AsyncEventEmitter | EventEmitter | WebSocketManager | null;
@@ -61,7 +60,7 @@ export abstract class Listener extends Piece {
     private async _run(...args: unknown[]): Promise<void> {
         const result = await Result.fromAsync(() => this.run(...args));
         if (result.isErr()) {
-            this.container.gateway.emit(CommonEvents.ListenerError, result.unwrapErr(), { piece: this });
+            this.container.gateway.logger.error(result.unwrapErr());
         }
     }
 
