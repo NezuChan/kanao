@@ -10,7 +10,7 @@ import { Constants } from "../Utilities/Constants.js";
     emitter: container.gateway
 }))
 
-export class GuildMemberAddListener extends Listener {
+export class GuildMembersChunkListener extends Listener {
     public async run(payload: { data: GatewayGuildMembersChunkDispatch }): Promise<void> {
         for (const member of payload.data.d.members) {
             if (Util.optionalEnv<boolean>("STATE_USER", "true")) {
