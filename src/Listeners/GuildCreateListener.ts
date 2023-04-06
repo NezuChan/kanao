@@ -13,6 +13,8 @@ import { Constants } from "../Utilities/Constants.js";
 
 export class GuildCreateListener extends Listener {
     public async run(payload: { data: GatewayGuildCreateDispatch }): Promise<void> {
+        if (payload.data.d.unavailable) { return; }
+
         const old = await this.container.gateway.cache.guilds.get(payload.data.d.id);
 
         if (!old) this.container.gateway.amqp.sender.publish(this.container.gateway.clientId, payload.data.t, payload, { persistent: false });
