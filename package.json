@@ -1,6 +1,6 @@
 {
   "name": "@nezuchan/nezu-gateway",
-  "version": "1.14.7",
+  "version": "1.14.8",
   "description": "A standalone service for connecting to the Discord gateway.",
   "license": "GPL-3.0",
   "author": "KagChi",
