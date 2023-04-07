@@ -123,8 +123,8 @@ export class GatewayInitiator {
     };
 
     public cache = {
-        sessions: new RedisCollection<SessionInfo, SessionInfo>({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.SESSIONS_KEY}` : Constants.SESSIONS_KEY }),
-        statuses: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY })
+        sessions: new RedisCollection<SessionInfo, SessionInfo>({ redis: this.redis, hash: Util.genKey(Constants.SESSIONS_KEY, this.clientId, false) }),
+        statuses: new RedisCollection({ redis: this.redis, hash: Util.genKey(Constants.STATUSES_KEY, this.clientId, false) })
     };
 
     public date(): string {
@@ -189,7 +189,7 @@ export class GatewayInitiator {
         while (shardId < (shardCount - 1)) {
             shardId += 1; await this.cache.statuses.set(`${shardId}`, { shardId, ping: -1, latency: -1 });
         }
-        await this.redis.set(process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.SHARDS_KEY}` : Constants.SHARDS_KEY, shardCount);
+        await this.redis.set(Util.genKey(Constants.SHARDS_KEY, this.clientId, false), shardCount);
 
         this.amqp.receiver.on("send", (payload: {
             type: string;

@@ -7,6 +7,7 @@ import { Task, TaskOptions } from "../Stores/Task.js";
 import { Constants } from "../Utilities/Constants.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 import { Result } from "@sapphire/result";
+import { Util } from "../Utilities/Util.js";
 
 @ApplyOptions<TaskOptions>({
     taskOptions: {
@@ -48,11 +49,14 @@ export class PrometheusTask extends Task {
             return this.container.logger!.warn("Possible dupe [prometheusTask] task, skipping...");
         }
 
-        const guild_keys = await this.container.redis!.smembers(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.GUILD_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.GUILD_KEY}${Constants.KEYS_SUFFIX}`);
-        const channel_keys = await this.container.redis!.smembers(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}`);
+        const guild_keys = await this.container.redis!.smembers(this.container.gateway.genKey(Constants.GUILD_KEY, true));
+        const channel_keys = await this.container.redis!.smembers(this.container.gateway.genKey(Constants.CHANNEL_KEY, true));
         let member_count = 0;
 
-        const guildCollection = new RedisCollection<string, { id: string; member_count: number }>({ redis: this.container.redis!, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.GUILD_KEY}` : Constants.GUILD_KEY });
+        const guildCollection = new RedisCollection<string, { id: string; member_count: number }>({
+            redis: this.container.redis!,
+            hash: Util.genKey(Constants.GUILD_KEY, this.container.gateway.clientId, false)
+        });
 
         for (const guildKey of guild_keys) {
             const guild = await guildCollection.get(guildKey);
@@ -70,7 +74,10 @@ export class PrometheusTask extends Task {
 
         this.socketCounter.reset();
 
-        const socketCollection = new RedisCollection<string, { shardId: string; latency: string }>({ redis: this.container.redis!, hash: process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY });
+        const socketCollection = new RedisCollection<string, { shardId: string; latency: string }>({
+            redis: this.container.redis!,
+            hash: Util.genKey(Constants.STATUSES_KEY, this.container.gateway.clientId, false)
+        });
         const shardCount = this.container.ws?.options.shardCount ?? 1;
         for (let i = 0; i < shardCount; i++) {
             const socketStatus = await socketCollection.get(i.toString());

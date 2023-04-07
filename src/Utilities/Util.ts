@@ -1,8 +1,19 @@
 /* eslint-disable no-multi-assign */
 import fs from "node:fs";
+import { Constants } from "./Constants.js";
 
 /* eslint-disable @typescript-eslint/no-extraneous-class */
 export class Util {
+    public static prependString(original: string, prepend: string): string {
+        return `${prepend}:${original}`;
+    }
+
+    public static genKey(key: string, clientId: string, suffix: boolean): string {
+        const clientPrefixed = process.env.USE_ROUTING === "true" ? Util.prependString(key, clientId) : key;
+
+        return suffix ? `${clientPrefixed}${Constants.KEYS_SUFFIX}` : clientPrefixed;
+    }
+
     public static formatDate(dateFormat: Intl.DateTimeFormat, date: Date | number = new Date()): string {
         const data = dateFormat.formatToParts(date);
         return "<year>-<month>-<day>"

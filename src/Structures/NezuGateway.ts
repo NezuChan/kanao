@@ -48,17 +48,17 @@ export class NezuGateway extends EventEmitter {
             });
 
     public cache = {
-        users: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.USER_KEY}` : Constants.USER_KEY }),
-        members: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.MEMBER_KEY}` : Constants.MEMBER_KEY }),
-        channels: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.CHANNEL_KEY}` : Constants.CHANNEL_KEY }),
-        guilds: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.GUILD_KEY}` : Constants.GUILD_KEY }),
-        states: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.VOICE_KEY}` : Constants.VOICE_KEY }),
-        roles: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.ROLE_KEY}` : Constants.ROLE_KEY }),
-        presences: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.PRESENCE_KEY}` : Constants.PRESENCE_KEY }),
-        messages: new RedisCollection<APIMessage, APIMessage>({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.MESSAGE_KEY}` : Constants.MESSAGE_KEY }),
-        sessions: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.SESSIONS_KEY}` : Constants.SESSIONS_KEY }),
-        statuses: new RedisCollection({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY }),
-        emojis: new RedisCollection<APIEmoji, APIEmoji>({ redis: this.redis, hash: process.env.USE_ROUTING === "true" ? `${this.clientId}:${Constants.EMOJI_KEY}` : Constants.EMOJI_KEY })
+        users: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.USER_KEY, false) }),
+        members: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.MEMBER_KEY, false) }),
+        channels: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.CHANNEL_KEY, false) }),
+        guilds: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.GUILD_KEY, false) }),
+        states: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.VOICE_KEY, false) }),
+        roles: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.ROLE_KEY, false) }),
+        messages: new RedisCollection<APIMessage, APIMessage>({ redis: this.redis, hash: this.genKey(Constants.MESSAGE_KEY, false) }),
+        presences: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.PRESENCE_KEY, false) }),
+        sessions: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.SESSIONS_KEY, false) }),
+        statuses: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.STATUSES_KEY, false) }),
+        emojis: new RedisCollection<APIEmoji, APIEmoji>({ redis: this.redis, hash: this.genKey(Constants.EMOJI_KEY, false) })
     };
 
     public logger = createLogger("nezu-gateway", this.clientId, process.env.STORE_LOGS === "true", process.env.LOKI_HOST ? new URL(process.env.LOKI_HOST) : undefined);
@@ -98,6 +98,10 @@ export class NezuGateway extends EventEmitter {
         this.stores.register(new ListenerStore());
         this.rest.setToken(process.env.DISCORD_TOKEN!);
         await Promise.all([...this.stores.values()].map((store: Store<Piece>) => store.loadAll()));
+    }
+
+    public genKey(key: string, suffix: boolean) {
+        return Util.genKey(key, this.clientId, suffix);
     }
 }
 

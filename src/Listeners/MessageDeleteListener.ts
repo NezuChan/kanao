@@ -20,7 +20,7 @@ export class MessageDeleteListener extends Listener {
         }, { persistent: false });
 
         if (Util.optionalEnv("STATE_MESSAGE", "true")) {
-            await this.container.gateway.redis.srem(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MESSAGE_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.MESSAGE_KEY}${Constants.KEYS_SUFFIX}`, payload.data.d.id);
+            await this.container.gateway.redis.srem(this.container.gateway.genKey(Constants.MESSAGE_KEY, true), payload.data.d.id);
             await this.container.gateway.cache.messages.delete(payload.data.d.id);
         }
     }

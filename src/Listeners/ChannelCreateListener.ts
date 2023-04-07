@@ -14,10 +14,10 @@ export class ChannelCreateListener extends Listener {
     public async run(payload: { data: GatewayChannelCreateDispatch }): Promise<void> {
         if (Util.optionalEnv("STATE_CHANNEL", "true")) {
             if ("guild_id" in payload.data.d && payload.data.d.guild_id) {
-                await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.guild_id}:${payload.data.d.id}`);
+                await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.CHANNEL_KEY, true), `${payload.data.d.guild_id}:${payload.data.d.id}`);
                 await this.container.gateway.cache.channels.set(`${payload.data.d.guild_id}:${payload.data.d.id}`, payload.data.d);
             } else {
-                await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}`, payload.data.d.id);
+                await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.CHANNEL_KEY, true), payload.data.d.id);
                 await this.container.gateway.cache.channels.set(payload.data.d.id, payload.data.d);
             }
         }
