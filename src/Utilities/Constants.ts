@@ -23,11 +23,4 @@ export class Constants {
 
     public static KEYS_SUFFIX = "_keys";
     public static EXPIRY_KEYS = "expiry_keys";
-
-    public static readonly TASKS_SEND = "scheduled-tasks.send";
-    public static readonly TASKS_RECV = "scheduled-tasks.recv";
-
-    public static readonly PROMETHEUS_TASK = "prometheus-task";
-    public static readonly SPAWN_NEW_SHARD_TASK = "spawn-new-shard-task";
-    public static readonly STATISTICS_TASK = "statistics-task";
 }

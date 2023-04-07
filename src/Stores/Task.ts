@@ -10,6 +10,7 @@ export abstract class Task extends Piece {
     }
 
     public onLoad(): unknown {
+        this.container.logger!.info(`Loaded task ${this.name}, executed every ${this.options.interval}ms`);
         this.interval = setInterval(() => this._run(this.options.data), this.options.interval);
         return super.onLoad();
     }
