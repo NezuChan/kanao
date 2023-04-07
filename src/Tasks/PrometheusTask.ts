@@ -6,16 +6,11 @@ import { Time } from "@sapphire/time-utilities";
 import { Task, TaskOptions } from "../Stores/Task.js";
 import { Constants } from "../Utilities/Constants.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
-import { Result } from "@sapphire/result";
 
 @ApplyOptions<TaskOptions>({
-    taskOptions: {
-        name: "prometheusTask",
-        data: {},
-        options: {
-            delay: Time.Second * 10
-        }
-    },
+    name: "prometheusTask",
+    data: {},
+    interval: Time.Second * 10,
     enabled: process.env.PROMETHEUS_ENABLED === "true"
 })
 
@@ -42,12 +37,6 @@ export class PrometheusTask extends Task {
     });
 
     public async run(): Promise<void> {
-        const previousTask = await this.container.redis!.hget(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun");
-        if (previousTask) {
-            await this.container.redis!.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, 8);
-            return this.container.logger!.warn("Possible dupe [prometheusTask] task, skipping...");
-        }
-
         const guild_keys = await this.container.redis!.smembers(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.GUILD_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.GUILD_KEY}${Constants.KEYS_SUFFIX}`);
         const channel_keys = await this.container.redis!.smembers(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}`);
         let member_count = 0;
@@ -76,39 +65,6 @@ export class PrometheusTask extends Task {
             const socketStatus = await socketCollection.get(i.toString());
             if (socketStatus) this.socketCounter.set({ shardId: socketStatus.shardId }, Number(socketStatus.latency));
         }
-
-        await this.container.redis!.hset(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun", Date.now());
-        await this.container.redis!.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, 8);
-
-        await this.container.tasks!.sender.post({
-            name: this.name,
-            options: this.options.taskOptions.options,
-            type: "add",
-            data: this.options.taskOptions.data
-        });
-        await this.container.redis!.hget(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun");
-        await this.container.redis!.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, 8);
         this.container.logger!.info("Updated prometheus metrics");
-    }
-
-    public override onLoad(): unknown {
-        void Result.fromAsync(async () => {
-            const previousTask = await this.container.redis!.hget(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun");
-            if (previousTask) {
-                await this.container.redis!.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, 8);
-                return this.container.logger!.warn("Possible dupe [prometheusTask] task, skipping...");
-            }
-
-            await this.container.tasks!.sender.post({
-                name: this.name,
-                options: this.options.taskOptions.options,
-                type: "add",
-                data: this.options.taskOptions.data
-            });
-
-            await this.container.redis!.hset(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, "lastRun", Date.now());
-            await this.container.redis!.expire(`${this.container.clientId!}:${Constants.PROMETHEUS_TASK}`, 8);
-        });
-        return super.onLoad();
     }
 }
