@@ -20,15 +20,15 @@ export class GuildMemberRemoveListener extends Listener {
         }, { persistent: false });
 
         if (Util.optionalEnv<boolean>("STATE_USER", "true")) {
-            await this.container.gateway.redis.srem(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.USER_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.USER_KEY}${Constants.KEYS_SUFFIX}`, payload.data.d.user.id);
+            await this.container.gateway.redis.srem(this.container.gateway.genKey(Constants.USER_KEY, true), payload.data.d.user.id);
             await this.container.gateway.cache.users.delete(payload.data.d.user.id);
         }
         if (Util.optionalEnv<boolean>("STATE_PRESENCE", "true")) {
-            await this.container.gateway.redis.srem(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.PRESENCE_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.PRESENCE_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.guild_id}:${payload.data.d.user.id}`);
+            await this.container.gateway.redis.srem(this.container.gateway.genKey(Constants.PRESENCE_KEY, true), `${payload.data.d.guild_id}:${payload.data.d.user.id}`);
             await this.container.gateway.cache.presences.delete(`${payload.data.d.guild_id}:${payload.data.d.user.id}`);
         }
         if (Util.optionalEnv("STATE_MEMBER", "true")) {
-            await this.container.gateway.redis.srem(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MEMBER_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.MEMBER_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.guild_id}:${payload.data.d.user.id}`);
+            await this.container.gateway.redis.srem(this.container.gateway.genKey(Constants.MEMBER_KEY, true), `${payload.data.d.guild_id}:${payload.data.d.user.id}`);
             await this.container.gateway.cache.members.delete(payload.data.d.user.id);
         }
     }

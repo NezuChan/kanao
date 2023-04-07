@@ -13,15 +13,15 @@ import { Constants } from "../Utilities/Constants.js";
 export class MessageCreateListener extends Listener {
     public async run(payload: { data: GatewayMessageCreateDispatch }): Promise<void> {
         if (Util.optionalEnv("STATE_MEMBER", "true")) {
-            await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MESSAGE_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.MESSAGE_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.guild_id!}:${payload.data.d.author.id}`);
+            await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.MESSAGE_KEY, true), `${payload.data.d.guild_id!}:${payload.data.d.author.id}`);
             await this.container.gateway.cache.members.set(`${payload.data.d.guild_id!}:${payload.data.d.author.id}`, { ...payload.data.d.member, user: Util.optionalEnv<boolean>("STATE_USER", "true") ? { } : payload.data.d.author });
         }
         if (Util.optionalEnv("STATE_USER", "true")) {
-            await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.USER_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.USER_KEY}${Constants.KEYS_SUFFIX}`, payload.data.d.author.id);
+            await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.USER_KEY, true), payload.data.d.author.id);
             await this.container.gateway.cache.users.set(payload.data.d.author.id, payload.data.d.author);
         }
         if (Util.optionalEnv("STATE_MESSAGE", "true")) {
-            await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MESSAGE_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.MESSAGE_KEY}${Constants.KEYS_SUFFIX}`, payload.data.d.id);
+            await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.MESSAGE_KEY, true), payload.data.d.id);
             await this.container.gateway.cache.messages.set(payload.data.d.id, payload.data.d);
         }
 

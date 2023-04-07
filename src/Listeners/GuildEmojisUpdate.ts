@@ -13,11 +13,11 @@ export class GuildEmojisUpdate extends Listener {
     public async run(payload: { data: GatewayGuildEmojisUpdateDispatch }): Promise<void> {
         const emojis = [];
 
-        const keys = await this.container.gateway.redis.smembers(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.EMOJI_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.EMOJI_KEY}${Constants.KEYS_SUFFIX}`);
+        const keys = await this.container.gateway.redis.smembers(this.container.gateway.genKey(Constants.EMOJI_KEY, true));
         for (const key of keys) {
             const emoji = await this.container.gateway.cache.emojis.get(key);
             if (emoji && payload.data.d.emojis.map(x => x.id).includes(emoji.id)) {
-                await this.container.gateway.redis.srem(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.EMOJI_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.EMOJI_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.guild_id}:${emoji.id!}`);
+                await this.container.gateway.redis.srem(this.container.gateway.genKey(Constants.EMOJI_KEY, true), `${payload.data.d.guild_id}:${emoji.id!}`);
                 await this.container.gateway.cache.emojis.delete(emoji.id!);
                 emojis.push(emoji);
             }
@@ -25,7 +25,7 @@ export class GuildEmojisUpdate extends Listener {
 
         for (const emoji of payload.data.d.emojis) {
             if (emoji.id) {
-                await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.EMOJI_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.EMOJI_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.guild_id}:${emoji.id}`);
+                await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.EMOJI_KEY, true), `${payload.data.d.guild_id}:${emoji.id}`);
                 await this.container.gateway.cache.emojis.set(`${payload.data.d.guild_id}:${emoji.id}`, emoji);
             }
         }

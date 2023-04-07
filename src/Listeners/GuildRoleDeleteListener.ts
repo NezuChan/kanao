@@ -11,7 +11,7 @@ import { Constants } from "../Utilities/Constants.js";
 
 export class GuildRoleDeleteListener extends Listener {
     public async run(payload: { data: GatewayGuildRoleDeleteDispatch }): Promise<void> {
-        await this.container.gateway.redis.srem(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.ROLE_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.ROLE_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.guild_id}:${payload.data.d.role_id}`);
+        await this.container.gateway.redis.srem(this.container.gateway.genKey(Constants.ROLE_KEY, true), `${payload.data.d.guild_id}:${payload.data.d.role_id}`);
         await this.container.gateway.cache.roles.delete(`${payload.data.d.guild_id}:${payload.data.d.role_id}`);
         this.container.gateway.amqp.sender.publish(this.container.gateway.clientId, payload.data.t, { ...payload }, { persistent: false });
     }

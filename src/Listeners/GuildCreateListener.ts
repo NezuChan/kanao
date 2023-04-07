@@ -21,32 +21,32 @@ export class GuildCreateListener extends Listener {
 
         for (const member of payload.data.d.members) {
             if (Util.optionalEnv<boolean>("STATE_USER", "true")) {
-                await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.USER_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.USER_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.id}:${member.user!.id}`);
+                await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.USER_KEY, true), `${payload.data.d.id}:${member.user!.id}`);
                 await this.container.gateway.cache.users.set(member.user!.id, member.user);
             }
             if (Util.optionalEnv<boolean>("STATE_MEMBER", "true")) {
-                await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.MEMBER_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.MEMBER_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.id}:${member.user!.id}`);
+                await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.MEMBER_KEY, true), `${payload.data.d.id}:${member.user!.id}`);
                 await this.container.gateway.cache.members.set(`${payload.data.d.id}:${member.user!.id}`, { ...member, user: Util.optionalEnv<boolean>("STATE_USER", "true") ? { } : member.user });
             }
         }
 
         for (const role of payload.data.d.roles) {
             if (Util.optionalEnv<boolean>("STATE_ROLE", "true")) {
-                await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.ROLE_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.ROLE_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.id}:${role.id}`);
+                await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.ROLE_KEY, true), `${payload.data.d.id}:${role.id}`);
                 await this.container.gateway.cache.roles.set(`${payload.data.d.id}:${role.id}`, role);
             }
         }
 
         for (const voiceState of payload.data.d.voice_states) {
             if (Util.optionalEnv<boolean>("STATE_VOICE", "true")) {
-                await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.VOICE_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.VOICE_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.id}:${voiceState.user_id}`);
+                await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.VOICE_KEY, true), `${payload.data.d.id}:${voiceState.user_id}`);
                 await this.container.gateway.cache.states.set(`${payload.data.d.id}:${voiceState.user_id}`, voiceState);
             }
         }
 
         for (const channel of payload.data.d.channels) {
             if (Util.optionalEnv<boolean>("STATE_CHANNEL", "true")) {
-                await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.CHANNEL_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.id}:${channel.id}`);
+                await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.CHANNEL_KEY, true), `${payload.data.d.id}:${channel.id}`);
                 cast<APIGuildChannel<ChannelType>>(channel).guild_id = payload.data.d.id;
                 await this.container.gateway.cache.channels.set(`${payload.data.d.id}:${channel.id}`, channel);
             }
@@ -55,7 +55,7 @@ export class GuildCreateListener extends Listener {
         for (const emoji of payload.data.d.emojis) {
             if (emoji.id) {
                 if (Util.optionalEnv<boolean>("STATE_EMOJI", "true")) {
-                    await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.EMOJI_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.EMOJI_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.id}:${emoji.id}`);
+                    await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.EMOJI_KEY, true), `${payload.data.d.id}:${emoji.id}`);
                     await this.container.gateway.cache.emojis.set(`${payload.data.d.id}:${emoji.id}`, emoji);
                 }
             }
@@ -63,7 +63,7 @@ export class GuildCreateListener extends Listener {
 
         for (const presence of payload.data.d.presences) {
             if (Util.optionalEnv<boolean>("STATE_PRESENCE", "true")) {
-                await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.PRESENCE_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.PRESENCE_KEY}${Constants.KEYS_SUFFIX}`, `${payload.data.d.id}:${presence.user.id}`);
+                await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.PRESENCE_KEY, true), `${payload.data.d.id}:${presence.user.id}`);
                 await this.container.gateway.cache.presences.set(`${payload.data.d.id}:${presence.user.id}`, presence);
             }
         }
@@ -75,7 +75,7 @@ export class GuildCreateListener extends Listener {
         payload.data.d.members = [];
         payload.data.d.roles = [];
 
-        await this.container.gateway.redis.sadd(process.env.USE_ROUTING === "true" ? `${this.container.gateway.clientId}:${Constants.GUILD_KEY}${Constants.KEYS_SUFFIX}` : `${Constants.GUILD_KEY}${Constants.KEYS_SUFFIX}`, payload.data.d.id);
+        await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.GUILD_KEY, true), payload.data.d.id);
         await this.container.gateway.cache.guilds.set(payload.data.d.id, payload.data.d);
     }
 }
