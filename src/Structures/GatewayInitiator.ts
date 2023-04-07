@@ -15,7 +15,7 @@ import { ActivityType } from "discord-api-types/v9";
 import { PresenceUpdateStatus } from "discord-api-types/payloads";
 import { cast } from "@sapphire/utilities";
 import APM from "prometheus-middleware";
-import { RpcPublisher, RoutingSubscriber, createAmqp } from "@nezuchan/cordis-brokers";
+import { RoutingSubscriber, createAmqp } from "@nezuchan/cordis-brokers";
 import { Piece, Store, StoreRegistry, container } from "@sapphire/pieces";
 import { TaskStore } from "../Stores/TaskStore.js";
 import { createLogger } from "../Utilities/Logger.js";
@@ -113,11 +113,6 @@ export class GatewayInitiator {
 
     public stores = new StoreRegistry();
 
-    public tasks!: {
-        sender: RpcPublisher<string, Record<string, any>>;
-        receiver: RoutingSubscriber<string, Record<string, any>>;
-    };
-
     public amqp!: {
         receiver: RoutingSubscriber<string, Record<string, any>>;
     };
@@ -140,11 +135,6 @@ export class GatewayInitiator {
         if (process.env.PROMETHEUS_ENABLED === "true") this.prometheus.init();
         const { channel } = await createAmqp(process.env.AMQP_HOST ?? process.env.AMQP_URL!);
 
-        this.tasks = {
-            sender: new RpcPublisher(channel),
-            receiver: new RoutingSubscriber(channel)
-        };
-
         this.amqp = {
             receiver: new RoutingSubscriber(channel)
         };
@@ -155,10 +145,6 @@ export class GatewayInitiator {
             await this.amqp.receiver.init({ queue: Constants.QUEUE_SEND, keys: "*", durable: true });
         }
 
-        await this.tasks.receiver.init({ name: Constants.TASKS_RECV, keys: "*", durable: true, exchangeType: "topic", useExchangeBinding: true });
-        await this.tasks.sender.init({ name: Constants.TASKS_SEND, autoAck: true });
-
-        container.tasks = this.tasks;
         container.prometheus = this.prometheus;
         container.ws = this.ws;
         container.clientId = this.clientId;
@@ -265,7 +251,6 @@ export class GatewayInitiator {
 
 declare module "@sapphire/pieces" {
     interface Container {
-        tasks?: GatewayInitiator["tasks"];
         prometheus?: GatewayInitiator["prometheus"];
         ws?: GatewayInitiator["ws"];
         clientId?: GatewayInitiator["clientId"];
