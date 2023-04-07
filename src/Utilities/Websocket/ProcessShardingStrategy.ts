@@ -247,13 +247,15 @@ export class ProcessShardingStrategy implements IShardingStrategy {
             }
 
             case WorkerReceivePayloadOp.RetrieveSessionInfo: {
-                const session = await this.manager.options.retrieveSessionInfo(payload.shardId);
-                const response: WorkerSendPayload = {
-                    op: WorkerSendPayloadOp.SessionInfoResponse,
-                    nonce: payload.nonce,
-                    session
-                };
-                worker.send(response);
+                if (worker.connected) {
+                    const session = await this.manager.options.retrieveSessionInfo(payload.shardId);
+                    const response: WorkerSendPayload = {
+                        op: WorkerSendPayloadOp.SessionInfoResponse,
+                        nonce: payload.nonce,
+                        session
+                    };
+                    worker.send(response);
+                }
                 break;
             }
 
@@ -264,11 +266,13 @@ export class ProcessShardingStrategy implements IShardingStrategy {
 
             case WorkerReceivePayloadOp.WaitForIdentify: {
                 await this.throttler.waitForIdentify();
-                const response: WorkerSendPayload = {
-                    op: WorkerSendPayloadOp.ShardCanIdentify,
-                    nonce: payload.nonce
-                };
-                worker.send(response);
+                if (worker.connected) {
+                    const response: WorkerSendPayload = {
+                        op: WorkerSendPayloadOp.ShardCanIdentify,
+                        nonce: payload.nonce
+                    };
+                    worker.send(response);
+                }
                 break;
             }
 
