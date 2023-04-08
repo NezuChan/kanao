@@ -3,6 +3,7 @@ import { GatewayDispatchEvents, GatewayGuildEmojisUpdateDispatch } from "discord
 import { Listener, ListenerOptions } from "../Stores/Listener.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 import { Constants } from "../Utilities/Constants.js";
+import { Util } from "../Utilities/Util.js";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: GatewayDispatchEvents.GuildEmojisUpdate,
@@ -13,7 +14,7 @@ export class GuildEmojisUpdate extends Listener {
     public async run(payload: { data: GatewayGuildEmojisUpdateDispatch }): Promise<void> {
         const emojis = [];
 
-        const keys = await this.container.gateway.redis.smembers(this.container.gateway.genKey(Constants.EMOJI_KEY, true));
+        const keys = await Util.sscanStreamPromise(this.container.gateway.redis, this.container.gateway.genKey(Constants.EMOJI_KEY, true), `${payload.data.d.guild_id}:*`, 1000);
         for (const key of keys) {
             const emoji = await this.container.gateway.cache.emojis.get(key);
             if (emoji && payload.data.d.emojis.map(x => x.id).includes(emoji.id)) {

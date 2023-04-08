@@ -1,6 +1,7 @@
 /* eslint-disable no-multi-assign */
 import fs from "node:fs";
 import { Constants } from "./Constants.js";
+import { Cluster, Redis } from "ioredis";
 
 /* eslint-disable @typescript-eslint/no-extraneous-class */
 export class Util {
@@ -33,5 +34,15 @@ export class Util {
         } catch {
             return value as unknown as T;
         }
+    }
+
+    public static sscanStreamPromise(redis: Cluster | Redis, key: string, match: string, count: number): Promise<string[]> {
+        return new Promise((resolve, reject) => {
+            const keys: string[] = [];
+            redis.sscanStream(key, { match, count })
+                .on("data", (keyChunk: string[]) => keys.push(...keyChunk))
+                .on("end", () => resolve(keys))
+                .on("error", reject);
+        });
     }
 }

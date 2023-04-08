@@ -15,7 +15,7 @@ export class MessageDeleteBulkListener extends Listener {
         if (Util.optionalEnv("STATE_MESSAGE", "true")) {
             const messages = [];
 
-            const keys = await this.container.gateway.redis.smembers(this.container.gateway.genKey(Constants.MESSAGE_KEY, true));
+            const keys = await Util.sscanStreamPromise(this.container.gateway.redis, this.container.gateway.genKey(Constants.MESSAGE_KEY, true), `${payload.data.d.channel_id}:*`, 1000);
             for (const key of keys) {
                 const message = await this.container.gateway.cache.messages.get(key);
                 if (message && payload.data.d.ids.includes(message.id)) {
