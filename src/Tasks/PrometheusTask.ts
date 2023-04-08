@@ -49,8 +49,8 @@ export class PrometheusTask extends Task {
             return this.container.logger!.warn("Possible dupe [prometheusTask] task, skipping...");
         }
 
-        const guild_keys = await this.container.redis!.smembers(this.container.gateway.genKey(Constants.GUILD_KEY, true));
-        const channel_keys = await this.container.redis!.smembers(this.container.gateway.genKey(Constants.CHANNEL_KEY, true));
+        const guild_keys = await Util.sscanStreamPromise(this.container.redis!, this.container.gateway.genKey(Constants.GUILD_KEY, true), `${this.container.gateway.clientId}:*`, 1000);
+        const channel_keys = await Util.sscanStreamPromise(this.container.redis!, this.container.gateway.genKey(Constants.CHANNEL_KEY, true), `${this.container.gateway.clientId}:*`, 1000);
         let member_count = 0;
 
         const guildCollection = new RedisCollection<string, { id: string; member_count: number }>({
