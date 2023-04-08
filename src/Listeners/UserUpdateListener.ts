@@ -12,6 +12,6 @@ import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 export class UserUpdateListener extends Listener {
     public async run(payload: { data: GatewayUserUpdateDispatch }): Promise<void> {
         this.container.gateway.amqp.sender.publish(this.container.gateway.clientId, payload.data.t, payload, { persistent: false });
-        await this.container.gateway.redis.set(this.container.gateway.genKey(Constants.MESSAGE_KEY, false), JSON.stringify(payload.data.d));
+        await this.container.gateway.redis.set(this.container.gateway.genKey(Constants.BOT_USER_KEY, false), JSON.stringify(payload.data.d));
     }
 }
