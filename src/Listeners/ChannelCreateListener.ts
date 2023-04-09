@@ -3,7 +3,7 @@ import { GatewayChannelCreateDispatch, GatewayDispatchEvents } from "discord-api
 import { Listener, ListenerOptions } from "../Stores/Listener.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 import { Util } from "../Utilities/Util.js";
-import { Constants } from "../Utilities/Constants.js";
+import { RedisKey } from "@nezuchan/constants";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: GatewayDispatchEvents.ChannelCreate,
@@ -14,10 +14,10 @@ export class ChannelCreateListener extends Listener {
     public async run(payload: { data: GatewayChannelCreateDispatch }): Promise<void> {
         if (Util.optionalEnv("STATE_CHANNEL", "true")) {
             if ("guild_id" in payload.data.d && payload.data.d.guild_id) {
-                await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.CHANNEL_KEY, true), `${payload.data.d.guild_id}:${payload.data.d.id}`);
+                await this.container.gateway.redis.sadd(this.container.gateway.genKey(RedisKey.CHANNEL_KEY, true), `${payload.data.d.guild_id}:${payload.data.d.id}`);
                 await this.container.gateway.cache.channels.set(`${payload.data.d.guild_id}:${payload.data.d.id}`, payload.data.d);
             } else {
-                await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.CHANNEL_KEY, true), payload.data.d.id);
+                await this.container.gateway.redis.sadd(this.container.gateway.genKey(RedisKey.CHANNEL_KEY, true), payload.data.d.id);
                 await this.container.gateway.cache.channels.set(payload.data.d.id, payload.data.d);
             }
         }

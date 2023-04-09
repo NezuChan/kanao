@@ -4,7 +4,7 @@
 import { cast } from "@sapphire/utilities";
 import { APIUser, GatewayDispatchEvents, GatewayGuildMemberUpdateDispatch } from "discord-api-types/v10";
 import { Listener, ListenerOptions } from "../Stores/Listener.js";
-import { Constants } from "../Utilities/Constants.js";
+import { RedisKey } from "@nezuchan/constants";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 import { Util } from "../Utilities/Util.js";
 
@@ -15,7 +15,7 @@ import { Util } from "../Utilities/Util.js";
 
 export class GuildMemberUpdateListener extends Listener {
     public async run(payload: { data: GatewayGuildMemberUpdateDispatch }): Promise<void> {
-        const botUser = await this.container.gateway.redis.get(Constants.BOT_USER_KEY);
+        const botUser = await this.container.gateway.redis.get(RedisKey.BOT_USER_KEY);
 
         const old = await this.container.gateway.cache.members.get(payload.data.d.user.id);
 
@@ -25,11 +25,11 @@ export class GuildMemberUpdateListener extends Listener {
         }, { persistent: false });
 
         if (Util.optionalEnv<boolean>("STATE_USER", "true") || cast<APIUser>(JSON.parse(botUser ?? "{ id: null }")).id === payload.data.d.user.id) {
-            await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.USER_KEY, true), payload.data.d.user.id);
+            await this.container.gateway.redis.sadd(this.container.gateway.genKey(RedisKey.USER_KEY, true), payload.data.d.user.id);
             await this.container.gateway.cache.users.set(payload.data.d.user.id, payload.data.d.user);
         }
         if (Util.optionalEnv("STATE_MEMBER", "true") || cast<APIUser>(JSON.parse(botUser ?? "{ id: null }").id === payload.data.d.user.id)) {
-            await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.MEMBER_KEY, true), `${payload.data.d.guild_id}:${payload.data.d.user.id}`);
+            await this.container.gateway.redis.sadd(this.container.gateway.genKey(RedisKey.MEMBER_KEY, true), `${payload.data.d.guild_id}:${payload.data.d.user.id}`);
             await this.container.gateway.cache.members.set(`${payload.data.d.guild_id}:${payload.data.d.user.id}`, {
                 ...old,
                 ...payload.data.d,

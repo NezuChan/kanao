@@ -1,7 +1,8 @@
 /* eslint-disable no-multi-assign */
 import fs from "node:fs";
-import { Constants } from "./Constants.js";
+import { RedisKey } from "@nezuchan/constants";
 import { Cluster, Redis } from "ioredis";
+import { redisSScanStreamPromise } from "@nezuchan/utilities";
 
 /* eslint-disable @typescript-eslint/no-extraneous-class */
 export class Util {
@@ -12,7 +13,7 @@ export class Util {
     public static genKey(key: string, clientId: string, suffix: boolean): string {
         const clientPrefixed = process.env.USE_ROUTING === "true" ? Util.prependString(key, clientId) : key;
 
-        return suffix ? `${clientPrefixed}${Constants.KEYS_SUFFIX}` : clientPrefixed;
+        return suffix ? `${clientPrefixed}${RedisKey.KEYS_SUFFIX}` : clientPrefixed;
     }
 
     public static formatDate(dateFormat: Intl.DateTimeFormat, date: Date | number = new Date()): string {
@@ -37,12 +38,6 @@ export class Util {
     }
 
     public static sscanStreamPromise(redis: Cluster | Redis, key: string, match: string, count: number): Promise<string[]> {
-        return new Promise((resolve, reject) => {
-            const keys: string[] = [];
-            redis.sscanStream(key, { match, count })
-                .on("data", (keyChunk: string[]) => keys.push(...keyChunk))
-                .on("end", () => resolve(keys))
-                .on("error", reject);
-        });
+        return redisSScanStreamPromise(redis, key, match, count);
     }
 }

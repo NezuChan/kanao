@@ -7,12 +7,12 @@ import { REST } from "@discordjs/rest";
 import { Util } from "../Utilities/Util.js";
 import { ListenerStore } from "../Stores/ListenerStore.js";
 import { container, Piece, Store, StoreRegistry } from "@sapphire/pieces";
-import { Constants } from "../Utilities/Constants.js";
 import { createAmqp, RoutingPublisher } from "@nezuchan/cordis-brokers";
 import { cast } from "@sapphire/utilities";
 import { RedisCollection } from "@nezuchan/redis-collection";
 import { APIEmoji, APIMessage } from "discord-api-types/v10";
 import { createLogger } from "../Utilities/Logger.js";
+import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 
 const { default: Redis, Cluster } = IORedis;
 
@@ -48,17 +48,17 @@ export class NezuGateway extends EventEmitter {
             });
 
     public cache = {
-        users: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.USER_KEY, false) }),
-        members: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.MEMBER_KEY, false) }),
-        channels: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.CHANNEL_KEY, false) }),
-        guilds: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.GUILD_KEY, false) }),
-        states: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.VOICE_KEY, false) }),
-        roles: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.ROLE_KEY, false) }),
-        messages: new RedisCollection<APIMessage, APIMessage>({ redis: this.redis, hash: this.genKey(Constants.MESSAGE_KEY, false) }),
-        presences: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.PRESENCE_KEY, false) }),
-        sessions: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.SESSIONS_KEY, false) }),
-        statuses: new RedisCollection({ redis: this.redis, hash: this.genKey(Constants.STATUSES_KEY, false) }),
-        emojis: new RedisCollection<APIEmoji, APIEmoji>({ redis: this.redis, hash: this.genKey(Constants.EMOJI_KEY, false) })
+        users: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.USER_KEY, false) }),
+        members: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.MEMBER_KEY, false) }),
+        channels: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.CHANNEL_KEY, false) }),
+        guilds: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.GUILD_KEY, false) }),
+        states: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.VOICE_KEY, false) }),
+        roles: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.ROLE_KEY, false) }),
+        messages: new RedisCollection<APIMessage, APIMessage>({ redis: this.redis, hash: this.genKey(RedisKey.MESSAGE_KEY, false) }),
+        presences: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.PRESENCE_KEY, false) }),
+        sessions: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.SESSIONS_KEY, false) }),
+        statuses: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.STATUSES_KEY, false) }),
+        emojis: new RedisCollection<APIEmoji, APIEmoji>({ redis: this.redis, hash: this.genKey(RedisKey.EMOJI_KEY, false) })
     };
 
     public logger = createLogger("nezu-gateway", this.clientId, process.env.STORE_LOGS === "true", process.env.LOKI_HOST ? new URL(process.env.LOKI_HOST) : undefined);
@@ -90,9 +90,9 @@ export class NezuGateway extends EventEmitter {
         };
 
         if (process.env.USE_ROUTING === "true") {
-            await this.amqp.sender.init({ name: Constants.QUEUE_RECV, useExchangeBinding: true, exchangeType: "direct" });
+            await this.amqp.sender.init({ name: RabbitMQ.GATEWAY_QUEUE_SEND, useExchangeBinding: true, exchangeType: "direct" });
         } else {
-            await this.amqp.sender.init({ name: Constants.QUEUE_RECV, useExchangeBinding: true, exchangeType: "fanout", queue: Constants.EXCHANGE });
+            await this.amqp.sender.init({ name: RabbitMQ.GATEWAY_QUEUE_RECV, useExchangeBinding: true, exchangeType: "fanout", queue: RabbitMQ.GATEWAY_EXCHANGE });
         }
 
         this.stores.register(new ListenerStore());

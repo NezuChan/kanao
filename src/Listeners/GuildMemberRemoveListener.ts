@@ -3,7 +3,7 @@ import { GatewayDispatchEvents, GatewayGuildMemberRemoveDispatch } from "discord
 import { Listener, ListenerOptions } from "../Stores/Listener.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 import { Util } from "../Utilities/Util.js";
-import { Constants } from "../Utilities/Constants.js";
+import { RedisKey } from "@nezuchan/constants";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: GatewayDispatchEvents.GuildMemberRemove,
@@ -20,15 +20,15 @@ export class GuildMemberRemoveListener extends Listener {
         }, { persistent: false });
 
         if (Util.optionalEnv<boolean>("STATE_USER", "true")) {
-            await this.container.gateway.redis.srem(this.container.gateway.genKey(Constants.USER_KEY, true), payload.data.d.user.id);
+            await this.container.gateway.redis.srem(this.container.gateway.genKey(RedisKey.USER_KEY, true), payload.data.d.user.id);
             await this.container.gateway.cache.users.delete(payload.data.d.user.id);
         }
         if (Util.optionalEnv<boolean>("STATE_PRESENCE", "true")) {
-            await this.container.gateway.redis.srem(this.container.gateway.genKey(Constants.PRESENCE_KEY, true), `${payload.data.d.guild_id}:${payload.data.d.user.id}`);
+            await this.container.gateway.redis.srem(this.container.gateway.genKey(RedisKey.PRESENCE_KEY, true), `${payload.data.d.guild_id}:${payload.data.d.user.id}`);
             await this.container.gateway.cache.presences.delete(`${payload.data.d.guild_id}:${payload.data.d.user.id}`);
         }
         if (Util.optionalEnv("STATE_MEMBER", "true")) {
-            await this.container.gateway.redis.srem(this.container.gateway.genKey(Constants.MEMBER_KEY, true), `${payload.data.d.guild_id}:${payload.data.d.user.id}`);
+            await this.container.gateway.redis.srem(this.container.gateway.genKey(RedisKey.MEMBER_KEY, true), `${payload.data.d.guild_id}:${payload.data.d.user.id}`);
             await this.container.gateway.cache.members.delete(payload.data.d.user.id);
         }
     }

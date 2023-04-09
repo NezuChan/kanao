@@ -3,7 +3,7 @@ import { GatewayDispatchEvents, GatewayMessageDeleteDispatch } from "discord-api
 import { Listener, ListenerOptions } from "../Stores/Listener.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 import { Util } from "../Utilities/Util.js";
-import { Constants } from "../Utilities/Constants.js";
+import { RedisKey } from "@nezuchan/constants";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: GatewayDispatchEvents.MessageDelete,
@@ -20,7 +20,7 @@ export class MessageDeleteListener extends Listener {
         }, { persistent: false });
 
         if (Util.optionalEnv("STATE_MESSAGE", "true")) {
-            await this.container.gateway.redis.srem(this.container.gateway.genKey(Constants.MESSAGE_KEY, true), payload.data.d.id);
+            await this.container.gateway.redis.srem(this.container.gateway.genKey(RedisKey.MESSAGE_KEY, true), payload.data.d.id);
             await this.container.gateway.cache.messages.delete(payload.data.d.id);
         }
     }

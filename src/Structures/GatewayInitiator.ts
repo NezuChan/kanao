@@ -9,7 +9,6 @@ import { REST } from "@discordjs/rest";
 import { Result } from "@sapphire/result";
 import { Util } from "../Utilities/Util.js";
 import { createBanner } from "@skyra/start-banner";
-import { Constants } from "../Utilities/Constants.js";
 import { RedisCollection } from "@nezuchan/redis-collection";
 import { ActivityType } from "discord-api-types/v9";
 import { PresenceUpdateStatus } from "discord-api-types/payloads";
@@ -19,6 +18,7 @@ import { RpcPublisher, RoutingSubscriber, createAmqp } from "@nezuchan/cordis-br
 import { Piece, Store, StoreRegistry, container } from "@sapphire/pieces";
 import { TaskStore } from "../Stores/TaskStore.js";
 import { createLogger } from "../Utilities/Logger.js";
+import { RedisKey, RabbitMQ } from "@nezuchan/constants";
 
 const { default: Redis, Cluster } = IORedis;
 const packageJson = Util.loadJSON<{ version: string }>("../../package.json");
@@ -123,8 +123,8 @@ export class GatewayInitiator {
     };
 
     public cache = {
-        sessions: new RedisCollection<SessionInfo, SessionInfo>({ redis: this.redis, hash: Util.genKey(Constants.SESSIONS_KEY, this.clientId, false) }),
-        statuses: new RedisCollection({ redis: this.redis, hash: Util.genKey(Constants.STATUSES_KEY, this.clientId, false) })
+        sessions: new RedisCollection<SessionInfo, SessionInfo>({ redis: this.redis, hash: Util.genKey(RedisKey.SESSIONS_KEY, this.clientId, false) }),
+        statuses: new RedisCollection({ redis: this.redis, hash: Util.genKey(RedisKey.STATUSES_KEY, this.clientId, false) })
     };
 
     public date(): string {
@@ -150,13 +150,13 @@ export class GatewayInitiator {
         };
 
         if (process.env.USE_ROUTING === "true") {
-            await this.amqp.receiver.init({ name: Constants.QUEUE_SEND, useExchangeBinding: true, keys: this.clientId, durable: true });
+            await this.amqp.receiver.init({ name: RabbitMQ.GATEWAY_QUEUE_SEND, useExchangeBinding: true, keys: this.clientId, durable: true });
         } else {
-            await this.amqp.receiver.init({ queue: Constants.QUEUE_SEND, keys: "*", durable: true });
+            await this.amqp.receiver.init({ queue: RabbitMQ.GATEWAY_QUEUE_SEND, keys: "*", durable: true });
         }
 
-        await this.tasks.receiver.init({ name: Constants.TASKS_RECV, keys: "*", durable: true, exchangeType: "topic", useExchangeBinding: true });
-        await this.tasks.sender.init({ name: Constants.TASKS_SEND, autoAck: true });
+        await this.tasks.receiver.init({ name: RabbitMQ.TASKS_RECV, keys: "*", durable: true, exchangeType: "topic", useExchangeBinding: true });
+        await this.tasks.sender.init({ name: RabbitMQ.TASKS_SEND, autoAck: true });
 
         container.tasks = this.tasks;
         container.prometheus = this.prometheus;
@@ -189,7 +189,7 @@ export class GatewayInitiator {
         while (shardId < (shardCount - 1)) {
             shardId += 1; await this.cache.statuses.set(`${shardId}`, { shardId, ping: -1, latency: -1 });
         }
-        await this.redis.set(Util.genKey(Constants.SHARDS_KEY, this.clientId, false), shardCount);
+        await this.redis.set(Util.genKey(RedisKey.SHARDS_KEY, this.clientId, false), shardCount);
 
         this.amqp.receiver.on("send", (payload: {
             type: string;
@@ -247,19 +247,19 @@ export class GatewayInitiator {
     }
 
     public async clearCaches(route: boolean) {
-        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.USER_KEY}` : Constants.USER_KEY }).clear();
-        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.MEMBER_KEY}` : Constants.MEMBER_KEY }).clear();
-        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.CHANNEL_KEY}` : Constants.CHANNEL_KEY }).clear();
-        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.GUILD_KEY}` : Constants.GUILD_KEY }).clear();
-        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.VOICE_KEY}` : Constants.VOICE_KEY }).clear();
-        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.ROLE_KEY}` : Constants.ROLE_KEY }).clear();
-        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.PRESENCE_KEY}` : Constants.PRESENCE_KEY }).clear();
-        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.MESSAGE_KEY}` : Constants.MESSAGE_KEY }).clear();
-        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.SESSIONS_KEY}` : Constants.SESSIONS_KEY }).clear();
-        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.STATUSES_KEY}` : Constants.STATUSES_KEY }).clear();
-        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${Constants.EMOJI_KEY}` : Constants.EMOJI_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${RedisKey.USER_KEY}` : RedisKey.USER_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${RedisKey.MEMBER_KEY}` : RedisKey.MEMBER_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${RedisKey.CHANNEL_KEY}` : RedisKey.CHANNEL_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${RedisKey.GUILD_KEY}` : RedisKey.GUILD_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${RedisKey.VOICE_KEY}` : RedisKey.VOICE_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${RedisKey.ROLE_KEY}` : RedisKey.ROLE_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${RedisKey.PRESENCE_KEY}` : RedisKey.PRESENCE_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${RedisKey.MESSAGE_KEY}` : RedisKey.MESSAGE_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${RedisKey.SESSIONS_KEY}` : RedisKey.SESSIONS_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${RedisKey.STATUSES_KEY}` : RedisKey.STATUSES_KEY }).clear();
+        await new RedisCollection({ redis: this.redis, hash: route ? `${this.clientId}:${RedisKey.EMOJI_KEY}` : RedisKey.EMOJI_KEY }).clear();
 
-        await this.redis.unlink(route ? `${this.clientId}:${Constants.SHARDS_KEY}` : Constants.SHARDS_KEY);
+        await this.redis.unlink(route ? `${this.clientId}:${RedisKey.SHARDS_KEY}` : RedisKey.SHARDS_KEY);
     }
 }
 
