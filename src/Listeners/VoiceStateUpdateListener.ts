@@ -2,7 +2,7 @@
 import { GatewayDispatchEvents, GatewayVoiceStateUpdateDispatch } from "discord-api-types/v10";
 import { Listener, ListenerOptions } from "../Stores/Listener.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
-import { Constants } from "../Utilities/Constants.js";
+import { RedisKey } from "@nezuchan/constants";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: GatewayDispatchEvents.VoiceStateUpdate,
@@ -17,11 +17,11 @@ export class VoiceStateUpdateListener extends Listener {
 
         switch (payload.data.d.channel_id) {
             case null:
-                await this.container.gateway.redis.srem(this.container.gateway.genKey(Constants.VOICE_KEY, true), `${payload.data.d.guild_id!}:${payload.data.d.user_id}`);
+                await this.container.gateway.redis.srem(this.container.gateway.genKey(RedisKey.VOICE_KEY, true), `${payload.data.d.guild_id!}:${payload.data.d.user_id}`);
                 await this.container.gateway.cache.states.delete(`${payload.data.d.guild_id!}:${payload.data.d.user_id}`);
                 break;
             default:
-                await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.VOICE_KEY, true), `${payload.data.d.guild_id!}:${payload.data.d.user_id}`);
+                await this.container.gateway.redis.sadd(this.container.gateway.genKey(RedisKey.VOICE_KEY, true), `${payload.data.d.guild_id!}:${payload.data.d.user_id}`);
                 await this.container.gateway.cache.states.set(`${payload.data.d.guild_id!}:${payload.data.d.user_id}`, payload.data.d);
         }
     }

@@ -2,7 +2,7 @@
 import { GatewayChannelDeleteDispatch, GatewayDispatchEvents } from "discord-api-types/v10";
 import { Listener, ListenerOptions } from "../Stores/Listener.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
-import { Constants } from "../Utilities/Constants.js";
+import { RedisKey } from "@nezuchan/constants";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: GatewayDispatchEvents.ChannelDelete,
@@ -14,10 +14,10 @@ export class ChannelDeleteListener extends Listener {
         const old = await this.container.gateway.cache.channels.get(payload.data.d.id);
 
         if ("guild_id" in payload.data.d && payload.data.d.guild_id) {
-            await this.container.gateway.redis.srem(this.container.gateway.genKey(Constants.CHANNEL_KEY, true), `${payload.data.d.guild_id}:${payload.data.d.id}`);
+            await this.container.gateway.redis.srem(this.container.gateway.genKey(RedisKey.CHANNEL_KEY, true), `${payload.data.d.guild_id}:${payload.data.d.id}`);
             await this.container.gateway.cache.channels.delete(`${payload.data.d.guild_id}:${payload.data.d.id}`);
         } else {
-            await this.container.gateway.redis.srem(this.container.gateway.genKey(Constants.CHANNEL_KEY, true), payload.data.d.id);
+            await this.container.gateway.redis.srem(this.container.gateway.genKey(RedisKey.CHANNEL_KEY, true), payload.data.d.id);
             await this.container.gateway.cache.channels.delete(payload.data.d.id);
         }
 

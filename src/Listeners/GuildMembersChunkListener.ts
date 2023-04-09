@@ -3,7 +3,7 @@ import { GatewayDispatchEvents, GatewayGuildMembersChunkDispatch } from "discord
 import { Listener, ListenerOptions } from "../Stores/Listener.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 import { Util } from "../Utilities/Util.js";
-import { Constants } from "../Utilities/Constants.js";
+import { RedisKey } from "@nezuchan/constants";
 
 @ApplyOptions<ListenerOptions>(({ container }) => ({
     name: GatewayDispatchEvents.GuildMembersChunk,
@@ -14,11 +14,11 @@ export class GuildMembersChunkListener extends Listener {
     public async run(payload: { data: GatewayGuildMembersChunkDispatch }): Promise<void> {
         for (const member of payload.data.d.members) {
             if (Util.optionalEnv<boolean>("STATE_USER", "true")) {
-                await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.USER_KEY, true), member.user!.id);
+                await this.container.gateway.redis.sadd(this.container.gateway.genKey(RedisKey.USER_KEY, true), member.user!.id);
                 await this.container.gateway.cache.users.set(member.user!.id, member.user);
             }
             if (Util.optionalEnv<boolean>("STATE_MEMBER", "true")) {
-                await this.container.gateway.redis.sadd(this.container.gateway.genKey(Constants.MEMBER_KEY, true), `${payload.data.d.guild_id}:${member.user!.id}`);
+                await this.container.gateway.redis.sadd(this.container.gateway.genKey(RedisKey.MEMBER_KEY, true), `${payload.data.d.guild_id}:${member.user!.id}`);
                 await this.container.gateway.cache.members.set(`${payload.data.d.guild_id}:${member.user!.id}`, { ...member, user: Util.optionalEnv<boolean>("STATE_USER", "true") ? { } : member.user });
             }
         }
