@@ -13,8 +13,6 @@ RUN npm run build
 
 RUN npm prune --production
 
-RUN git submodule update --force --recursive --init --remote
-
 FROM ghcr.io/hazmi35/node:18-alpine
 
 LABEL name "NezukoChan Gateway Production"
