@@ -182,6 +182,11 @@ export class GatewayInitiator {
             this.logger.warn("Cleared up existing cache collections");
         }
 
+        if (Number(process.env.GATEWAY_GUILDS_PER_SHARD ?? 0) !== 0) {
+            const { shards } = await this.ws.fetchGatewayInformation(true);
+            this.ws.options.shardCount = Number(Math.ceil((shards * (1_000 / Number(process.env.GATEWAY_GUILDS_PER_SHARD ?? 0))) / 1));
+        }
+
         await this.ws.connect();
         const shardCount = await this.ws.getShardCount();
         await this.cache.statuses.clear();
