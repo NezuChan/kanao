@@ -90,7 +90,7 @@ export class NezuGateway extends EventEmitter {
         };
 
         if (process.env.USE_ROUTING === "true") {
-            await this.amqp.sender.init({ name: RabbitMQ.GATEWAY_QUEUE_SEND, useExchangeBinding: true, exchangeType: "direct" });
+            await this.amqp.sender.init({ name: RabbitMQ.GATEWAY_QUEUE_RECV, useExchangeBinding: true, exchangeType: "direct" });
         } else {
             await this.amqp.sender.init({ name: RabbitMQ.GATEWAY_QUEUE_RECV, useExchangeBinding: true, exchangeType: "fanout", queue: RabbitMQ.GATEWAY_EXCHANGE });
         }
