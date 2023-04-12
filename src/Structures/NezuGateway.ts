@@ -8,45 +8,45 @@ import { Util } from "../Utilities/Util.js";
 import { ListenerStore } from "../Stores/ListenerStore.js";
 import { container, Piece, Store, StoreRegistry } from "@sapphire/pieces";
 import { createAmqp, RoutingPublisher } from "@nezuchan/cordis-brokers";
-import { cast } from "@sapphire/utilities";
 import { RedisCollection } from "@nezuchan/redis-collection";
 import { APIEmoji, APIMessage } from "discord-api-types/v10";
 import { createLogger } from "../Utilities/Logger.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
+import { amqp, discordToken, lokiHost, proxy, redisClusters, redisClusterScaleReads, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, storeLogs, useRouting } from "../config.js";
 
 const { default: Redis, Cluster } = IORedis;
 
 export class NezuGateway extends EventEmitter {
-    public clientId = Buffer.from(process.env.DISCORD_TOKEN!.split(".")[0], "base64").toString();
+    public clientId = Buffer.from(discordToken!.split(".")[0], "base64").toString();
 
     public rest = new REST({
-        api: process.env.NIRN_PROXY ?? "https://discord.com/api",
-        rejectOnRateLimit: process.env.NIRN_PROXY ? () => false : null
+        api: proxy,
+        rejectOnRateLimit: proxy === "https://discord.com/api" ? null : () => false
     });
 
     public stores = new StoreRegistry();
 
     public redis =
-        cast<IORedis.ClusterNode[]>(JSON.parse(process.env.REDIS_CLUSTERS ?? "[]")).length
+        redisClusters.length
             ? new Cluster(
-                cast<IORedis.ClusterNode[]>(JSON.parse(process.env.REDIS_CLUSTERS!)),
+                redisClusters,
                 {
-                    scaleReads: cast<IORedis.NodeRole>(process.env.REDIS_CLUSTER_SCALE_READS ?? "all"),
+                    scaleReads: redisClusterScaleReads,
                     redisOptions: {
-                        password: process.env.REDIS_PASSWORD,
-                        username: process.env.REDIS_USERNAME,
-                        db: parseInt(process.env.REDIS_DB ?? "0")
+                        password: redisPassword,
+                        username: redisUsername,
+                        db: redisDb
                     },
-                    natMap: cast<IORedis.NatMap>(JSON.parse(process.env.REDIS_NAT_MAP ?? "{}"))
+                    natMap: redisNatMap
                 }
             )
             : new Redis({
-                username: process.env.REDIS_USERNAME!,
-                password: process.env.REDIS_PASSWORD!,
-                host: process.env.REDIS_HOST,
-                port: Number(process.env.REDIS_PORT!),
-                db: Number(process.env.REDIS_DB ?? 0),
-                natMap: cast<IORedis.NatMap>(JSON.parse(process.env.REDIS_NAT_MAP ?? "{}"))
+                username: redisPassword,
+                password: redisPassword,
+                host: redisHost,
+                port: redisPort,
+                db: redisDb,
+                natMap: redisNatMap
             });
 
     public cache = {
@@ -63,7 +63,7 @@ export class NezuGateway extends EventEmitter {
         emojis: new RedisCollection<APIEmoji, APIEmoji>({ redis: this.redis, hash: this.genKey(RedisKey.EMOJI_KEY, false) })
     };
 
-    public logger = createLogger("nezu-gateway", this.clientId, process.env.STORE_LOGS === "true", process.env.LOKI_HOST ? new URL(process.env.LOKI_HOST) : undefined);
+    public logger = createLogger("nezu-gateway", this.clientId, storeLogs, lokiHost ? new URL(lokiHost) : undefined);
 
     public amqp!: {
         sender: RoutingPublisher<string, Record<string, any>>;
@@ -85,20 +85,20 @@ export class NezuGateway extends EventEmitter {
     public async connect() {
         container.gateway = this;
 
-        const { channel } = await createAmqp(process.env.AMQP_HOST ?? process.env.AMQP_URL!);
+        const { channel } = await createAmqp(amqp!);
 
         this.amqp = {
             sender: new RoutingPublisher(channel)
         };
 
-        if (process.env.USE_ROUTING === "true") {
+        if (useRouting) {
             await this.amqp.sender.init({ name: RabbitMQ.GATEWAY_QUEUE_RECV, useExchangeBinding: true, exchangeType: "direct" });
         } else {
             await this.amqp.sender.init({ name: RabbitMQ.GATEWAY_QUEUE_RECV, useExchangeBinding: true, exchangeType: "fanout", queue: RabbitMQ.GATEWAY_EXCHANGE });
         }
 
         this.stores.register(new ListenerStore());
-        this.rest.setToken(process.env.DISCORD_TOKEN!);
+        this.rest.setToken(discordToken!);
         await Promise.all([...this.stores.values()].map((store: Store<Piece>) => store.loadAll()));
     }
 
