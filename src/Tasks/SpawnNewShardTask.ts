@@ -4,6 +4,7 @@ import { Task, TaskOptions } from "../Stores/Task.js";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 import { Result } from "@sapphire/result";
 import { RedisKey } from "@nezuchan/constants";
+import { autoShard } from "../config.js";
 
 @ApplyOptions<TaskOptions>({
     taskOptions: {
@@ -13,7 +14,7 @@ import { RedisKey } from "@nezuchan/constants";
             delay: Time.Minute * 20
         }
     },
-    enabled: process.env.AUTO_SPAWN_SHARDS === "true"
+    enabled: autoShard
 })
 
 export class SpawnNewShardTask extends Task {

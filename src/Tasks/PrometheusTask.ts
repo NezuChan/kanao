@@ -8,6 +8,7 @@ import { RedisKey } from "@nezuchan/constants";
 import { ApplyOptions } from "../Utilities/Decorators/ApplyOptions.js";
 import { Result } from "@sapphire/result";
 import { Util } from "../Utilities/Util.js";
+import { enablePrometheus } from "../config.js";
 
 @ApplyOptions<TaskOptions>({
     taskOptions: {
@@ -17,7 +18,7 @@ import { Util } from "../Utilities/Util.js";
             delay: Time.Second * 10
         }
     },
-    enabled: process.env.PROMETHEUS_ENABLED === "true"
+    enabled: enablePrometheus
 })
 
 export class PrometheusTask extends Task {
