@@ -36,7 +36,8 @@ export class NezuGateway extends EventEmitter {
                         password: process.env.REDIS_PASSWORD,
                         username: process.env.REDIS_USERNAME,
                         db: parseInt(process.env.REDIS_DB ?? "0")
-                    }
+                    },
+                    natMap: cast<IORedis.NatMap>(JSON.parse(process.env.REDIS_NAT_MAP ?? "{}"))
                 }
             )
             : new Redis({
@@ -44,7 +45,8 @@ export class NezuGateway extends EventEmitter {
                 password: process.env.REDIS_PASSWORD!,
                 host: process.env.REDIS_HOST,
                 port: Number(process.env.REDIS_PORT!),
-                db: Number(process.env.REDIS_DB ?? 0)
+                db: Number(process.env.REDIS_DB ?? 0),
+                natMap: cast<IORedis.NatMap>(JSON.parse(process.env.REDIS_NAT_MAP ?? "{}"))
             });
 
     public cache = {
