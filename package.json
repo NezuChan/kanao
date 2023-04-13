@@ -42,7 +42,7 @@
     "@sapphire/result": "^2.6.1",
     "@sapphire/time-utilities": "^1.7.9",
     "@sapphire/utilities": "^3.11.1",
-    "@skyra/start-banner": "^1.0.2",
+    "@skyra/start-banner": "^2.0.0",
     "dotenv": "^16.0.3",
     "gradient-string": "^2.0.2",
     "ioredis": "^5.3.1",
