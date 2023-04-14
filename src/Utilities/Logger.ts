@@ -1,10 +1,10 @@
 import { resolve } from "path";
 import { pino, Logger } from "pino";
-import { Util } from "../Utilities/Util.js";
-
+import { Util } from "@nezuchan/utilities";
+import { production } from "../config.js";
 
 export function createLogger(name: string, clientId: string, storeLogs: boolean, lokiHost?: URL): Logger {
-    const level = process.env.NODE_ENV === "production" ? "info" : "trace";
+    const level = production ? "info" : "trace";
 
     const targets: pino.TransportTargetOptions[] = [{ target: "pino-pretty", level, options: { translateTime: "SYS:yyyy-mm-dd HH:MM:ss.l o" } }];
 
@@ -23,7 +23,7 @@ export function createLogger(name: string, clientId: string, storeLogs: boolean,
     return pino({
         name,
         timestamp: true,
-        level: process.env.NODE_ENV === "production" ? "info" : "trace",
+        level: production ? "info" : "trace",
         transport: { targets }
     });
 }

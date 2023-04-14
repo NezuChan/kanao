@@ -39,3 +39,5 @@ export const gatewayShardIds = process.env.GATEWAY_SHARD_START && process.env.GA
         end: Number(process.env.GATEWAY_SHARD_END)
     }
     : null;
+
+export const production = process.env.NODE_ENV === "production";
