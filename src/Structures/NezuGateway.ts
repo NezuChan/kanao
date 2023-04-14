@@ -1,19 +1,47 @@
 import EventEmitter from "node:events";
 import { createLogger } from "../Utilities/Logger.js";
-import { discordToken, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceType, gatewayReadyTimeout, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, proxy, storeLogs } from "../config.js";
+import { discordToken, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceType, gatewayReadyTimeout, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
-import { CompressionMethod, WebSocketManager } from "@discordjs/ws";
+import { CompressionMethod, SessionInfo, WebSocketManager } from "@discordjs/ws";
 import { PresenceUpdateStatus } from "discord-api-types/v10";
 import { Util } from "@nezuchan/utilities";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ProcessShardingStrategy } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
+import { default as IORedis } from "ioredis";
+import { Result } from "@sapphire/result";
+import { compress, decompress } from "../Utilities/Compression/index.js";
+
+const { default: Redis, Cluster } = IORedis;
 const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../../package.json")}`);
 
 export class NezuGateway extends EventEmitter {
     public clientId = Buffer.from(discordToken.split(".")[0], "base64").toString();
     public rest = new REST({ api: proxy, rejectOnRateLimit: proxy === "https://discord.com/api" ? null : () => false });
     public logger = createLogger("nezu-gateway", this.clientId, storeLogs, lokiHost ? new URL(lokiHost) : undefined);
+
+    public redis =
+        redisClusters.length
+            ? new Cluster(
+                redisClusters,
+                {
+                    scaleReads: redisClusterScaleReads as IORedis.NodeRole,
+                    redisOptions: {
+                        password: redisPassword,
+                        username: redisUsername,
+                        db: redisDb
+                    },
+                    natMap: redisNatMap
+                }
+            )
+            : new Redis({
+                username: redisPassword,
+                password: redisPassword,
+                host: redisHost,
+                port: redisPort,
+                db: redisDb,
+                natMap: redisNatMap
+            });
 
     public ws = new WebSocketManager({
         buildStrategy: (manager: WebSocketManager) => new ProcessShardingStrategy(manager, {
@@ -37,6 +65,24 @@ export class NezuGateway extends EventEmitter {
             since: Date.now(),
             status: PresenceUpdateStatus.Online,
             afk: false
+        },
+        updateSessionInfo: async (shardId: number, sessionInfo: SessionInfo) => {
+            const compressed = await compress(JSON.stringify(sessionInfo));
+            if (compressed) {
+                const result = await Result.fromAsync(() => this.redis.set(`${this.clientId}:gateway_shard_session:${shardId}`, compressed));
+                if (result.isOk()) return;
+                this.logger.error(result.unwrapErr(), "Failed to update session info");
+            }
+        },
+        retrieveSessionInfo: async (shardId: number) => {
+            const result = await Result.fromAsync(() => this.redis.get(`${this.clientId}:gateway_shard_session:${shardId}`));
+            if (result.isOk()) {
+                const sessionInfo = result.unwrap();
+                const decompressed = sessionInfo ? await decompress(sessionInfo) : null;
+                return decompressed ? JSON.parse(decompressed) as SessionInfo : null;
+            }
+            this.logger.error(result.unwrapErr(), "Failed to retrieve session info");
+            return null;
         },
         compression: CompressionMethod.ZlibStream,
         rest: this.rest

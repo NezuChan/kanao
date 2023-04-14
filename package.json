@@ -34,7 +34,9 @@
   "dependencies": {
     "@discordjs/rest": "^1.7.0",
     "@discordjs/ws": "^0.8.0",
+    "@mongodb-js/zstd": "^1.1.0",
     "@nezuchan/utilities": "^0.3.1",
+    "@sapphire/result": "^2.6.1",
     "@sapphire/utilities": "^3.11.1",
     "@skyra/start-banner": "^1.0.2",
     "dotenv": "^16.0.3",

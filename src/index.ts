@@ -17,6 +17,8 @@ try {
     process.exit(1);
 }
 
+await gateway.redis.set(`${gateway.clientId}:gateway_shard_count`, gateway.ws.options.shardCount ?? 1);
+
 console.log(
     gradient.vice.multiline(
         createBanner({
@@ -39,7 +41,7 @@ console.log(
             ],
             extra: [
                 ` Nezu Gateway: v${packageJson.version}`,
-                ` └ ShardCount: ${gateway.ws.options.shardCount} shards`
+                ` └ ShardCount: ${gateway.ws.options.shardCount ?? 1} shards`
             ]
         })
     )
