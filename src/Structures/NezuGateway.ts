@@ -8,10 +8,10 @@ import { Util } from "@nezuchan/utilities";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ProcessShardingStrategy } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
-const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../package.json")}`);
+const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../../package.json")}`);
 
 export class NezuGateway extends EventEmitter {
-    public clientId = Buffer.from(discordToken!.split(".")[0], "base64").toString();
+    public clientId = Buffer.from(discordToken.split(".")[0], "base64").toString();
     public rest = new REST({ api: proxy, rejectOnRateLimit: proxy === "https://discord.com/api" ? null : () => false });
     public logger = createLogger("nezu-gateway", this.clientId, storeLogs, lokiHost ? new URL(lokiHost) : undefined);
 
@@ -24,13 +24,13 @@ export class NezuGateway extends EventEmitter {
         readyTimeout: gatewayReadyTimeout,
         handshakeTimeout: gatewayHandShakeTimeout,
         largeThreshold: gatewayLargeThreshold,
-        token: discordToken!,
+        token: discordToken,
         shardCount: gatewayShardCount,
         shardIds: gatewayShardIds,
         initialPresence: {
             activities: [
                 {
-                    name: gatewayPresenceName ?? `NezukoChan Gateway ${packageJson.version}`,
+                    name: gatewayPresenceName ?? `NezukoChan Gateway v${packageJson.version}`,
                     type: gatewayPresenceType
                 }
             ],
@@ -42,7 +42,12 @@ export class NezuGateway extends EventEmitter {
         rest: this.rest
     });
 
+    public constructor() {
+        super();
+        this.rest.setToken(discordToken);
+    }
+
     public async connect(): Promise<void> {
-        await Promise.resolve();
+        await this.ws.connect();
     }
 }

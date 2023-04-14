@@ -41,7 +41,8 @@
     "gradient-string": "^2.0.2",
     "ioredis": "^5.3.1",
     "pino": "^8.11.0",
-    "pino-pretty": "^10.0.0"
+    "pino-pretty": "^10.0.0",
+    "zlib-sync": "^0.1.8"
   },
   "devDependencies": {
     "@hazmi35/eslint-config": "^9.0.0",

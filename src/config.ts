@@ -13,7 +13,7 @@ export const redisClusterScaleReads = cast<IORedis.NodeRole>(process.env.REDIS_C
 export const storeLogs = process.env.STORE_LOGS === "true";
 export const lokiHost = process.env.LOKI_HOST;
 export const useRouting = process.env.USE_ROUTING === "true";
-export const discordToken = process.env.DISCORD_TOKEN;
+export const discordToken = process.env.DISCORD_TOKEN!;
 export const proxy = process.env.NIRN_PROXY ?? process.env.HTTP_PROXY ?? "https://discord.com/api";
 export const amqp = process.env.AMQP_HOST ?? process.env.AMQP_URL;
 

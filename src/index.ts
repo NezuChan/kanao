@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import gradient from "gradient-string";
 import { createBanner } from "@skyra/start-banner";
 import { Util } from "@nezuchan/utilities";
@@ -36,7 +38,8 @@ console.log(
                 String.raw`╲________╱╲___╱____╱ ╲______╱ ╲________╱╲________╱╲___╱____╱   ╲_____╱ `
             ],
             extra: [
-                ` Nezu Gateway: v${packageJson.version}`
+                ` Nezu Gateway: v${packageJson.version}`,
+                ` └ ShardCount: ${gateway.ws.options.shardCount} shards`
             ]
         })
     )
