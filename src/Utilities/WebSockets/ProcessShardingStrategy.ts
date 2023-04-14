@@ -10,7 +10,7 @@ import * as url from "url";
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
 /**
-* Strategy used to spawn threads in worker_threads
+* Strategy used to spawn threads in child_process
 */
 export class ProcessShardingStrategy implements IShardingStrategy {
     private readonly manager: WebSocketManager;
