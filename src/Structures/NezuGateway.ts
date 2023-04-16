@@ -10,7 +10,6 @@ import { fileURLToPath } from "node:url";
 import { ProcessShardingStrategy } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
 import { default as IORedis } from "ioredis";
 import { Result } from "@sapphire/result";
-import { compress, decompress } from "../Utilities/Compression/index.js";
 
 const { default: Redis, Cluster } = IORedis;
 const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../../package.json")}`);
@@ -67,21 +66,15 @@ export class NezuGateway extends EventEmitter {
             afk: false
         },
         updateSessionInfo: async (shardId: number, sessionInfo: SessionInfo) => {
-            const compressed = await compress(JSON.stringify(sessionInfo));
-            if (compressed) {
-                const result = await Result.fromAsync(() => this.redis.set(`${this.clientId}:gateway_shard_session:${shardId}`, compressed));
-                if (result.isOk()) return;
-                this.logger.error(result.unwrapErr(), "Failed to update session info");
-            }
+            const result = await Result.fromAsync(() => this.redis.set(`${this.clientId}:gateway_shard_session:${shardId}`, JSON.stringify(sessionInfo)));
+            if (result.isOk()) return;
+            this.logger.error(result.unwrapErr(), "Failed to update session info");
         },
         retrieveSessionInfo: async (shardId: number) => {
             const result = await Result.fromAsync(() => this.redis.get(`${this.clientId}:gateway_shard_session:${shardId}`));
-            if (result.isOk()) {
-                const sessionInfo = result.unwrap();
-                const decompressed = sessionInfo ? await decompress(sessionInfo) : null;
-                return decompressed ? JSON.parse(decompressed) as SessionInfo : null;
-            }
-            this.logger.error(result.unwrapErr(), "Failed to retrieve session info");
+            const sessionInfo = result.isOk() ? result.unwrap() : null;
+            if (sessionInfo) return JSON.parse(sessionInfo) as SessionInfo;
+            this.logger.error(result.isErr() && result.unwrapErr(), "Failed to retrieve session info");
             return null;
         },
         compression: CompressionMethod.ZlibStream,
