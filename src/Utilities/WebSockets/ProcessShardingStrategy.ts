@@ -159,9 +159,15 @@ export class ProcessShardingStrategy implements IShardingStrategy {
         worker
             .on("error", error => {
                 this.manager.emit(WebSocketShardEvents.Error, { error, shardId: workerData.shardIds[0] });
+                worker.removeAllListeners();
+                this.#workers.splice(this.#workers.indexOf(worker), 1);
+                this.restartWorker(workerData);
             })
             .on("messageerror", error => {
                 this.manager.emit(WebSocketShardEvents.Error, { error, shardId: workerData.shardIds[0] });
+                worker.removeAllListeners();
+                this.#workers.splice(this.#workers.indexOf(worker), 1);
+                this.restartWorker(workerData);
             })
             .on("close", (code, signal) => {
                 this.manager.emit(WebSocketShardEvents.Error, { error: new Error(`Process closed with code ${code ?? "-"} and signal ${signal ?? "-"}. attempting to restart`), shardId: workerData.shardIds[0] });
