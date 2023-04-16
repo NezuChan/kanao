@@ -3,11 +3,37 @@ import { BootstrapOptions, WebSocketShard, WebSocketShardEvents, WorkerReceivePa
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 import { StoreRegistry } from "@sapphire/pieces";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
-import { discordToken, storeLogs, lokiHost } from "../../config.js";
+import { discordToken, storeLogs, lokiHost, redisClusters, redisClusterScaleReads, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername } from "../../config.js";
 import { createLogger } from "../Logger.js";
 import EventEmitter from "events";
+import { default as IORedis } from "ioredis";
+
+const { default: Redis, Cluster } = IORedis;
 
 export class ProcessBootstrapper {
+    public redis =
+        redisClusters.length
+            ? new Cluster(
+                redisClusters,
+                {
+                    scaleReads: redisClusterScaleReads as IORedis.NodeRole,
+                    redisOptions: {
+                        password: redisPassword,
+                        username: redisUsername,
+                        db: redisDb
+                    },
+                    natMap: redisNatMap
+                }
+            )
+            : new Redis({
+                username: redisPassword,
+                password: redisPassword,
+                host: redisHost,
+                port: redisPort,
+                db: redisDb,
+                natMap: redisNatMap
+            });
+
     /**
 	 * The data passed to the worker thread
 	 */
@@ -17,6 +43,7 @@ export class ProcessBootstrapper {
 	 * The shards that are managed by this worker
 	 */
     protected readonly shards = new Collection<number, WebSocketShard>();
+
     public constructor(
         public logger = createLogger("nezu-gateway", Buffer.from(discordToken.split(".")[0], "base64").toString(), storeLogs, lokiHost ? new URL(lokiHost) : undefined),
         public stores = new StoreRegistry()
@@ -24,7 +51,8 @@ export class ProcessBootstrapper {
         this.stores.register(
             new ListenerStore({
                 logger,
-                emitter: new EventEmitter()
+                emitter: new EventEmitter(),
+                redis: this.redis
             })
         );
     }
@@ -49,7 +77,7 @@ export class ProcessBootstrapper {
                     } satisfies WorkerReceivePayload;
                     process.send!(payload);
                     this.stores.get("listeners")
-                        .options.emitter.emit(event, { shard, data, shardId });
+                        .emitter.emit(event, { shard, data, shardId });
                 });
             }
 

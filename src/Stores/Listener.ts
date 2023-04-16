@@ -10,6 +10,7 @@ export interface ListenerContext extends PieceContext {
 }
 
 export abstract class Listener extends Piece {
+    public store: ListenerStore;
     public emitter: EventEmitter | null;
     public logger: Logger;
     public event: string | symbol;
@@ -19,8 +20,10 @@ export abstract class Listener extends Piece {
     public constructor(context: ListenerContext, options: ListenerOptions = {}) {
         super(context, options);
 
-        this.emitter = context.store.options.emitter;
-        this.logger = context.store.options.logger;
+        this.store = context.store;
+
+        this.emitter = context.store.emitter;
+        this.logger = context.store.logger;
 
         this.event = options.event ?? this.name;
         this.once = options.once ?? false;

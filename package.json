@@ -28,12 +28,14 @@
     "rules": {
       "@typescript-eslint/explicit-function-return-type": "off",
       "class-methods-use-this": "off",
-      "@typescript-eslint/restrict-template-expressions": "off"
+      "@typescript-eslint/restrict-template-expressions": "off",
+      "@typescript-eslint/naming-convention": "off"
     }
   },
   "dependencies": {
     "@discordjs/rest": "^1.7.0",
     "@discordjs/ws": "^0.8.0",
+    "@nezuchan/constants": "^0.5.4",
     "@nezuchan/utilities": "^0.3.1",
     "@sapphire/pieces": "^3.6.2",
     "@sapphire/result": "^2.6.1",

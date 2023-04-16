@@ -8,12 +8,14 @@ export const redisDb = Number(process.env.REDIS_DB ?? 0);
 export const redisNatMap = JSON.parse(process.env.REDIS_NAT_MAP ?? "{}");
 export const redisClusters: IORedis.ClusterNode[] = JSON.parse(process.env.REDIS_CLUSTERS ?? "[]");
 export const redisClusterScaleReads = process.env.REDIS_CLUSTER_SCALE_READS ?? process.env.REDIS_SCALE_READS ?? "all";
+
 export const storeLogs = process.env.STORE_LOGS === "true";
 export const lokiHost = process.env.LOKI_HOST;
 export const useRouting = process.env.USE_ROUTING === "true";
 export const discordToken = process.env.DISCORD_TOKEN!;
 export const proxy = process.env.NIRN_PROXY ?? process.env.HTTP_PROXY ?? "https://discord.com/api";
 export const amqp = process.env.AMQP_HOST ?? process.env.AMQP_URL;
+export const clientId = process.env.CLIENT_ID ?? Buffer.from(discordToken.split(".")[0], "base64").toString();
 
 export const enablePrometheus = process.env.ENABLE_PROMETHEUS === "true";
 export const prometheusPort = Number(process.env.PROMETHEUS_PORT ?? 9090);
@@ -40,5 +42,10 @@ export const gatewayShardIds = process.env.GATEWAY_SHARD_START && process.env.GA
 
 export const production = process.env.NODE_ENV === "production";
 
-export const cacheCompression = process.env.CACHE_COMPRESSION === "true";
-export const cacheCompressionLevel = Number(process.env.CACHE_COMPRESSION_LEVEL ?? 5);
+export const stateMembers = process.env.STATE_MEMBER === "true";
+export const stateUsers = process.env.STATE_USER === "true";
+export const statePresences = process.env.STATE_PRESENCE === "true";
+export const stateVoices = process.env.STATE_VOICE === "true";
+export const stateRoles = process.env.STATE_ROLE === "true";
+export const stateChannels = process.env.STATE_CHANNEL === "true";
+export const stateEmojis = process.env.STATE_EMOJI === "true";
