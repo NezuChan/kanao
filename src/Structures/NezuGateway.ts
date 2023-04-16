@@ -1,8 +1,8 @@
 import EventEmitter from "node:events";
 import { createLogger } from "../Utilities/Logger.js";
-import { clientId, discordToken, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceType, gatewayReadyTimeout, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, storeLogs } from "../config.js";
+import { clientId, discordToken, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceType, gatewayReadyTimeout, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
-import { CompressionMethod, SessionInfo, WebSocketManager } from "@discordjs/ws";
+import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardStatus } from "@discordjs/ws";
 import { PresenceUpdateStatus } from "discord-api-types/v10";
 import { Util } from "@nezuchan/utilities";
 import { join } from "node:path";
@@ -86,6 +86,19 @@ export class NezuGateway extends EventEmitter {
     }
 
     public async connect(): Promise<void> {
+        if (gatewayGuildPerShard) {
+            const { shards } = await this.ws.fetchGatewayInformation(true);
+            this.ws.options.shardCount = Number(Math.ceil((shards * (1_000 / Number(gatewayGuildPerShard))) / 1));
+        }
+
         await this.ws.connect();
+        const shardCount = await this.ws.getShardCount();
+
+        let shardId = -1;
+        while (shardId < (shardCount - 1)) {
+            shardId += 1; await this.redis.set(`${clientId}:gateway_shard_status:${shardId}`, JSON.stringify({ latency: -1, status: WebSocketShardStatus.Connecting }));
+        }
+
+        await this.redis.set(`${clientId}:gateway_shard_count`, shardCount);
     }
 }
