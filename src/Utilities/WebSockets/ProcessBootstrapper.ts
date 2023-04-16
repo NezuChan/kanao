@@ -1,6 +1,11 @@
 import { Collection } from "@discordjs/collection";
 import { BootstrapOptions, WebSocketShard, WebSocketShardEvents, WorkerReceivePayload, WorkerReceivePayloadOp, WorkerSendPayload, WorkerSendPayloadOp, WorkerData, WebSocketShardDestroyOptions } from "@discordjs/ws";
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
+import { StoreRegistry } from "@sapphire/pieces";
+import { ListenerStore } from "../../Stores/ListenerStore.js";
+import { discordToken, storeLogs, lokiHost } from "../../config.js";
+import { createLogger } from "../Logger.js";
+import EventEmitter from "events";
 
 export class ProcessBootstrapper {
     /**
@@ -12,11 +17,23 @@ export class ProcessBootstrapper {
 	 * The shards that are managed by this worker
 	 */
     protected readonly shards = new Collection<number, WebSocketShard>();
+    public constructor(
+        public logger = createLogger("nezu-gateway", Buffer.from(discordToken.split(".")[0], "base64").toString(), storeLogs, lokiHost ? new URL(lokiHost) : undefined),
+        public stores = new StoreRegistry()
+    ) {
+        this.stores.register(
+            new ListenerStore({
+                logger,
+                emitter: new EventEmitter()
+            })
+        );
+    }
 
     /**
      * Bootstraps the child process with the provided options
      */
     public async bootstrap(options: Readonly<BootstrapOptions> = {}): Promise<void> {
+        await this.stores.load();
         // Start by initializing the shards
         for (const shardId of this.data.shardIds) {
             const shard = new WebSocketShard(new ProcessContextFetchingStrategy(this.data), shardId);
@@ -31,6 +48,8 @@ export class ProcessBootstrapper {
                         shardId
                     } satisfies WorkerReceivePayload;
                     process.send!(payload);
+                    this.stores.get("listeners")
+                        .options.emitter.emit(event, { shard, data, shardId });
                 });
             }
 
@@ -137,5 +156,11 @@ export class ProcessBootstrapper {
                 }
             }
         });
+    }
+}
+
+declare module "@sapphire/pieces" {
+    interface StoreRegistryEntries {
+        listeners: ListenerStore;
     }
 }
