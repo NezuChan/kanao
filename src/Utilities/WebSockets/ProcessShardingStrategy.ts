@@ -200,7 +200,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
         const path = this.options.workerPath;
 
         if (!path) {
-            return join(__dirname, "DefaultProcess.js");
+            return join(__dirname, "ShardProcess.js");
         }
 
         if (isAbsolute(path)) {
