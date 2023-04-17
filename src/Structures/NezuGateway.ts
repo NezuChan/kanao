@@ -73,7 +73,7 @@ export class NezuGateway extends EventEmitter {
             const result = await Result.fromAsync(() => this.redis.get(`${clientId}:gateway_shard_session:${shardId}`));
             const sessionInfo = result.isOk() ? result.unwrap() : null;
             if (sessionInfo) return JSON.parse(sessionInfo) as SessionInfo;
-            this.logger.error(result.isErr() && result.unwrapErr(), "Failed to retrieve session info");
+            if (result.isErr()) this.logger.error(result.unwrapErr(), "Failed to retrieve session info");
             return null;
         },
         compression: CompressionMethod.ZlibStream,
