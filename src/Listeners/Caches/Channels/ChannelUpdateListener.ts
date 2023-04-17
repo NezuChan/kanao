@@ -1,8 +1,8 @@
-import { Listener, ListenerContext } from "../../Stores/Listener.js";
+import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayChannelUpdateDispatch, GatewayDispatchEvents } from "discord-api-types/v10";
-import { stateChannels } from "../../config.js";
+import { stateChannels } from "../../../config.js";
 import { RedisKey } from "@nezuchan/constants";
-import { GenKey } from "../../Utilities/GenKey.js";
+import { GenKey } from "../../../Utilities/GenKey.js";
 
 export class ChannelUpdateListener extends Listener {
     public constructor(context: ListenerContext) {

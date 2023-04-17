@@ -1,8 +1,8 @@
-import { Listener, ListenerContext } from "../../Stores/Listener.js";
+import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayDispatchEvents, GatewayGuildDeleteDispatch } from "discord-api-types/v10";
 import { RedisKey } from "@nezuchan/constants";
 import { redisSScanStreamPromise } from "@nezuchan/utilities";
-import { GenKey } from "../../Utilities/GenKey.js";
+import { GenKey } from "../../../Utilities/GenKey.js";
 
 export class GuildDeleteListener extends Listener {
     public constructor(context: ListenerContext) {

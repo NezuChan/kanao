@@ -1,8 +1,8 @@
-import { Listener, ListenerContext } from "../../Stores/Listener.js";
+import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayDispatchEvents, GatewayGuildMembersChunkDispatch } from "discord-api-types/v10";
-import { stateMembers, stateUsers } from "../../config.js";
+import { stateMembers, stateUsers } from "../../../config.js";
 import { RedisKey } from "@nezuchan/constants";
-import { GenKey } from "../../Utilities/GenKey.js";
+import { GenKey } from "../../../Utilities/GenKey.js";
 
 export class GuildMembersChunkListener extends Listener {
     public constructor(context: ListenerContext) {

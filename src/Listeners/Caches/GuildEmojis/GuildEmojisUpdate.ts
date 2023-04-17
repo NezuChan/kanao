@@ -1,9 +1,9 @@
-import { Listener, ListenerContext } from "../../Stores/Listener.js";
+import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayGuildEmojisUpdateDispatch, GatewayDispatchEvents } from "discord-api-types/v10";
-import { stateEmojis } from "../../config.js";
+import { stateEmojis } from "../../../config.js";
 import { RedisKey } from "@nezuchan/constants";
 import { redisSScanStreamPromise } from "@nezuchan/utilities";
-import { GenKey } from "../../Utilities/GenKey.js";
+import { GenKey } from "../../../Utilities/GenKey.js";
 
 export class GuildEmojisUpdate extends Listener {
     public constructor(context: ListenerContext) {

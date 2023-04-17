@@ -1,8 +1,8 @@
-import { Listener, ListenerContext } from "../../Stores/Listener.js";
+import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayDispatchEvents, GatewayGuildRoleDeleteDispatch } from "discord-api-types/v10";
-import { stateRoles } from "../../config.js";
+import { stateRoles } from "../../../config.js";
 import { RedisKey } from "@nezuchan/constants";
-import { GenKey } from "../../Utilities/GenKey.js";
+import { GenKey } from "../../../Utilities/GenKey.js";
 
 export class GuildRoleDeleteListener extends Listener {
     public constructor(context: ListenerContext) {

@@ -1,8 +1,8 @@
-import { Listener, ListenerContext } from "../../Stores/Listener.js";
+import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayDispatchEvents, GatewayMessageDeleteDispatch } from "discord-api-types/v10";
-import { stateMessages } from "../../config.js";
+import { stateMessages } from "../../../config.js";
 import { RedisKey } from "@nezuchan/constants";
-import { GenKey } from "../../Utilities/GenKey.js";
+import { GenKey } from "../../../Utilities/GenKey.js";
 
 export class MessageUpdateListener extends Listener {
     public constructor(context: ListenerContext) {
