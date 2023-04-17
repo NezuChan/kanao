@@ -11,8 +11,8 @@ export class ReadyListener extends Listener {
         });
     }
 
-    public async run(payload: { data: { data: GatewayReadyDispatch }; shardId: number }): Promise<unknown> {
-        await this.store.redis.set(GenKey(RedisKey.BOT_USER_KEY), JSON.stringify(payload.data.data.d.user));
+    public async run(payload: { data: { data: GatewayReadyDispatch["d"] }; shardId: number }): Promise<unknown> {
+        await this.store.redis.set(GenKey(RedisKey.BOT_USER_KEY), JSON.stringify(payload.data.data.user));
         return this.logger.info(`Shard ${payload.shardId} is ready !`);
     }
 }
