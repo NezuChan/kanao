@@ -49,3 +49,4 @@ export const stateVoices = process.env.STATE_VOICE === "true";
 export const stateRoles = process.env.STATE_ROLE === "true";
 export const stateChannels = process.env.STATE_CHANNEL === "true";
 export const stateEmojis = process.env.STATE_EMOJI === "true";
+export const stateMessages = process.env.STATE_MESSAGE === "true";
