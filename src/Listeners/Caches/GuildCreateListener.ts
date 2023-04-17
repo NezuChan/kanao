@@ -1,6 +1,6 @@
 import { Listener, ListenerContext } from "../../Stores/Listener.js";
 import { GatewayDispatchEvents, GatewayGuildCreateDispatch } from "discord-api-types/v10";
-import { clientId, stateChannels, stateEmojis, stateMembers, stateRoles, stateUsers, stateVoices } from "../../config.js";
+import { stateChannels, stateEmojis, stateMembers, stateRoles, stateUsers, stateVoices } from "../../config.js";
 import { RedisKey } from "@nezuchan/constants";
 import { GenKey } from "../../Utilities/GenKey.js";
 
@@ -48,7 +48,7 @@ export class GuildCreateListener extends Listener {
         if (stateVoices) {
             for (const voice of payload.data.d.voice_states) {
                 await this.store.redis.set(GenKey(RedisKey.ROLE_KEY, voice.user_id, payload.data.d.id), JSON.stringify(voice));
-                await this.store.redis.sadd(GenKey(`${RedisKey.ROLE_KEY}${RedisKey.KEYS_SUFFIX}`, voice.user_id, payload.data.d.id), GenKey(`${RedisKey.ROLE_KEY}`, voice.user_id, payload.data.d.id));
+                await this.store.redis.sadd(GenKey(`${RedisKey.ROLE_KEY}${RedisKey.KEYS_SUFFIX}`, voice.user_id, payload.data.d.id), GenKey(`${RedisKey.VOICE_KEY}`, voice.user_id, payload.data.d.id));
             }
             payload.data.d.voice_states = [];
         }
@@ -57,13 +57,13 @@ export class GuildCreateListener extends Listener {
             for (const emoji of payload.data.d.emojis) {
                 if (emoji.id) {
                     await this.store.redis.set(GenKey(`${RedisKey.EMOJI_KEY}`, emoji.id, payload.data.d.id), JSON.stringify(emoji));
-                    await this.store.redis.sadd(`${clientId}:${RedisKey.EMOJI_KEY}${RedisKey.KEYS_SUFFIX}:${payload.data.d.id}`, GenKey(`${RedisKey.EMOJI_KEY}`, emoji.id, payload.data.d.id));
+                    await this.store.redis.sadd(GenKey(`${RedisKey.EMOJI_KEY}${RedisKey.KEYS_SUFFIX}`, emoji.id, payload.data.d.id), GenKey(`${RedisKey.EMOJI_KEY}`, emoji.id, payload.data.d.id));
                 }
             }
             payload.data.d.emojis = [];
         }
 
-        await this.store.redis.sadd(`${clientId}:${RedisKey.GUILD_KEY}${RedisKey.KEYS_SUFFIX}`, `${clientId}:${RedisKey.GUILD_KEY}:${payload.data.d.id}`);
-        await this.store.redis.set(`${clientId}:${RedisKey.GUILD_KEY}:${payload.data.d.id}`, JSON.stringify(payload.data.d));
+        await this.store.redis.sadd(GenKey(`${RedisKey.GUILD_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.id), GenKey(`${RedisKey.GUILD_KEY}`, payload.data.d.id));
+        await this.store.redis.set(GenKey(`${RedisKey.GUILD_KEY}`, payload.data.d.id), JSON.stringify(payload.data.d));
     }
 }
