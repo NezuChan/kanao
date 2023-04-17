@@ -1,37 +1,29 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable class-methods-use-this */
-/* eslint-disable max-len */
 import EventEmitter from "node:events";
-import { default as IORedis } from "ioredis";
-import { REST } from "@discordjs/rest";
-import { Util } from "../Utilities/Util.js";
-import { ListenerStore } from "../Stores/ListenerStore.js";
-import { container, Piece, Store, StoreRegistry } from "@sapphire/pieces";
-import { createAmqp, RoutingPublisher } from "@nezuchan/cordis-brokers";
-import { RedisCollection } from "@nezuchan/redis-collection";
-import { APIEmoji, APIMessage } from "discord-api-types/v10";
 import { createLogger } from "../Utilities/Logger.js";
-import { RabbitMQ, RedisKey } from "@nezuchan/constants";
-import { amqp, discordToken, lokiHost, proxy, redisClusters, redisClusterScaleReads, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, storeLogs, useRouting } from "../config.js";
+import { clientId, discordToken, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceType, gatewayReadyTimeout, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, storeLogs } from "../config.js";
+import { REST } from "@discordjs/rest";
+import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardStatus } from "@discordjs/ws";
+import { PresenceUpdateStatus } from "discord-api-types/v10";
+import { Util } from "@nezuchan/utilities";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { ProcessShardingStrategy } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
+import { default as IORedis } from "ioredis";
+import { Result } from "@sapphire/result";
 
 const { default: Redis, Cluster } = IORedis;
+const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../../package.json")}`);
 
 export class NezuGateway extends EventEmitter {
-    public clientId = Buffer.from(discordToken!.split(".")[0], "base64").toString();
-
-    public rest = new REST({
-        api: proxy,
-        rejectOnRateLimit: proxy === "https://discord.com/api" ? null : () => false
-    });
-
-    public stores = new StoreRegistry();
+    public rest = new REST({ api: proxy, rejectOnRateLimit: proxy === "https://discord.com/api" ? null : () => false });
+    public logger = createLogger("nezu-gateway", clientId, storeLogs, lokiHost ? new URL(lokiHost) : undefined);
 
     public redis =
         redisClusters.length
             ? new Cluster(
                 redisClusters,
                 {
-                    scaleReads: redisClusterScaleReads,
+                    scaleReads: redisClusterScaleReads as IORedis.NodeRole,
                     redisOptions: {
                         password: redisPassword,
                         username: redisUsername,
@@ -49,69 +41,64 @@ export class NezuGateway extends EventEmitter {
                 natMap: redisNatMap
             });
 
-    public cache = {
-        users: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.USER_KEY, false) }),
-        members: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.MEMBER_KEY, false) }),
-        channels: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.CHANNEL_KEY, false) }),
-        guilds: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.GUILD_KEY, false) }),
-        states: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.VOICE_KEY, false) }),
-        roles: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.ROLE_KEY, false) }),
-        messages: new RedisCollection<APIMessage, APIMessage>({ redis: this.redis, hash: this.genKey(RedisKey.MESSAGE_KEY, false) }),
-        presences: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.PRESENCE_KEY, false) }),
-        sessions: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.SESSIONS_KEY, false) }),
-        statuses: new RedisCollection({ redis: this.redis, hash: this.genKey(RedisKey.STATUSES_KEY, false) }),
-        emojis: new RedisCollection<APIEmoji, APIEmoji>({ redis: this.redis, hash: this.genKey(RedisKey.EMOJI_KEY, false) })
-    };
-
-    public logger = createLogger("nezu-gateway", this.clientId, storeLogs, lokiHost ? new URL(lokiHost) : undefined);
-
-    public amqp!: {
-        sender: RoutingPublisher<string, Record<string, any>>;
-    };
+    public ws = new WebSocketManager({
+        buildStrategy: (manager: WebSocketManager) => new ProcessShardingStrategy(manager, {
+            shardsPerWorker: gatewayShardsPerWorkers
+        }),
+        intents: gatewayIntents,
+        helloTimeout: gatewayHelloTimeout,
+        readyTimeout: gatewayReadyTimeout,
+        handshakeTimeout: gatewayHandShakeTimeout,
+        largeThreshold: gatewayLargeThreshold,
+        token: discordToken,
+        shardCount: gatewayShardCount,
+        shardIds: gatewayShardIds,
+        initialPresence: {
+            activities: [
+                {
+                    name: gatewayPresenceName ?? `NezukoChan Gateway v${packageJson.version}`,
+                    type: gatewayPresenceType
+                }
+            ],
+            since: Date.now(),
+            status: PresenceUpdateStatus.Online,
+            afk: false
+        },
+        updateSessionInfo: async (shardId: number, sessionInfo: SessionInfo) => {
+            const result = await Result.fromAsync(() => this.redis.set(`${clientId}:gateway_shard_session:${shardId}`, JSON.stringify(sessionInfo)));
+            if (result.isOk()) return;
+            this.logger.error(result.unwrapErr(), "Failed to update session info");
+        },
+        retrieveSessionInfo: async (shardId: number) => {
+            const result = await Result.fromAsync(() => this.redis.get(`${clientId}:gateway_shard_session:${shardId}`));
+            const sessionInfo = result.isOk() ? result.unwrap() : null;
+            if (sessionInfo) return JSON.parse(sessionInfo) as SessionInfo;
+            this.logger.error(result.isErr() && result.unwrapErr(), "Failed to retrieve session info");
+            return null;
+        },
+        compression: CompressionMethod.ZlibStream,
+        rest: this.rest
+    });
 
     public constructor() {
         super();
+        this.rest.setToken(discordToken);
     }
 
-    public date(): string {
-        return Util.formatDate(Intl.DateTimeFormat("en-US", {
-            year: "numeric",
-            month: "numeric",
-            day: "numeric",
-            hour12: false
-        }));
-    }
-
-    public async connect() {
-        container.gateway = this;
-
-        const { channel } = await createAmqp(amqp!);
-
-        this.amqp = {
-            sender: new RoutingPublisher(channel)
-        };
-
-        if (useRouting) {
-            await this.amqp.sender.init({ name: RabbitMQ.GATEWAY_QUEUE_RECV, useExchangeBinding: true, exchangeType: "direct" });
-        } else {
-            await this.amqp.sender.init({ name: RabbitMQ.GATEWAY_QUEUE_RECV, useExchangeBinding: true, exchangeType: "fanout", queue: RabbitMQ.GATEWAY_EXCHANGE });
+    public async connect(): Promise<void> {
+        if (gatewayGuildPerShard) {
+            const { shards } = await this.ws.fetchGatewayInformation(true);
+            this.ws.options.shardCount = Number(Math.ceil((shards * (1_000 / Number(gatewayGuildPerShard))) / 1));
         }
 
-        this.stores.register(new ListenerStore());
-        this.rest.setToken(discordToken!);
-        await Promise.all([...this.stores.values()].map((store: Store<Piece>) => store.loadAll()));
-    }
+        await this.ws.connect();
+        const shardCount = await this.ws.getShardCount();
 
-    public genKey(key: string, suffix: boolean) {
-        return Util.genKey(key, this.clientId, suffix);
-    }
-}
+        let shardId = -1;
+        while (shardId < (shardCount - 1)) {
+            shardId += 1; await this.redis.set(`${clientId}:gateway_shard_status:${shardId}`, JSON.stringify({ latency: -1, status: WebSocketShardStatus.Connecting }));
+        }
 
-declare module "@sapphire/pieces" {
-    interface Container {
-        gateway: NezuGateway;
-    }
-    interface StoreRegistryEntries {
-        listeners: ListenerStore;
+        await this.redis.set(`${clientId}:gateway_shard_count`, shardCount);
     }
 }
