@@ -13,15 +13,11 @@
 
 # Requirements
 - NodeJS 16+
-- Scheduled Tasks [here](https://github.com/NezuChan/scheduled-tasks)
 
 # Features
 - Zero downtime deployments, You will almost never need to restart the gateway service, allowing absolute 100% uptime for your bot. Even when a restart is required, nezu-gateway will resume the sessions, so you will not lose a single event.
 - Automatic re-sharding
 - Large treshold support
 - Redis cluster support
-
-# Information
-- Routing mode, everything in saved on redis will be prefixed with {clientId}:{key}
 
 Being used in production by NezukoChan, Musical Tune, and more.
