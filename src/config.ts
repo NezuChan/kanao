@@ -23,7 +23,7 @@ export const prometheusPath = process.env.PROMETHEUS_PATH ?? "/metrics";
 
 export const autoShard = process.env.AUTO_SPAWN_SHARDS === "true";
 
-export const gatewayGuildPerShard = Number(process.env.GUILD_PER_SHARD ?? 2500);
+export const gatewayGuildPerShard = Number(process.env.GUILD_PER_SHARD ?? 2000);
 export const gatewayPresenceType = Number(process.env.GATEWAY_PRESENCE_TYPE ?? 0);
 export const gatewayPresenceName = process.env.GATEWAY_PRESENCE_NAME;
 export const gatewayIntents = Number(process.env.GATEWAY_INTENTS ?? 0);
