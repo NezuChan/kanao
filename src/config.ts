@@ -14,7 +14,7 @@ export const lokiHost = process.env.LOKI_HOST ? new URL(process.env.LOKI_HOST) :
 export const useRouting = process.env.USE_ROUTING === "true";
 export const discordToken = process.env.DISCORD_TOKEN!;
 export const proxy = process.env.NIRN_PROXY ?? process.env.HTTP_PROXY ?? "https://discord.com/api";
-export const amqp = process.env.AMQP_HOST ?? process.env.AMQP_URL;
+export const amqp = process.env.AMQP_HOST ?? process.env.AMQP_URL ?? "amqp://localhost";
 export const clientId = process.env.CLIENT_ID ?? Buffer.from(discordToken.split(".")[0], "base64").toString();
 
 export const enablePrometheus = process.env.ENABLE_PROMETHEUS === "true";

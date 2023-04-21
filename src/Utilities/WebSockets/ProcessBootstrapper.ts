@@ -3,10 +3,14 @@ import { BootstrapOptions, WebSocketShard, WebSocketShardEvents, WorkerReceivePa
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 import { StoreRegistry } from "@sapphire/pieces";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
-import { discordToken, storeLogs, lokiHost } from "../../config.js";
+import { discordToken, storeLogs, lokiHost, clientId } from "../../config.js";
 import { createLogger } from "../Logger.js";
 import EventEmitter from "events";
 import { createRedis } from "../CreateRedis.js";
+import { createAmqpChannel } from "../CreateAmqpChannel.js";
+import { RabbitMQ } from "@nezuchan/constants";
+import { Result } from "@sapphire/result";
+import { GatewaySendPayload } from "discord-api-types/v10";
 
 export class ProcessBootstrapper {
     public redis = createRedis();
@@ -39,6 +43,7 @@ export class ProcessBootstrapper {
      */
     public async bootstrap(options: Readonly<BootstrapOptions> = {}): Promise<void> {
         await this.stores.load();
+        await this.setupAmqp();
         // Start by initializing the shards
         for (const shardId of this.data.shardIds) {
             const shard = new WebSocketShard(new ProcessContextFetchingStrategy(this.data), shardId);
@@ -70,6 +75,36 @@ export class ProcessBootstrapper {
             op: WorkerReceivePayloadOp.WorkerReady
         } satisfies WorkerReceivePayload;
         process.send!(message);
+    }
+
+    public async setupAmqp() {
+        const amqp = await createAmqpChannel();
+
+        await amqp.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "direct", { durable: false });
+        const { queue } = await amqp.assertQueue("", { exclusive: true });
+
+        await Promise.all(
+            this.data.shardIds.map(async shardId => {
+                await amqp.bindQueue(queue, RabbitMQ.GATEWAY_EXCHANGE, `${clientId}:${shardId}`);
+            })
+        );
+
+        void Result.fromAsync(() => amqp.consume(queue, async message => {
+            if (message) {
+                const content = JSON.parse(message.content.toString()) as { op: number; data: GatewaySendPayload };
+                this.logger.debug(content, `received message from AMQP to send to shard ${message.fields.routingKey.split(":")[1]}`);
+                switch (content.op) {
+                    case 0: {
+                        const shard = this.shards.get(parseInt(message.fields.routingKey.split(":")[1]));
+                        if (shard) {
+                            await Result.fromAsync(() => shard.send(content.data));
+                        }
+                        /** TODO: Send back any error message (if possible) */
+                    }
+                    /** TODO: OP 1 for stats pooling stats for every clusters & nodes using net-ipc or the alernatives */
+                }
+            }
+        }));
     }
 
     /**
