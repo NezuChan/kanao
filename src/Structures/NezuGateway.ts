@@ -15,7 +15,7 @@ const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToP
 
 export class NezuGateway extends EventEmitter {
     public rest = new REST({ api: proxy, rejectOnRateLimit: proxy === "https://discord.com/api" ? null : () => false });
-    public logger = createLogger("nezu-gateway", clientId, storeLogs, lokiHost ? new URL(lokiHost) : undefined);
+    public logger = createLogger("nezu-gateway", clientId, storeLogs, lokiHost);
 
     public redis = createRedis();
 

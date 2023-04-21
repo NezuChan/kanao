@@ -22,7 +22,7 @@ export class ProcessBootstrapper {
     protected readonly shards = new Collection<number, WebSocketShard>();
 
     public constructor(
-        public logger = createLogger("nezu-gateway", Buffer.from(discordToken.split(".")[0], "base64").toString(), storeLogs, lokiHost ? new URL(lokiHost) : undefined),
+        public logger = createLogger("nezu-gateway", Buffer.from(discordToken.split(".")[0], "base64").toString(), storeLogs, lokiHost),
         public stores = new StoreRegistry()
     ) {
         this.stores.register(
