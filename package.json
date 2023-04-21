@@ -41,6 +41,7 @@
     "@sapphire/result": "^2.6.2",
     "@sapphire/utilities": "^3.11.1",
     "@skyra/start-banner": "^2.0.0",
+    "amqplib": "^0.10.3",
     "bufferutil": "^4.0.7",
     "dotenv": "^16.0.3",
     "gradient-string": "^2.0.2",

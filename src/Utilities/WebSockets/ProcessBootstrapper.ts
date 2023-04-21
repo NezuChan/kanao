@@ -3,36 +3,13 @@ import { BootstrapOptions, WebSocketShard, WebSocketShardEvents, WorkerReceivePa
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 import { StoreRegistry } from "@sapphire/pieces";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
-import { discordToken, storeLogs, lokiHost, redisClusters, redisClusterScaleReads, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername } from "../../config.js";
+import { discordToken, storeLogs, lokiHost } from "../../config.js";
 import { createLogger } from "../Logger.js";
 import EventEmitter from "events";
-import { default as IORedis } from "ioredis";
-
-const { default: Redis, Cluster } = IORedis;
+import { createRedis } from "../CreateRedis.js";
 
 export class ProcessBootstrapper {
-    public redis =
-        redisClusters.length
-            ? new Cluster(
-                redisClusters,
-                {
-                    scaleReads: redisClusterScaleReads as IORedis.NodeRole,
-                    redisOptions: {
-                        password: redisPassword,
-                        username: redisUsername,
-                        db: redisDb
-                    },
-                    natMap: redisNatMap
-                }
-            )
-            : new Redis({
-                username: redisPassword,
-                password: redisPassword,
-                host: redisHost,
-                port: redisPort,
-                db: redisDb,
-                natMap: redisNatMap
-            });
+    public redis = createRedis();
 
     /**
 	 * The data passed to the worker thread
