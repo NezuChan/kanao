@@ -10,7 +10,7 @@ export const redisClusters: IORedis.ClusterNode[] = JSON.parse(process.env.REDIS
 export const redisClusterScaleReads = process.env.REDIS_CLUSTER_SCALE_READS ?? process.env.REDIS_SCALE_READS ?? "all";
 
 export const storeLogs = process.env.STORE_LOGS === "true";
-export const lokiHost = process.env.LOKI_HOST;
+export const lokiHost = process.env.LOKI_HOST ? new URL(process.env.LOKI_HOST) : undefined;
 export const useRouting = process.env.USE_ROUTING === "true";
 export const discordToken = process.env.DISCORD_TOKEN!;
 export const proxy = process.env.NIRN_PROXY ?? process.env.HTTP_PROXY ?? "https://discord.com/api";
