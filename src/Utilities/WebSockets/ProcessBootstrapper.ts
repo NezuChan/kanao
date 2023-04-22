@@ -12,7 +12,7 @@ import { RabbitMQ } from "@nezuchan/constants";
 import { Result } from "@sapphire/result";
 import { GatewaySendPayload } from "discord-api-types/v10";
 import { ShardOp } from "../ShardOp.js";
-import { RoutingKey, RoutingKeyToShardId } from "../RoutingKey.js";
+import { RoutingKey, RoutingKeyToId } from "../RoutingKey.js";
 
 export class ProcessBootstrapper {
     public redis = createRedis();
@@ -96,7 +96,7 @@ export class ProcessBootstrapper {
         await Result.fromAsync(() => amqp.consume(queue, async message => {
             if (message) {
                 const content = JSON.parse(message.content.toString()) as { op: number; data: unknown };
-                const shardId = RoutingKeyToShardId(message.fields.routingKey);
+                const shardId = RoutingKeyToId(message.fields.routingKey);
                 switch (content.op) {
                     case ShardOp.SEND: {
                         const shard = this.shards.get(shardId);

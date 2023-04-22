@@ -50,3 +50,6 @@ export const stateRoles = process.env.STATE_ROLE === "true";
 export const stateChannels = process.env.STATE_CHANNEL === "true";
 export const stateEmojis = process.env.STATE_EMOJI === "true";
 export const stateMessages = process.env.STATE_MESSAGE === "true";
+
+export const replicaId = Number(process.env.REPLICA_ID ?? "0");
+export const replicaCount = Number(process.env.REPLICA_COUNT ?? "1");

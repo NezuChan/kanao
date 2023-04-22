@@ -1,9 +1,9 @@
 import { clientId } from "../config.js";
 
-export function RoutingKey(shardId: number | string) {
-    return `${clientId}:${shardId}`;
+export function RoutingKey(id: number | string) {
+    return `${clientId}:${id}`;
 }
 
-export function RoutingKeyToShardId(routingKey: string) {
+export function RoutingKeyToId(routingKey: string) {
     return parseInt(routingKey.split(":")[1]);
 }
