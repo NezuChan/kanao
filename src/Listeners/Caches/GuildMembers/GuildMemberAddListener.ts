@@ -1,8 +1,9 @@
 import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayGuildMemberAddDispatch, GatewayDispatchEvents } from "discord-api-types/v10";
 import { stateMembers, stateUsers } from "../../../config.js";
-import { RedisKey } from "@nezuchan/constants";
+import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { GenKey } from "../../../Utilities/GenKey.js";
+import { RoutingKey } from "../../../Utilities/RoutingKey.js";
 
 export class GuildMemberAddListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -11,7 +12,7 @@ export class GuildMemberAddListener extends Listener {
         });
     }
 
-    public async run(payload: { data: GatewayGuildMemberAddDispatch }): Promise<void> {
+    public async run(payload: { data: GatewayGuildMemberAddDispatch; shardId: number }): Promise<void> {
         if (stateUsers) {
             await this.store.redis.set(GenKey(RedisKey.USER_KEY, payload.data.d.user!.id), JSON.stringify(payload.data.d.user));
             await this.store.redis.sadd(GenKey(`${RedisKey.USER_KEY}${RedisKey.KEYS_SUFFIX}`), GenKey(RedisKey.USER_KEY, payload.data.d.user!.id));
@@ -21,5 +22,7 @@ export class GuildMemberAddListener extends Listener {
             await this.store.redis.set(GenKey(RedisKey.MEMBER_KEY, payload.data.d.user!.id, payload.data.d.guild_id), JSON.stringify(payload.data.d));
             await this.store.redis.sadd(GenKey(`${RedisKey.MEMBER_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.guild_id), GenKey(RedisKey.MEMBER_KEY, payload.data.d.user!.id, payload.data.d.guild_id));
         }
+
+        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }
 }

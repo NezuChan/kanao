@@ -1,6 +1,8 @@
 import { WebSocketShardEvents } from "@discordjs/ws";
 import { Listener, ListenerContext } from "../Stores/Listener.js";
 import { GatewayDispatchEvents, GatewayDispatchPayload } from "discord-api-types/v10";
+import { RabbitMQ } from "@nezuchan/constants";
+import { RoutingKey } from "../Utilities/RoutingKey.js";
 
 export class ReadyListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -35,9 +37,7 @@ export class ReadyListener extends Listener {
                 this.store.emitter.emit(payload.data.data.t, { shardId: payload.shardId, data: payload.data.data });
                 break;
             default:
-                /**
-                 * TODO: Send to client via message broker
-                 */
+                this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(payload.shardId), Buffer.from(JSON.stringify(payload.data.data)));
                 break;
         }
     }

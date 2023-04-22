@@ -1,8 +1,9 @@
 import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayDispatchEvents, GatewayGuildCreateDispatch } from "discord-api-types/v10";
 import { stateChannels, stateEmojis, stateMembers, stateRoles, stateUsers, stateVoices } from "../../../config.js";
-import { RedisKey } from "@nezuchan/constants";
+import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { GenKey } from "../../../Utilities/GenKey.js";
+import { RoutingKey } from "../../../Utilities/RoutingKey.js";
 
 export class GuildCreateListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -11,7 +12,7 @@ export class GuildCreateListener extends Listener {
         });
     }
 
-    public async run(payload: { data: GatewayGuildCreateDispatch }): Promise<void> {
+    public async run(payload: { data: GatewayGuildCreateDispatch; shardId: number }): Promise<void> {
         if (payload.data.d.unavailable) return;
 
         if (stateMembers || stateUsers) {
@@ -65,5 +66,7 @@ export class GuildCreateListener extends Listener {
 
         await this.store.redis.sadd(GenKey(`${RedisKey.GUILD_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.id), GenKey(`${RedisKey.GUILD_KEY}`, payload.data.d.id));
         await this.store.redis.set(GenKey(`${RedisKey.GUILD_KEY}`, payload.data.d.id), JSON.stringify(payload.data.d));
+
+        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }
 }

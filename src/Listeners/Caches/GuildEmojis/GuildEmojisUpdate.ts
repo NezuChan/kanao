@@ -1,9 +1,10 @@
 import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayGuildEmojisUpdateDispatch, GatewayDispatchEvents } from "discord-api-types/v10";
 import { stateEmojis } from "../../../config.js";
-import { RedisKey } from "@nezuchan/constants";
+import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { redisSScanStreamPromise } from "@nezuchan/utilities";
 import { GenKey } from "../../../Utilities/GenKey.js";
+import { RoutingKey } from "../../../Utilities/RoutingKey.js";
 
 export class GuildEmojisUpdate extends Listener {
     public constructor(context: ListenerContext) {
@@ -13,7 +14,7 @@ export class GuildEmojisUpdate extends Listener {
         });
     }
 
-    public async run(payload: { data: GatewayGuildEmojisUpdateDispatch }): Promise<void> {
+    public async run(payload: { data: GatewayGuildEmojisUpdateDispatch; shardId: number }): Promise<void> {
         const old_emojis = await redisSScanStreamPromise(this.store.redis, GenKey(`${RedisKey.EMOJI_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.guild_id), "*", 1000);
         for (const emoji of old_emojis) {
             await this.store.redis.unlink(emoji);
@@ -26,5 +27,10 @@ export class GuildEmojisUpdate extends Listener {
                 await this.store.redis.sadd(GenKey(`${RedisKey.EMOJI_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.guild_id), GenKey(RedisKey.EMOJI_KEY, emoji.id, payload.data.d.guild_id));
             }
         }
+
+        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(payload.shardId), Buffer.from(JSON.stringify({
+            ...payload.data,
+            old: old_emojis.map(emoji => JSON.parse(emoji))
+        })));
     }
 }

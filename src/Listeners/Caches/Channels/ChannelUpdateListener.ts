@@ -1,8 +1,9 @@
 import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayChannelUpdateDispatch, GatewayDispatchEvents } from "discord-api-types/v10";
 import { stateChannels } from "../../../config.js";
-import { RedisKey } from "@nezuchan/constants";
+import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { GenKey } from "../../../Utilities/GenKey.js";
+import { RoutingKey } from "../../../Utilities/RoutingKey.js";
 
 export class ChannelUpdateListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -12,11 +13,18 @@ export class ChannelUpdateListener extends Listener {
         });
     }
 
-    public async run(payload: { data: GatewayChannelUpdateDispatch }): Promise<void> {
+    public async run(payload: { data: GatewayChannelUpdateDispatch; shardId: number }): Promise<void> {
+        const channel = await this.store.redis.get(GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id, "guild_id" in payload.data.d && payload.data.d.guild_id ? payload.data.d.guild_id : undefined));
+
         if ("guild_id" in payload.data.d && payload.data.d.guild_id) {
             await this.store.redis.set(GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id, payload.data.d.guild_id), JSON.stringify(payload.data.d));
         } else {
             await this.store.redis.set(GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id), JSON.stringify(payload.data.d));
         }
+
+        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(payload.shardId), Buffer.from(JSON.stringify({
+            ...payload.data,
+            old: channel ? JSON.parse(channel) : null
+        })));
     }
 }

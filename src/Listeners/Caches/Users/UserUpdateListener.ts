@@ -1,18 +1,23 @@
 import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayDispatchEvents, GatewayUserUpdateDispatch } from "discord-api-types/v10";
-import { stateMessages } from "../../../config.js";
-import { RedisKey } from "@nezuchan/constants";
+import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { GenKey } from "../../../Utilities/GenKey.js";
+import { RoutingKey } from "../../../Utilities/RoutingKey.js";
 
 export class UserUpdateListener extends Listener {
     public constructor(context: ListenerContext) {
         super(context, {
-            event: GatewayDispatchEvents.UserUpdate,
-            enabled: stateMessages
+            event: GatewayDispatchEvents.UserUpdate
         });
     }
 
-    public async run(payload: { data: GatewayUserUpdateDispatch }): Promise<void> {
+    public async run(payload: { data: GatewayUserUpdateDispatch; shardId: number }): Promise<void> {
+        const old = await this.store.redis.get(GenKey(RedisKey.BOT_USER_KEY));
         await this.store.redis.set(GenKey(RedisKey.BOT_USER_KEY), JSON.stringify(payload.data.d));
+
+        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(payload.shardId), Buffer.from(JSON.stringify({
+            ...payload.data,
+            old: old ? JSON.parse(old) : null
+        })));
     }
 }
