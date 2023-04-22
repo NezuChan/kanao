@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import EventEmitter from "node:events";
 import { createLogger } from "../Utilities/Logger.js";
-import { clientId, discordToken, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, proxy, replicaCount, replicaId, storeLogs } from "../config.js";
+import { clientId, discordToken, enablePrometheus, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, prometheusPath, prometheusPort, proxy, replicaCount, replicaId, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardStatus } from "@discordjs/ws";
 import { PresenceUpdateStatus } from "discord-api-types/v10";
@@ -16,6 +16,9 @@ import { createAmqpChannel } from "../Utilities/CreateAmqpChannel.js";
 import { RoutingKey } from "../Utilities/RoutingKey.js";
 import { Time } from "@sapphire/time-utilities";
 import { Channel } from "amqplib";
+import APM from "prometheus-middleware";
+import { GenKey } from "../Utilities/GenKey.js";
+import { RedisKey } from "@nezuchan/constants";
 
 const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../../package.json")}`);
 
@@ -24,6 +27,11 @@ export class NezuGateway extends EventEmitter {
     public logger = createLogger("nezu-gateway", clientId, storeLogs, lokiHost);
 
     public redis = createRedis();
+
+    public prometheus = new APM({
+        PORT: prometheusPort,
+        METRICS_ROUTE: prometheusPath
+    });
 
     public ws = new WebSocketManager({
         buildStrategy: (manager: WebSocketManager) => new ProcessShardingStrategy(manager, {
@@ -74,6 +82,8 @@ export class NezuGateway extends EventEmitter {
     public async connect(): Promise<void> {
         await this.setupAmqp();
 
+        if (enablePrometheus) this.setupPrometheus();
+
         if (gatewayGuildPerShard) {
             const { shards } = await this.ws.fetchGatewayInformation(true);
             this.ws.options.shardCount = Number(Math.ceil((shards * (1_000 / Number(gatewayGuildPerShard))) / 1));
@@ -82,9 +92,8 @@ export class NezuGateway extends EventEmitter {
         await this.ws.connect();
         const shardCount = await this.ws.getShardCount();
 
-        let shardId = -1;
-        while (shardId < (shardCount - 1)) {
-            shardId += 1; await this.redis.set(`${clientId}:gateway_shard_status:${shardId}`, JSON.stringify({ latency: -1, status: WebSocketShardStatus.Connecting }));
+        for (let i = 0; i < shardCount; i++) {
+            await this.redis.set(`${clientId}:gateway_shard_status:${i}`, JSON.stringify({ latency: -1, status: WebSocketShardStatus.Connecting }));
         }
 
         await this.redis.set(`${clientId}:gateway_shard_count`, shardCount);
@@ -154,6 +163,62 @@ export class NezuGateway extends EventEmitter {
                 }
             });
         });
+    }
+
+    public setupPrometheus() {
+        this.prometheus.init();
+
+        const guildCounter = new this.prometheus.client.Counter({
+            name: "guild_count",
+            help: "Guild count"
+        });
+
+        const channelCounter = new this.prometheus.client.Counter({
+            name: "channel_count",
+            help: "Channel count"
+        });
+
+        const socketCounter = new this.prometheus.client.Gauge({
+            name: "ws_ping",
+            help: "Websocket ping",
+            labelNames: ["shardId"]
+        });
+
+        const sockerStatusCounter = new this.prometheus.client.Gauge({
+            name: "ws_status",
+            help: "Websocket status",
+            labelNames: ["shardId"]
+        });
+
+        const userCounter = new this.prometheus.client.Counter({
+            name: "user_count",
+            help: "User count"
+        });
+
+        setInterval(async () => {
+            guildCounter.reset();
+            const guild = await this.redis.scard(GenKey(`${RedisKey.GUILD_KEY}${RedisKey.KEYS_SUFFIX}`));
+            guildCounter.inc(guild);
+
+            channelCounter.reset();
+            const channel = await this.redis.scard(GenKey(`${RedisKey.CHANNEL_KEY}${RedisKey.KEYS_SUFFIX}`));
+            channelCounter.inc(channel);
+
+            userCounter.reset();
+            const user = await this.redis.scard(GenKey(`${RedisKey.USER_KEY}${RedisKey.KEYS_SUFFIX}`));
+            userCounter.inc(user);
+
+            const shards_statuses = await this.ws.fetchStatus();
+
+            for (const [shardId, socket] of shards_statuses) {
+                sockerStatusCounter.set({ shardId }, socket);
+                const status = await this.redis.get(`${clientId}:gateway_shard_status:${shardId}`);
+                if (status) {
+                    const { latency } = JSON.parse(status) as { latency: number };
+                    socketCounter.set({ shardId }, latency);
+                }
+            }
+        }, Time.Second * 10);
     }
 }
 
