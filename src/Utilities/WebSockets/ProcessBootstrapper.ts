@@ -92,14 +92,14 @@ export class ProcessBootstrapper {
 
         await Result.fromAsync(() => amqp.consume(queue, async message => {
             if (message) {
-                const content = JSON.parse(message.content.toString()) as { op: number; data: GatewaySendPayload };
+                const content = JSON.parse(message.content.toString()) as { op: number; data: unknown };
                 const shardId = parseInt(message.fields.routingKey.split(":")[1]);
                 switch (content.op) {
                     case ShardOp.SEND: {
                         const shard = this.shards.get(shardId);
                         this.logger.debug(content, `Received message from AMQP to send to shard ${shardId}`);
                         if (shard) {
-                            await shard.send(content.data);
+                            await shard.send(content.data as GatewaySendPayload);
                         }
                         break;
                     }
@@ -112,7 +112,7 @@ export class ProcessBootstrapper {
                         const shard = this.shards.get(shardId);
                         this.logger.debug(content, `Received message from AMQP to restart shard ${shardId}`);
                         if (shard) {
-                            await this.destroy(shardId);
+                            await this.destroy(shardId, content.data as WebSocketShardDestroyOptions);
                             await this.connect(shardId);
                         }
                         break;
