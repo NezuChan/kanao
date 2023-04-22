@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import EventEmitter from "node:events";
 import { createLogger } from "../Utilities/Logger.js";
-import { clientId, discordToken, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceType, gatewayReadyTimeout, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, proxy, replicaCount, replicaId, storeLogs } from "../config.js";
+import { clientId, discordToken, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, proxy, replicaCount, replicaId, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardStatus } from "@discordjs/ws";
 import { PresenceUpdateStatus } from "discord-api-types/v10";
@@ -54,10 +54,12 @@ export class NezuGateway extends EventEmitter {
             this.logger.error(result.unwrapErr(), "Failed to update session info");
         },
         retrieveSessionInfo: async (shardId: number) => {
-            const result = await Result.fromAsync(() => this.redis.get(`${clientId}:gateway_shard_session:${shardId}`));
-            const sessionInfo = result.isOk() ? result.unwrap() : null;
-            if (sessionInfo) return JSON.parse(sessionInfo) as SessionInfo;
-            if (result.isErr()) this.logger.error(result.unwrapErr(), "Failed to retrieve session info");
+            if (gatewayResume) {
+                const result = await Result.fromAsync(() => this.redis.get(`${clientId}:gateway_shard_session:${shardId}`));
+                const sessionInfo = result.isOk() ? result.unwrap() : null;
+                if (sessionInfo) return JSON.parse(sessionInfo) as SessionInfo;
+                if (result.isErr()) this.logger.error(result.unwrapErr(), "Failed to retrieve session info");
+            }
             return null;
         },
         compression: CompressionMethod.ZlibStream,
