@@ -18,7 +18,7 @@ export function createRedis() {
             }
         )
         : new Redis({
-            username: redisPassword,
+            username: redisUsername,
             password: redisPassword,
             host: redisHost,
             port: redisPort,
