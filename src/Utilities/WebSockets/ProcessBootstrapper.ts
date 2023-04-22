@@ -11,6 +11,7 @@ import { createAmqpChannel } from "../CreateAmqpChannel.js";
 import { RabbitMQ } from "@nezuchan/constants";
 import { Result } from "@sapphire/result";
 import { GatewaySendPayload } from "discord-api-types/v10";
+import { ShardOp } from "../ShardOp.js";
 
 export class ProcessBootstrapper {
     public redis = createRedis();
@@ -89,19 +90,33 @@ export class ProcessBootstrapper {
             })
         );
 
-        void Result.fromAsync(() => amqp.consume(queue, async message => {
+        await Result.fromAsync(() => amqp.consume(queue, async message => {
             if (message) {
                 const content = JSON.parse(message.content.toString()) as { op: number; data: GatewaySendPayload };
-                this.logger.debug(content, `received message from AMQP to send to shard ${message.fields.routingKey.split(":")[1]}`);
+                const shardId = parseInt(message.fields.routingKey.split(":")[1]);
                 switch (content.op) {
-                    case 0: {
-                        const shard = this.shards.get(parseInt(message.fields.routingKey.split(":")[1]));
+                    case ShardOp.SEND: {
+                        const shard = this.shards.get(shardId);
+                        this.logger.debug(content, `Received message from AMQP to send to shard ${shardId}`);
                         if (shard) {
-                            await Result.fromAsync(() => shard.send(content.data));
+                            await shard.send(content.data);
                         }
-                        /** TODO: Send back any error message (if possible) */
+                        break;
                     }
-                    /** TODO: OP 1 for stats pooling stats for every clusters & nodes using net-ipc or the alernatives */
+                    case ShardOp.CONNECT: {
+                        this.logger.debug(content, `Received message from AMQP to connect shard ${shardId}`);
+                        await this.connect(shardId);
+                        break;
+                    }
+                    case ShardOp.RESTART: {
+                        const shard = this.shards.get(shardId);
+                        this.logger.debug(content, `Received message from AMQP to restart shard ${shardId}`);
+                        if (shard) {
+                            await this.destroy(shardId);
+                            await this.connect(shardId);
+                        }
+                        break;
+                    }
                 }
             }
         }));
