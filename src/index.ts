@@ -6,7 +6,7 @@ import { Util } from "@nezuchan/utilities";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { NezuGateway } from "./Structures/NezuGateway.js";
-import { clientId } from "./config.js";
+import { clientId, replicaCount, replicaId } from "./config.js";
 
 const gateway = new NezuGateway();
 const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../package.json")}`);
@@ -42,6 +42,8 @@ console.log(
             ],
             extra: [
                 ` Nezu Gateway: v${packageJson.version}`,
+                ` ├ ReplicaId: ${replicaId}`,
+                ` ├ ReplicaCount: ${replicaCount}`,
                 ` └ ShardCount: ${gateway.ws.options.shardCount ?? 1} shards`
             ]
         })
