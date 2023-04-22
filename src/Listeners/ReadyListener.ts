@@ -7,7 +7,7 @@ import { RedisKey } from "@nezuchan/constants";
 export class ReadyListener extends Listener {
     public constructor(context: ListenerContext) {
         super(context, {
-            event: WebSocketShardEvents.Ready
+            event: WebSocketShardEvents.
         });
     }
 
