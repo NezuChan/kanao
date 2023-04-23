@@ -103,18 +103,19 @@ export class NezuGateway extends EventEmitter {
         const amqp = await createAmqpChannel();
 
         await amqp.assertQueue("nezu-gateway.stats", { durable: false });
-        await amqp.assertExchange("nezu-gateway.stats", "direct", { durable: false });
+        await amqp.assertExchange("nezu-gateway.stats", "topic", { durable: false });
 
         const { queue } = await amqp.assertQueue("", { exclusive: true });
-        await amqp.bindQueue(queue, "nezu-gateway.stats", RoutingKey(replicaId));
+        await amqp.bindQueue(queue, "nezu-gateway.stats", "*");
 
         await amqp.consume(queue, async message => {
             if (message) {
                 const content = JSON.parse(message.content.toString()) as { route: string };
                 const stats = [];
                 for (const [shardId, status] of await this.ws.fetchStatus()) {
-                    const latency = await this.redis.get(`${clientId}:gateway_shard_latency:${shardId}`);
-                    stats.push({ shardId, status, latency: latency ? Number(latency) : -1 });
+                    const raw_value = await this.redis.get(`${clientId}:gateway_shard_status:${shardId}`);
+                    const shard_status = raw_value ? JSON.parse(raw_value) as { latency: number } : { latency: -1 };
+                    stats.push({ shardId, status, latency: shard_status.latency });
                 }
 
                 amqp.publish("nezu-gateway.stats_pooler", content.route, Buffer.from(
@@ -139,9 +140,7 @@ export class NezuGateway extends EventEmitter {
         const { queue } = await channel.assertQueue("", { exclusive: true });
         await channel.bindQueue(queue, "nezu-gateway.stats_pooler", RoutingKey(replicaId));
 
-        for (let i = 0; i < replicaCount; i += 1) {
-            channel.publish("nezu-gateway.stats", RoutingKey(i), Buffer.from(JSON.stringify({ route: RoutingKey(replicaId) })));
-        }
+        channel.publish("nezu-gateway.stats", "*", Buffer.from(JSON.stringify({ route: RoutingKey(replicaId) })));
 
         return new Promise(resolve => {
             const timeout = setTimeout(() => resolve([]), Time.Second * 15);

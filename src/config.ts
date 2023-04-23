@@ -1,4 +1,5 @@
 import { default as IORedis } from "ioredis";
+import { hostname } from "os";
 
 export const redisUsername = process.env.REDIS_USERNAME;
 export const redisPassword = process.env.REDIS_PASSWORD;
@@ -50,5 +51,5 @@ export const stateChannels = process.env.STATE_CHANNEL === "true";
 export const stateEmojis = process.env.STATE_EMOJI === "true";
 export const stateMessages = process.env.STATE_MESSAGE === "true";
 
-export const replicaId = Number(process.env.REPLICA_ID ?? "0");
+export const replicaId = process.env.REPLICA_ID ?? hostname();
 export const replicaCount = Number(process.env.REPLICA_COUNT ?? "1");

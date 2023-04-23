@@ -9,8 +9,8 @@ export class ReadyListener extends Listener {
         });
     }
 
-    public async run(payload: { shard: WebSocketShard; shardId: number; latency: number }): Promise<void> {
-        this.store.logger.debug(payload, `Shard ${payload.shardId} heartbeat complete`);
-        await this.store.redis.set(`${clientId}:gateway_shard_status:${payload.shardId}`, JSON.stringify({ latency: payload.latency, status: payload.shard.status }));
+    public async run(payload: { shard: WebSocketShard; shardId: number; data: { latency: number } }): Promise<void> {
+        this.store.logger.debug(payload.data, `Shard ${payload.shardId} heartbeat complete`);
+        await this.store.redis.set(`${clientId}:gateway_shard_status:${payload.shardId}`, JSON.stringify({ latency: payload.data.latency, status: payload.shard.status }));
     }
 }
