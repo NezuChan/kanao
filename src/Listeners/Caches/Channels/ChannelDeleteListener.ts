@@ -1,9 +1,9 @@
 import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayChannelDeleteDispatch, GatewayDispatchEvents } from "discord-api-types/v10";
-import { stateChannels } from "../../../config.js";
+import { clientId, stateChannels } from "../../../config.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { GenKey } from "../../../Utilities/GenKey.js";
-import { RoutingKey } from "../../../Utilities/RoutingKey.js";
+import { RoutingKey } from "@nezuchan/utilities";
 
 export class ChannelPintsUpdateListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -22,7 +22,7 @@ export class ChannelPintsUpdateListener extends Listener {
             await this.store.redis.unlink(GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id));
         }
 
-        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(payload.shardId), Buffer.from(JSON.stringify({
+        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
             ...payload.data,
             old: channel ? JSON.parse(channel) : null
         })));

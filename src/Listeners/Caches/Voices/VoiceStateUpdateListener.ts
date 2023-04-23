@@ -1,9 +1,9 @@
 import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayDispatchEvents, GatewayVoiceStateUpdateDispatch } from "discord-api-types/v10";
-import { stateVoices } from "../../../config.js";
+import { clientId, stateVoices } from "../../../config.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { GenKey } from "../../../Utilities/GenKey.js";
-import { RoutingKey } from "../../../Utilities/RoutingKey.js";
+import { RoutingKey } from "@nezuchan/utilities";
 
 export class VoiceStateUpdateListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -24,7 +24,7 @@ export class VoiceStateUpdateListener extends Listener {
             await this.store.redis.srem(GenKey(`${RedisKey.VOICE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.user_id, payload.data.d.guild_id), GenKey(RedisKey.VOICE_KEY, payload.data.d.user_id, payload.data.d.guild_id));
         }
 
-        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(payload.shardId), Buffer.from(JSON.stringify({
+        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
             ...payload.data,
             old: old ? JSON.parse(old) : null
         })));

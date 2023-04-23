@@ -1,9 +1,9 @@
 import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayDispatchEvents, GatewayMessageCreateDispatch } from "discord-api-types/v10";
-import { stateMembers, stateMessages, stateUsers } from "../../../config.js";
+import { clientId, stateMembers, stateMessages, stateUsers } from "../../../config.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { GenKey } from "../../../Utilities/GenKey.js";
-import { RoutingKey } from "../../../Utilities/RoutingKey.js";
+import { RoutingKey } from "@nezuchan/utilities";
 
 export class MessageCreateListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -28,6 +28,6 @@ export class MessageCreateListener extends Listener {
             await this.store.redis.sadd(GenKey(`${RedisKey.MESSAGE_KEY}${RedisKey.KEYS_SUFFIX}`, undefined, payload.data.d.guild_id), GenKey(RedisKey.MESSAGE_KEY, payload.data.d.id, payload.data.d.guild_id));
         }
 
-        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(payload.shardId), Buffer.from(JSON.stringify(payload.data)));
+        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }
 }

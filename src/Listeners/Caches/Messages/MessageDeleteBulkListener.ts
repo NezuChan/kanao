@@ -1,9 +1,9 @@
 import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayDispatchEvents, GatewayMessageDeleteBulkDispatch } from "discord-api-types/v10";
-import { stateMessages } from "../../../config.js";
+import { clientId, stateMessages } from "../../../config.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { GenKey } from "../../../Utilities/GenKey.js";
-import { RoutingKey } from "../../../Utilities/RoutingKey.js";
+import { RoutingKey } from "@nezuchan/utilities";
 
 export class MessageDeleteBulkListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -28,7 +28,7 @@ export class MessageDeleteBulkListener extends Listener {
             }
         }
 
-        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(payload.shardId), Buffer.from(JSON.stringify({
+        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
             ...payload.data,
             old: messages
         })));

@@ -1,10 +1,9 @@
 import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayGuildEmojisUpdateDispatch, GatewayDispatchEvents } from "discord-api-types/v10";
-import { stateEmojis } from "../../../config.js";
+import { clientId, stateEmojis } from "../../../config.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
-import { redisSScanStreamPromise } from "@nezuchan/utilities";
+import { RoutingKey, redisSScanStreamPromise } from "@nezuchan/utilities";
 import { GenKey } from "../../../Utilities/GenKey.js";
-import { RoutingKey } from "../../../Utilities/RoutingKey.js";
 
 export class GuildEmojisUpdate extends Listener {
     public constructor(context: ListenerContext) {
@@ -28,7 +27,7 @@ export class GuildEmojisUpdate extends Listener {
             }
         }
 
-        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(payload.shardId), Buffer.from(JSON.stringify({
+        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
             ...payload.data,
             old: old_emojis.map(emoji => JSON.parse(emoji))
         })));
