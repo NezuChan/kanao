@@ -166,6 +166,7 @@ export class NezuGateway extends EventEmitter {
 
     public setupPrometheus() {
         this.prometheus.init();
+        this.logger.info("Prometheus initialized");
 
         const guildCounter = new this.prometheus.client.Counter({
             name: "guild_count",
@@ -217,6 +218,7 @@ export class NezuGateway extends EventEmitter {
                     socketCounter.set({ shardId }, latency);
                 }
             }
+            this.logger.info("Updated prometheus metrics");
         }, Time.Second * 10);
     }
 }
