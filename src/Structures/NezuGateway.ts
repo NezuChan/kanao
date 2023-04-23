@@ -218,7 +218,7 @@ export class NezuGateway extends EventEmitter {
                     socketCounter.set({ shardId }, latency);
                 }
             }
-            this.logger.info("Updated prometheus metrics");
+            this.logger.debug("Updated prometheus metrics");
         }, Time.Second * 10);
     }
 }
