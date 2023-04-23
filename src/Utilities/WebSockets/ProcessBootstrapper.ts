@@ -3,19 +3,25 @@ import { BootstrapOptions, WebSocketShard, WebSocketShardEvents, WorkerReceivePa
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 import { StoreRegistry } from "@sapphire/pieces";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
-import { discordToken, storeLogs, lokiHost } from "../../config.js";
+import { discordToken, storeLogs, lokiHost, redisPassword, redisUsername, redisClusters, redisClusterScaleReads, redisDb, redisHost, redisNatMap, redisPort, amqp, clientId } from "../../config.js";
 import { createLogger } from "../Logger.js";
 import EventEmitter from "events";
-import { createRedis } from "../CreateRedis.js";
-import { createAmqpChannel } from "../CreateAmqpChannel.js";
-import { RabbitMQ } from "@nezuchan/constants";
+import { createAmqpChannel, createRedis, RoutingKey, RoutingKeyToId } from "@nezuchan/utilities";
+import { RabbitMQ, ShardOp } from "@nezuchan/constants";
 import { Result } from "@sapphire/result";
 import { GatewaySendPayload } from "discord-api-types/v10";
-import { ShardOp } from "../ShardOp.js";
-import { RoutingKey, RoutingKeyToId } from "../RoutingKey.js";
 
 export class ProcessBootstrapper {
-    public redis = createRedis();
+    public redis = createRedis({
+        redisUsername,
+        redisPassword,
+        redisHost,
+        redisPort,
+        redisDb,
+        redisClusterScaleReads,
+        redisClusters,
+        redisNatMap
+    });
 
     /**
 	 * The data passed to the worker thread
@@ -72,31 +78,31 @@ export class ProcessBootstrapper {
     }
 
     public async setupAmqp() {
-        const amqp = await createAmqpChannel();
+        const amqpChannel = await createAmqpChannel(amqp);
 
         this.stores.register(
             new ListenerStore({
                 logger: this.logger,
                 emitter: new EventEmitter(),
                 redis: this.redis,
-                amqp
+                amqp: amqpChannel
             })
         );
 
-        await amqp.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "direct", { durable: false });
-        await amqp.assertExchange(RabbitMQ.GATEWAY_QUEUE_SEND, "direct", { durable: false });
-        const { queue } = await amqp.assertQueue("", { exclusive: true });
+        await amqpChannel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "direct", { durable: false });
+        await amqpChannel.assertExchange(RabbitMQ.GATEWAY_QUEUE_SEND, "direct", { durable: false });
+        const { queue } = await amqpChannel.assertQueue("", { exclusive: true });
 
         await Promise.all(
             this.data.shardIds.map(async shardId => {
-                await amqp.bindQueue(queue, RabbitMQ.GATEWAY_EXCHANGE, RoutingKey(shardId));
+                await amqpChannel.bindQueue(queue, RabbitMQ.GATEWAY_EXCHANGE, RoutingKey(clientId, shardId));
             })
         );
 
-        await Result.fromAsync(() => amqp.consume(queue, async message => {
+        await Result.fromAsync(() => amqpChannel.consume(queue, async message => {
             if (message) {
                 const content = JSON.parse(message.content.toString()) as { op: number; data: unknown };
-                const shardId = RoutingKeyToId(message.fields.routingKey);
+                const shardId = RoutingKeyToId(clientId, message.fields.routingKey);
                 switch (content.op) {
                     case ShardOp.SEND: {
                         const shard = this.shards.get(shardId);

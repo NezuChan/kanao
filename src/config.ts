@@ -8,7 +8,7 @@ export const redisPort = Number(process.env.REDIS_PORT);
 export const redisDb = Number(process.env.REDIS_DB ?? 0);
 export const redisNatMap = JSON.parse(process.env.REDIS_NAT_MAP ?? "{}");
 export const redisClusters: IORedis.ClusterNode[] = JSON.parse(process.env.REDIS_CLUSTERS ?? "[]");
-export const redisClusterScaleReads = process.env.REDIS_CLUSTER_SCALE_READS ?? process.env.REDIS_SCALE_READS ?? "all";
+export const redisClusterScaleReads = process.env.REDIS_CLUSTER_SCALE_READS as IORedis.NodeRole | undefined ?? process.env.REDIS_SCALE_READS as IORedis.NodeRole | undefined ?? "all" as IORedis.NodeRole;
 
 export const storeLogs = process.env.STORE_LOGS === "true";
 export const lokiHost = process.env.LOKI_HOST ? new URL(process.env.LOKI_HOST) : undefined;

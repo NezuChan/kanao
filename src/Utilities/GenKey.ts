@@ -1,5 +1,6 @@
 import { clientId } from "../config.js";
+import { GenKey as OGenKey } from "@nezuchan/utilities";
 
 export function GenKey(prefix: string, key?: string, guildId?: string) {
-    return guildId ? [clientId, prefix, guildId, key].join(":") : [clientId, prefix, key].join(":");
+    return OGenKey(clientId, prefix, key, guildId);
 }

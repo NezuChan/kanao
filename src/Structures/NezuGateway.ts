@@ -2,23 +2,20 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import EventEmitter from "node:events";
 import { createLogger } from "../Utilities/Logger.js";
-import { clientId, discordToken, enablePrometheus, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, prometheusPath, prometheusPort, proxy, replicaCount, replicaId, storeLogs } from "../config.js";
+import { amqp, clientId, discordToken, enablePrometheus, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, replicaCount, replicaId, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardStatus } from "@discordjs/ws";
 import { PresenceUpdateStatus } from "discord-api-types/v10";
-import { Util } from "@nezuchan/utilities";
+import { Util, createAmqpChannel, createRedis, RoutingKey } from "@nezuchan/utilities";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ProcessShardingStrategy } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
 import { Result } from "@sapphire/result";
-import { createRedis } from "../Utilities/CreateRedis.js";
-import { createAmqpChannel } from "../Utilities/CreateAmqpChannel.js";
-import { RoutingKey } from "../Utilities/RoutingKey.js";
 import { Time } from "@sapphire/time-utilities";
 import { Channel } from "amqplib";
 import APM from "prometheus-middleware";
 import { GenKey } from "../Utilities/GenKey.js";
-import { RedisKey } from "@nezuchan/constants";
+import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 
 const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../../package.json")}`);
 
@@ -26,7 +23,16 @@ export class NezuGateway extends EventEmitter {
     public rest = new REST({ api: proxy, rejectOnRateLimit: proxy === "https://discord.com/api" ? null : () => false });
     public logger = createLogger("nezu-gateway", clientId, storeLogs, lokiHost);
 
-    public redis = createRedis();
+    public redis = createRedis({
+        redisUsername,
+        redisPassword,
+        redisHost,
+        redisPort,
+        redisDb,
+        redisClusterScaleReads,
+        redisClusters,
+        redisNatMap
+    });
 
     public prometheus = new APM({
         PORT: prometheusPort,
@@ -100,15 +106,15 @@ export class NezuGateway extends EventEmitter {
     }
 
     public async setupAmqp() {
-        const amqp = await createAmqpChannel();
+        const amqpChannel = await createAmqpChannel(amqp);
 
-        await amqp.assertQueue("nezu-gateway.stats", { durable: false });
-        await amqp.assertExchange("nezu-gateway.stats", "topic", { durable: false });
+        await amqpChannel.assertQueue(RabbitMQ.GATEWAY_QUEUE_STATS, { durable: false });
+        await amqpChannel.assertExchange(RabbitMQ.GATEWAY_QUEUE_STATS, "topic", { durable: false });
 
-        const { queue } = await amqp.assertQueue("", { exclusive: true });
-        await amqp.bindQueue(queue, "nezu-gateway.stats", "*");
+        const { queue } = await amqpChannel.assertQueue("", { exclusive: true });
+        await amqpChannel.bindQueue(queue, RabbitMQ.GATEWAY_QUEUE_STATS, "*");
 
-        await amqp.consume(queue, async message => {
+        await amqpChannel.consume(queue, async message => {
             if (message) {
                 const content = JSON.parse(message.content.toString()) as { route: string };
                 const stats = [];
@@ -118,29 +124,29 @@ export class NezuGateway extends EventEmitter {
                     stats.push({ shardId, status, latency: shard_status.latency });
                 }
 
-                amqp.publish("nezu-gateway.stats_pooler", content.route, Buffer.from(
+                amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS_POOLER, content.route, Buffer.from(
                     JSON.stringify(stats)
                 ));
             }
         });
 
-        await amqp.consume("nezu-gateway.stats", async message => {
+        await amqpChannel.consume("nezu-gateway.stats", async message => {
             if (message) {
-                const stats = await this.resolveStats(amqp);
-                amqp.sendToQueue(message.properties.replyTo, Buffer.from(JSON.stringify(stats)), {
+                const stats = await this.resolveStats(amqpChannel);
+                amqpChannel.sendToQueue(message.properties.replyTo, Buffer.from(JSON.stringify(stats)), {
                     correlationId: message.properties.correlationId
                 });
-                amqp.ack(message);
+                amqpChannel.ack(message);
             }
         });
     }
 
     public async resolveStats(channel: Channel) {
-        await channel.assertExchange("nezu-gateway.stats_pooler", "direct", { durable: false });
+        await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_STATS_POOLER, "direct", { durable: false });
         const { queue } = await channel.assertQueue("", { exclusive: true });
-        await channel.bindQueue(queue, "nezu-gateway.stats_pooler", RoutingKey(replicaId));
+        await channel.bindQueue(queue, RabbitMQ.GATEWAY_QUEUE_STATS_POOLER, RoutingKey(clientId, replicaId));
 
-        channel.publish("nezu-gateway.stats", "*", Buffer.from(JSON.stringify({ route: RoutingKey(replicaId) })));
+        channel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, "*", Buffer.from(JSON.stringify({ route: RoutingKey(clientId, replicaId) })));
 
         return new Promise(resolve => {
             const timeout = setTimeout(() => resolve([]), Time.Second * 15);
