@@ -63,13 +63,13 @@ export class NezuGateway extends EventEmitter {
             afk: false
         },
         updateSessionInfo: async (shardId: number, sessionInfo: SessionInfo) => {
-            const result = await Result.fromAsync(() => this.redis.set(`${clientId}:gateway_shard_session:${shardId}`, JSON.stringify(sessionInfo)));
+            const result = await Result.fromAsync(() => this.redis.set(GenKey(RedisKey.SESSIONS_KEY, String(shardId)), JSON.stringify(sessionInfo)));
             if (result.isOk()) return;
             this.logger.error(result.unwrapErr(), "Failed to update session info");
         },
         retrieveSessionInfo: async (shardId: number) => {
             if (gatewayResume) {
-                const result = await Result.fromAsync(() => this.redis.get(`${clientId}:gateway_shard_session:${shardId}`));
+                const result = await Result.fromAsync(() => this.redis.get(GenKey(RedisKey.SESSIONS_KEY, String(shardId))));
                 const sessionInfo = result.isOk() ? result.unwrap() : null;
                 if (sessionInfo) return JSON.parse(sessionInfo) as SessionInfo;
                 if (result.isErr()) this.logger.error(result.unwrapErr(), "Failed to retrieve session info");
@@ -98,11 +98,12 @@ export class NezuGateway extends EventEmitter {
         await this.ws.connect();
         const shardCount = await this.ws.getShardCount();
 
-        for (let i = 0; i < shardCount; i++) {
-            await this.redis.set(`${clientId}:gateway_shard_status:${i}`, JSON.stringify({ latency: -1, status: WebSocketShardStatus.Connecting }));
+        // When multiple replica is running, only reset few shards statuses
+        for (let i = 0; i < (process.env.GATEWAY_SHARD_END ? Number(process.env.GATEWAY_SHARD_END) : shardCount); i++) {
+            await this.redis.set(GenKey(RedisKey.STATUSES_KEY, i.toString()), JSON.stringify({ latency: -1, status: WebSocketShardStatus.Connecting }));
         }
 
-        await this.redis.set(`${clientId}:gateway_shard_count`, shardCount);
+        await this.redis.set(GenKey(RedisKey.SHARDS_KEY), shardCount);
     }
 
     public async setupAmqp() {
@@ -119,7 +120,7 @@ export class NezuGateway extends EventEmitter {
                 const content = JSON.parse(message.content.toString()) as { route: string };
                 const stats = [];
                 for (const [shardId, status] of await this.ws.fetchStatus()) {
-                    const raw_value = await this.redis.get(`${clientId}:gateway_shard_status:${shardId}`);
+                    const raw_value = await this.redis.get(GenKey(RedisKey.STATUSES_KEY, shardId.toString()));
                     const shard_status = raw_value ? JSON.parse(raw_value) as { latency: number } : { latency: -1 };
                     stats.push({ shardId, status, latency: shard_status.latency });
                 }
@@ -130,7 +131,7 @@ export class NezuGateway extends EventEmitter {
             }
         });
 
-        await amqpChannel.consume("nezu-gateway.stats", async message => {
+        await amqpChannel.consume(RabbitMQ.GATEWAY_QUEUE_STATS, async message => {
             if (message) {
                 const stats = await this.resolveStats(amqpChannel);
                 amqpChannel.sendToQueue(message.properties.replyTo, Buffer.from(JSON.stringify(stats)), {
@@ -218,7 +219,7 @@ export class NezuGateway extends EventEmitter {
 
             for (const [shardId, socket] of shards_statuses) {
                 sockerStatusCounter.set({ shardId }, socket);
-                const status = await this.redis.get(`${clientId}:gateway_shard_status:${shardId}`);
+                const status = await this.redis.get(GenKey(RedisKey.STATUSES_KEY, shardId.toString()));
                 if (status) {
                     const { latency } = JSON.parse(status) as { latency: number };
                     socketCounter.set({ shardId }, latency);
