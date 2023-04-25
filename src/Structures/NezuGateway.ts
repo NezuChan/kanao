@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import EventEmitter from "node:events";
 import { createLogger } from "../Utilities/Logger.js";
-import { amqp, clientId, discordToken, enablePrometheus, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, replicaCount, replicaId, storeLogs } from "../config.js";
+import { amqp, clientId, discordToken, enablePrometheus, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, replicaId, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardStatus } from "@discordjs/ws";
 import { PresenceUpdateStatus } from "discord-api-types/v10";
@@ -12,7 +12,6 @@ import { fileURLToPath } from "node:url";
 import { ProcessShardingStrategy } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
 import { Result } from "@sapphire/result";
 import { Time } from "@sapphire/time-utilities";
-import { Channel } from "amqplib";
 import APM from "prometheus-middleware";
 import { GenKey } from "../Utilities/GenKey.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
@@ -109,11 +108,13 @@ export class NezuGateway extends EventEmitter {
     public async setupAmqp() {
         const amqpChannel = await createAmqpChannel(amqp);
 
-        await amqpChannel.assertQueue(RabbitMQ.GATEWAY_QUEUE_STATS, { durable: false });
         await amqpChannel.assertExchange(RabbitMQ.GATEWAY_QUEUE_STATS, "topic", { durable: false });
 
         const { queue } = await amqpChannel.assertQueue("", { exclusive: true });
-        await amqpChannel.bindQueue(queue, RabbitMQ.GATEWAY_QUEUE_STATS, "*");
+
+        for (const route of [RoutingKey(clientId, "*"), RoutingKey(clientId, replicaId)]) {
+            await amqpChannel.bindQueue(queue, RabbitMQ.GATEWAY_QUEUE_STATS, route);
+        }
 
         await amqpChannel.consume(queue, async message => {
             if (message) {
@@ -125,49 +126,14 @@ export class NezuGateway extends EventEmitter {
                     stats.push({ shardId, status, latency: shard_status.latency });
                 }
 
-                amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS_POOLER, content.route, Buffer.from(
-                    JSON.stringify(stats)
+                amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, content.route, Buffer.from(
+                    JSON.stringify({
+                        results: stats,
+                        replicaId,
+                        clientId
+                    })
                 ));
             }
-        });
-
-        await amqpChannel.consume(RabbitMQ.GATEWAY_QUEUE_STATS, async message => {
-            if (message) {
-                const stats = await this.resolveStats(amqpChannel);
-                amqpChannel.sendToQueue(message.properties.replyTo, Buffer.from(JSON.stringify(stats)), {
-                    correlationId: message.properties.correlationId
-                });
-                amqpChannel.ack(message);
-            }
-        });
-    }
-
-    public async resolveStats(channel: Channel) {
-        await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_STATS_POOLER, "direct", { durable: false });
-        const { queue } = await channel.assertQueue("", { exclusive: true });
-        await channel.bindQueue(queue, RabbitMQ.GATEWAY_QUEUE_STATS_POOLER, RoutingKey(clientId, replicaId));
-
-        channel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, "*", Buffer.from(JSON.stringify({ route: RoutingKey(clientId, replicaId) })));
-
-        return new Promise(resolve => {
-            const timeout = setTimeout(() => resolve([]), Time.Second * 15);
-            const stats: Stats[] = [];
-
-            return channel.consume(queue, message => {
-                if (message) {
-                    const content = JSON.parse(message.content.toString()) as Stats[];
-                    for (const stat of content) {
-                        stats.push(stat);
-                    }
-
-                    channel.ack(message);
-                }
-
-                if (stats.length === replicaCount) {
-                    clearTimeout(timeout);
-                    return resolve(stats);
-                }
-            });
         });
     }
 
@@ -228,10 +194,4 @@ export class NezuGateway extends EventEmitter {
             this.logger.debug("Updated prometheus metrics");
         }, Time.Second * 10);
     }
-}
-
-interface Stats {
-    shardId: number;
-    status: WebSocketShardStatus;
-    latency: number;
 }
