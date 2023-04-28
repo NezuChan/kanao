@@ -6,7 +6,7 @@ import { Util } from "@nezuchan/utilities";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { NezuGateway } from "./Structures/NezuGateway.js";
-import { clientId, replicaCount, replicaId } from "./config.js";
+import { replicaCount, replicaId } from "./config.js";
 
 const gateway = new NezuGateway();
 const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../package.json")}`);
@@ -17,8 +17,6 @@ try {
     gateway.logger.error(e, "An error occurred while connecting to Discord");
     process.exit(1);
 }
-
-await gateway.redis.set(`${clientId}:gateway_shard_count`, gateway.ws.options.shardCount ?? 1);
 
 console.log(
     gradient.vice.multiline(
