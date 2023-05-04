@@ -11,6 +11,6 @@ export class ReadyListener extends Listener {
 
     public async run(payload: { shard: WebSocketShard; shardId: number; data: { latency: number } }): Promise<void> {
         this.store.logger.debug(payload.data, `Shard ${payload.shardId} heartbeat complete`);
-        await this.store.redis.set(`${clientId}:gateway_shard_status:${payload.shardId}`, JSON.stringify({ latency: payload.data.latency, status: payload.shard.status }));
+        await this.store.redis.set(`${clientId}:gateway_shard_status:${payload.shardId}`, JSON.stringify({ latency: payload.data.latency, status: payload.shard.status, startAt: Date.now() }));
     }
 }

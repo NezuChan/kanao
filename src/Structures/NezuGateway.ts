@@ -102,7 +102,7 @@ export class NezuGateway extends EventEmitter {
         const shardEnd = gatewayShardIds?.end ?? shardCount;
 
         for (let i = shardStart; i < shardEnd; i++) {
-            await this.redis.set(GenKey(RedisKey.STATUSES_KEY, i.toString()), JSON.stringify({ latency: -1, status: WebSocketShardStatus.Connecting }));
+            await this.redis.set(GenKey(RedisKey.STATUSES_KEY, i.toString()), JSON.stringify({ latency: -1, status: WebSocketShardStatus.Connecting, startAt: Date.now() }));
         }
 
         await this.redis.set(GenKey(RedisKey.SHARDS_KEY), shardCount);
