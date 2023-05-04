@@ -56,7 +56,7 @@ export class GuildDeleteListener extends Listener {
         await this.store.redis.unlink(GenKey(`${RedisKey.PRESENCE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.id));
         await this.store.redis.unlink(GenKey(`${RedisKey.VOICE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.id));
 
-        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
+        await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
             ...payload.data,
             old: {
                 roles,

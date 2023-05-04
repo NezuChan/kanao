@@ -8,8 +8,8 @@ import { createLogger } from "../Logger.js";
 import EventEmitter from "events";
 import { createAmqpChannel, createRedis, RoutingKey, RoutingKeyToId } from "@nezuchan/utilities";
 import { RabbitMQ, ShardOp } from "@nezuchan/constants";
-import { Result } from "@sapphire/result";
 import { GatewaySendPayload } from "discord-api-types/v10";
+import { Channel, ConsumeMessage } from "amqplib";
 
 export class ProcessBootstrapper {
     public redis = createRedis({
@@ -26,7 +26,7 @@ export class ProcessBootstrapper {
     /**
 	 * The data passed to the worker thread
 	 */
-    protected readonly data = JSON.parse(process.env.WORKER_DATA!) as WorkerData;
+    protected readonly data = JSON.parse(process.env.WORKER_DATA!) as WorkerData & { workerId: number };
 
     /**
 	 * The shards that are managed by this worker
@@ -42,8 +42,7 @@ export class ProcessBootstrapper {
      * Bootstraps the child process with the provided options
      */
     public async bootstrap(options: Readonly<BootstrapOptions> = {}): Promise<void> {
-        await this.setupAmqp();
-        await this.stores.load();
+        this.setupAmqp(); await this.stores.load();
         // Start by initializing the shards
         for (const shardId of this.data.shardIds) {
             const shard = new WebSocketShard(new ProcessContextFetchingStrategy(this.data), shardId);
@@ -77,8 +76,28 @@ export class ProcessBootstrapper {
         process.send!(message);
     }
 
-    public async setupAmqp() {
-        const amqpChannel = await createAmqpChannel(amqp);
+    public setupAmqp() {
+        const amqpChannel = createAmqpChannel(amqp, {
+            setup: async (channel: Channel) => {
+                await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "direct", { durable: false });
+                await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_SEND, "direct", { durable: false });
+                const { queue } = await channel.assertQueue("", { exclusive: true });
+
+
+                await Promise.all(
+                    this.data.shardIds.map(async shardId => {
+                        await channel.bindQueue(queue, RabbitMQ.GATEWAY_EXCHANGE, RoutingKey(clientId, shardId));
+                    })
+                );
+
+
+                await channel.consume(queue, this.onConsumeMessage.bind(this));
+            }
+        });
+
+        amqpChannel.on("error", err => this.logger.error(err, `AMQP Channel on worker ${this.data.workerId} Error`));
+        amqpChannel.on("close", () => this.logger.warn(`AMQP Channel on worker ${this.data.workerId} Closed`));
+        amqpChannel.on("connect", () => this.logger.info(`AMQP Channel handler on worker ${this.data.workerId} connected`));
 
         this.stores.register(
             new ListenerStore({
@@ -88,47 +107,36 @@ export class ProcessBootstrapper {
                 amqp: amqpChannel
             })
         );
+    }
 
-        await amqpChannel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "direct", { durable: false });
-        await amqpChannel.assertExchange(RabbitMQ.GATEWAY_QUEUE_SEND, "direct", { durable: false });
-        const { queue } = await amqpChannel.assertQueue("", { exclusive: true });
-
-        await Promise.all(
-            this.data.shardIds.map(async shardId => {
-                await amqpChannel.bindQueue(queue, RabbitMQ.GATEWAY_EXCHANGE, RoutingKey(clientId, shardId));
-            })
-        );
-
-        await Result.fromAsync(() => amqpChannel.consume(queue, async message => {
-            if (message) {
-                const content = JSON.parse(message.content.toString()) as { op: number; data: unknown };
-                const shardId = RoutingKeyToId(clientId, message.fields.routingKey);
-                switch (content.op) {
-                    case ShardOp.SEND: {
-                        const shard = this.shards.get(shardId);
-                        this.logger.debug(content, `Received message from AMQP to send to shard ${shardId}`);
-                        if (shard) {
-                            await shard.send(content.data as GatewaySendPayload);
-                        }
-                        break;
-                    }
-                    case ShardOp.CONNECT: {
-                        this.logger.debug(content, `Received message from AMQP to connect shard ${shardId}`);
-                        await this.connect(shardId);
-                        break;
-                    }
-                    case ShardOp.RESTART: {
-                        const shard = this.shards.get(shardId);
-                        this.logger.debug(content, `Received message from AMQP to restart shard ${shardId}`);
-                        if (shard) {
-                            await this.destroy(shardId, content.data as WebSocketShardDestroyOptions);
-                            await this.connect(shardId);
-                        }
-                        break;
-                    }
+    public async onConsumeMessage(message: ConsumeMessage | null) {
+        if (!message) return;
+        const content = JSON.parse(message.content.toString()) as { op: number; data: unknown };
+        const shardId = RoutingKeyToId(clientId, message.fields.routingKey);
+        switch (content.op) {
+            case ShardOp.SEND: {
+                const shard = this.shards.get(shardId);
+                this.logger.debug(content, `Received message from AMQP to send to shard ${shardId}`);
+                if (shard) {
+                    await shard.send(content.data as GatewaySendPayload);
                 }
+                break;
             }
-        }));
+            case ShardOp.CONNECT: {
+                this.logger.debug(content, `Received message from AMQP to connect shard ${shardId}`);
+                await this.connect(shardId);
+                break;
+            }
+            case ShardOp.RESTART: {
+                const shard = this.shards.get(shardId);
+                this.logger.debug(content, `Received message from AMQP to restart shard ${shardId}`);
+                if (shard) {
+                    await this.destroy(shardId, content.data as WebSocketShardDestroyOptions);
+                    await this.connect(shardId);
+                }
+                break;
+            }
+        }
     }
 
     /**

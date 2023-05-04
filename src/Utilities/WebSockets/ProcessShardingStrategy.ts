@@ -47,9 +47,10 @@ export class ProcessShardingStrategy implements IShardingStrategy {
 
         for (let idx = 0; idx < loops; idx++) {
             const slice = shardIds.slice(idx * shardsPerWorker, (idx + 1) * shardsPerWorker);
-            const workerData: WorkerData = {
+            const workerData: WorkerData & { workerId: number } = {
                 ...strategyOptions,
-                shardIds: slice
+                shardIds: slice,
+                workerId: idx
             };
 
             promises.push(this.setupWorker(workerData));

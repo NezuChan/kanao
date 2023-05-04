@@ -16,7 +16,7 @@ export class UserUpdateListener extends Listener {
         const old = await this.store.redis.get(GenKey(RedisKey.BOT_USER_KEY));
         await this.store.redis.set(GenKey(RedisKey.BOT_USER_KEY), JSON.stringify(payload.data.d));
 
-        this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
+        await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
             ...payload.data,
             old: old ? JSON.parse(old) : null
         })));

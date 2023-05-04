@@ -15,6 +15,7 @@ import { Time } from "@sapphire/time-utilities";
 import APM from "prometheus-middleware";
 import { GenKey } from "../Utilities/GenKey.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
+import { Channel } from "amqplib";
 
 const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../../package.json")}`);
 
@@ -85,8 +86,7 @@ export class NezuGateway extends EventEmitter {
     }
 
     public async connect(): Promise<void> {
-        await this.setupAmqp();
-
+        this.setupAmqp();
         if (enablePrometheus) this.setupPrometheus();
 
         if (gatewayGuildPerShard) {
@@ -108,36 +108,41 @@ export class NezuGateway extends EventEmitter {
         await this.redis.set(GenKey(RedisKey.SHARDS_KEY), shardCount);
     }
 
-    public async setupAmqp() {
-        const amqpChannel = await createAmqpChannel(amqp);
+    public setupAmqp() {
+        const amqpChannel = createAmqpChannel(amqp, {
+            setup: async (channel: Channel) => {
+                await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_STATS, "topic", { durable: false });
 
-        await amqpChannel.assertExchange(RabbitMQ.GATEWAY_QUEUE_STATS, "topic", { durable: false });
+                const { queue } = await channel.assertQueue("", { exclusive: true });
 
-        const { queue } = await amqpChannel.assertQueue("", { exclusive: true });
-
-        for (const route of [RoutingKey(clientId, "*"), RoutingKey(clientId, replicaId)]) {
-            await amqpChannel.bindQueue(queue, RabbitMQ.GATEWAY_QUEUE_STATS, route);
-        }
-
-        await amqpChannel.consume(queue, async message => {
-            if (message) {
-                const content = JSON.parse(message.content.toString()) as { route: string };
-                const stats = [];
-                for (const [shardId, status] of await this.ws.fetchStatus()) {
-                    const raw_value = await this.redis.get(GenKey(RedisKey.STATUSES_KEY, shardId.toString()));
-                    const shard_status = raw_value ? JSON.parse(raw_value) as { latency: number } : { latency: -1 };
-                    stats.push({ shardId, status, latency: shard_status.latency });
+                for (const route of [RoutingKey(clientId, "*"), RoutingKey(clientId, replicaId)]) {
+                    await channel.bindQueue(queue, RabbitMQ.GATEWAY_QUEUE_STATS, route);
                 }
 
-                amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, content.route, Buffer.from(
-                    JSON.stringify({
-                        results: stats,
-                        replicaId,
-                        clientId
-                    })
-                ));
+                await channel.consume(queue, async message => {
+                    if (!message) return;
+                    const content = JSON.parse(message.content.toString()) as { route: string };
+                    const stats = [];
+                    for (const [shardId, status] of await this.ws.fetchStatus()) {
+                        const raw_value = await this.redis.get(GenKey(RedisKey.STATUSES_KEY, shardId.toString()));
+                        const shard_status = raw_value ? JSON.parse(raw_value) as { latency: number } : { latency: -1 };
+                        stats.push({ shardId, status, latency: shard_status.latency });
+                    }
+
+                    await amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, content.route, Buffer.from(
+                        JSON.stringify({
+                            results: stats,
+                            replicaId,
+                            clientId
+                        })
+                    ));
+                });
             }
         });
+
+        amqpChannel.on("error", err => this.logger.error(err, "AMQP Channel on main process Error"));
+        amqpChannel.on("close", () => this.logger.warn("AMQP Channel on main process Closed"));
+        amqpChannel.on("connect", () => this.logger.info("AMQP Channel handler on main process connected"));
     }
 
     public setupPrometheus() {

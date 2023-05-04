@@ -5,13 +5,13 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import EventEmitter from "node:events";
 import { default as IORedis } from "ioredis";
-import { Channel } from "amqplib";
+import { ChannelWrapper } from "amqp-connection-manager";
 
 export class ListenerStore extends Store<Listener> {
     public readonly redis: IORedis.Cluster | IORedis.Redis;
     public readonly logger: Logger;
     public readonly emitter: EventEmitter;
-    public readonly amqp: Channel;
+    public readonly amqp: ChannelWrapper;
 
     public constructor(
         options: ListenerStoreOptions
@@ -29,5 +29,5 @@ interface ListenerStoreOptions {
     logger: Logger;
     emitter: EventEmitter;
     redis: IORedis.Cluster | IORedis.Redis;
-    amqp: Channel;
+    amqp: ChannelWrapper;
 }

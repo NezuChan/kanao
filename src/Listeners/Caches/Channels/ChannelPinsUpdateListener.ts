@@ -21,7 +21,7 @@ export class ChannelPinsUpdateListener extends Listener {
                 channel.last_pin_timestamp = payload.data.d.last_pin_timestamp;
                 await this.store.redis.set(GenKey(RedisKey.CHANNEL_KEY, payload.data.d.channel_id, payload.data.d.guild_id), JSON.stringify(channel));
             }
-            this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
+            await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
                 ...payload.data,
                 d: guild_channel ? JSON.parse(guild_channel) : null
             })));
@@ -32,7 +32,7 @@ export class ChannelPinsUpdateListener extends Listener {
                 channel.last_pin_timestamp = payload.data.d.last_pin_timestamp;
                 await this.store.redis.set(GenKey(RedisKey.CHANNEL_KEY, payload.data.d.channel_id), JSON.stringify(channel));
             }
-            this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
+            await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
                 ...payload.data,
                 d: non_guild_channel ? JSON.parse(non_guild_channel) : null
             })));

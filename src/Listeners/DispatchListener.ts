@@ -12,7 +12,7 @@ export class ReadyListener extends Listener {
         });
     }
 
-    public run(payload: { shardId: number; data: { data: GatewayDispatchPayload } }): void {
+    public async run(payload: { shardId: number; data: { data: GatewayDispatchPayload } }): Promise<void> {
         switch (payload.data.data.t) {
             case GatewayDispatchEvents.ChannelCreate:
             case GatewayDispatchEvents.ChannelPinsUpdate:
@@ -38,7 +38,7 @@ export class ReadyListener extends Listener {
                 this.store.emitter.emit(payload.data.data.t, { shardId: payload.shardId, data: payload.data.data });
                 break;
             default:
-                this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data.data)));
+                await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data.data)));
                 break;
         }
     }
