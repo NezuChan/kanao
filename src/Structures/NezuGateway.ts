@@ -98,7 +98,10 @@ export class NezuGateway extends EventEmitter {
         const shardCount = await this.ws.getShardCount();
 
         // When multiple replica is running, only reset few shards statuses
-        for (let i = 0; i < (process.env.GATEWAY_SHARD_END ? Number(process.env.GATEWAY_SHARD_END) : shardCount); i++) {
+        const shardStart = gatewayShardIds?.start ?? 0;
+        const shardEnd = gatewayShardIds?.end ?? shardCount;
+
+        for (let i = shardStart; i < shardEnd; i++) {
             await this.redis.set(GenKey(RedisKey.STATUSES_KEY, i.toString()), JSON.stringify({ latency: -1, status: WebSocketShardStatus.Connecting }));
         }
 
