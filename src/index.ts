@@ -6,7 +6,7 @@ import { Util } from "@nezuchan/utilities";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { NezuGateway } from "./Structures/NezuGateway.js";
-import { replicaCount, replicaId } from "./config.js";
+import { enabledCaches, replicaCount, replicaId } from "./config.js";
 
 const gateway = new NezuGateway();
 const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../package.json")}`);
@@ -47,6 +47,8 @@ console.log(
         })
     )
 );
+
+gateway.logger.info(`Enabled caches: ${enabledCaches.join(", ")}`);
 
 process.on("unhandledRejection", e => {
     if (e instanceof Error) {

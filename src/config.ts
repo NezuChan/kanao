@@ -53,3 +53,37 @@ export const stateMessages = process.env.STATE_MESSAGE === "true";
 
 export const replicaId = process.env.REPLICA_ID ?? hostname();
 export const replicaCount = Number(process.env.REPLICA_COUNT ?? "1");
+
+export const enabledCaches: string[] = [];
+
+if (stateChannels) {
+    enabledCaches.push("channels");
+}
+
+if (stateEmojis) {
+    enabledCaches.push("emojis");
+}
+
+if (stateMembers) {
+    enabledCaches.push("members");
+}
+
+if (stateMessages) {
+    enabledCaches.push("messages");
+}
+
+if (stateRoles) {
+    enabledCaches.push("roles");
+}
+
+if (stateUsers) {
+    enabledCaches.push("users");
+}
+
+if (stateVoices) {
+    enabledCaches.push("voices");
+}
+
+if (statePresences) {
+    enabledCaches.push("presences");
+}
