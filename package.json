@@ -40,7 +40,7 @@
     "@sapphire/pieces": "^3.6.3",
     "@sapphire/result": "^2.6.3",
     "@sapphire/time-utilities": "^1.7.9",
-    "@sapphire/utilities": "^3.11.1",
+    "@sapphire/utilities": "^3.11.2",
     "@skyra/start-banner": "^2.0.0",
     "amqp-connection-manager": "^4.1.13",
     "amqplib": "^0.10.3",
