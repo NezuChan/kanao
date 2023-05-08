@@ -1,10 +1,16 @@
 import { Collection } from "@discordjs/collection";
 import { SessionInfo, WorkerReceivePayload, WorkerSendPayload, WorkerReceivePayloadOp, WorkerSendPayloadOp, FetchingStrategyOptions, IContextFetchingStrategy } from "@discordjs/ws";
 
+interface PolyFillAbortSignal {
+    readonly aborted: boolean;
+    addEventListener: (type: "abort", listener: () => void) => void;
+    removeEventListener: (type: "abort", listener: () => void) => void;
+}
+
 export class ProcessContextFetchingStrategy implements IContextFetchingStrategy {
     private readonly sessionPromises = new Collection<number, (session: SessionInfo | null) => void>();
 
-    private readonly waitForIdentifyPromises = new Collection<number, () => void>();
+    private readonly waitForIdentifyPromises = new Collection<number, { reject: () => void; resolve: () => void }>();
 
     public constructor(public readonly options: FetchingStrategyOptions) {}
 
@@ -14,8 +20,14 @@ export class ProcessContextFetchingStrategy implements IContextFetchingStrategy 
             this.sessionPromises.delete(payload.nonce);
         }
 
-        if (payload.op === WorkerSendPayloadOp.ShardCanIdentify) {
-            this.waitForIdentifyPromises.get(payload.nonce)?.();
+        if (payload.op === WorkerSendPayloadOp.ShardIdentifyResponse) {
+            const promise = this.waitForIdentifyPromises.get(payload.nonce);
+            if (payload.ok) {
+                promise?.resolve();
+            } else {
+                promise?.reject();
+            }
+
             this.waitForIdentifyPromises.delete(payload.nonce);
         }
     }
@@ -43,15 +55,32 @@ export class ProcessContextFetchingStrategy implements IContextFetchingStrategy 
         process.send!(payload);
     }
 
-    public async waitForIdentify(): Promise<void> {
+    public async waitForIdentify(shardId: number, signal: AbortSignal): Promise<void> {
         const nonce = Math.random();
+
         const payload = {
             op: WorkerReceivePayloadOp.WaitForIdentify,
-            nonce
-        } satisfies WorkerReceivePayload;
-        // eslint-disable-next-line no-promise-executor-return
-        const promise = new Promise<void>(resolve => this.waitForIdentifyPromises.set(nonce, resolve));
+            nonce,
+            shardId
+        };
+
+        const promise = new Promise<void>((resolve, reject) => this.waitForIdentifyPromises.set(nonce, { resolve, reject }));
+
         process.send!(payload);
-        return promise;
+
+        const listener = () => {
+            process.send!({
+                op: WorkerReceivePayloadOp.CancelIdentify,
+                nonce
+            });
+        };
+
+        (signal as unknown as PolyFillAbortSignal).addEventListener("abort", listener);
+
+        try {
+            await promise;
+        } finally {
+            (signal as unknown as PolyFillAbortSignal).removeEventListener("abort", listener);
+        }
     }
 }

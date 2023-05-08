@@ -205,7 +205,7 @@ export class ProcessBootstrapper {
                     break;
                 }
 
-                case WorkerSendPayloadOp.SessionInfoResponse: case WorkerSendPayloadOp.ShardCanIdentify: {
+                case WorkerSendPayloadOp.SessionInfoResponse: case WorkerSendPayloadOp.ShardIdentifyResponse: {
                     // eslint-disable-next-line @typescript-eslint/dot-notation
                     this.shards.forEach(shard => (shard["strategy"] as ProcessContextFetchingStrategy).messageCallback(payload));
                     break;
@@ -221,7 +221,7 @@ export class ProcessBootstrapper {
                         op: WorkerReceivePayloadOp.FetchStatusResponse,
                         status: shard.status,
                         nonce: payload.nonce
-                    } satisfies WorkerReceivePayload;
+                    };
 
                     process.send!(response);
                     break;
