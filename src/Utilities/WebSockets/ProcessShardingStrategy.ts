@@ -3,7 +3,7 @@ import { join, isAbsolute, resolve } from "node:path";
 import { ChildProcess, fork } from "node:child_process";
 import { Collection } from "@discordjs/collection";
 import { GatewaySendPayload } from "discord-api-types/v10";
-import { IdentifyThrottler, WebSocketManager, WebSocketShardDestroyOptions, WebSocketShardStatus, managerToFetchingStrategyOptions, IShardingStrategy, WorkerShardingStrategyOptions, WorkerData, WorkerSendPayload, WorkerSendPayloadOp, WorkerReceivePayload, WorkerReceivePayloadOp, WebSocketShardEvents } from "@discordjs/ws";
+import { WebSocketManager, WebSocketShardDestroyOptions, WebSocketShardStatus, managerToFetchingStrategyOptions, IShardingStrategy, WorkerShardingStrategyOptions, WorkerData, WorkerSendPayload, WorkerSendPayloadOp, WorkerReceivePayload, WorkerReceivePayloadOp, WebSocketShardEvents, IIdentifyThrottler } from "@discordjs/ws";
 import * as url from "url";
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -23,7 +23,9 @@ export class ProcessShardingStrategy implements IShardingStrategy {
 
     private readonly fetchStatusPromises = new Collection<number, (status: WebSocketShardStatus) => void>();
 
-    private readonly throttler: IdentifyThrottler;
+    private readonly waitForIdentifyControllers = new Collection<number, AbortController>();
+
+    private throttler?: IIdentifyThrottler;
 
     #workers: ChildProcess[] = [];
 
@@ -31,7 +33,6 @@ export class ProcessShardingStrategy implements IShardingStrategy {
 
     public constructor(manager: WebSocketManager, options: WorkerShardingStrategyOptions) {
         this.manager = manager;
-        this.throttler = new IdentifyThrottler(manager);
         this.options = options;
     }
 
@@ -272,11 +273,21 @@ export class ProcessShardingStrategy implements IShardingStrategy {
             }
 
             case WorkerReceivePayloadOp.WaitForIdentify: {
-                await this.throttler.waitForIdentify();
+                const throttler = await this.ensureThrottler();
+
+                try {
+                    const controller = new AbortController();
+                    this.waitForIdentifyControllers.set(payload.nonce, controller);
+                    await throttler.waitForIdentify(payload.shardId, controller.signal);
+                } catch {
+                    return;
+                }
+
                 if (worker.connected) {
                     const response: WorkerSendPayload = {
-                        op: WorkerSendPayloadOp.ShardCanIdentify,
-                        nonce: payload.nonce
+                        op: WorkerSendPayloadOp.ShardIdentifyResponse,
+                        nonce: payload.nonce,
+                        ok: true
                     };
                     worker.send(response);
                 }
@@ -292,6 +303,25 @@ export class ProcessShardingStrategy implements IShardingStrategy {
             case WorkerReceivePayloadOp.WorkerReady: {
                 break;
             }
+
+            case WorkerReceivePayloadOp.CancelIdentify: {
+                this.waitForIdentifyControllers.get(payload.nonce)?.abort();
+                this.waitForIdentifyControllers.delete(payload.nonce);
+
+                const response: WorkerSendPayload = {
+                    op: WorkerSendPayloadOp.ShardIdentifyResponse,
+                    nonce: payload.nonce,
+                    ok: false
+                };
+                worker.send(response);
+
+                break;
+            }
         }
+    }
+
+    private async ensureThrottler(): Promise<IIdentifyThrottler> {
+        this.throttler ??= await this.manager.options.buildIdentifyThrottler(this.manager);
+        return this.throttler;
     }
 }
