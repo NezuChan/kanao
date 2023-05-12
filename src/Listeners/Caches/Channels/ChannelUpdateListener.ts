@@ -3,11 +3,12 @@ import { GatewayChannelUpdateDispatch, GatewayDispatchEvents } from "discord-api
 import { clientId, stateChannels } from "../../../config.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { GenKey } from "../../../Utilities/GenKey.js";
+
 import { RoutingKey } from "@nezuchan/utilities";
 export class ChannelUpdateListener extends Listener {
     public constructor(context: ListenerContext) {
         super(context, {
-            event: GatewayDispatchEvents.ChannelDelete,
+            event: GatewayDispatchEvents.ChannelUpdate,
             enabled: stateChannels
         });
     }
