@@ -18,10 +18,10 @@ export class VoiceStateUpdateListener extends Listener {
 
         if (payload.data.d.channel_id) {
             await this.store.redis.set(GenKey(RedisKey.VOICE_KEY, payload.data.d.user_id, payload.data.d.guild_id), JSON.stringify(payload.data.d));
-            await this.store.redis.sadd(GenKey(`${RedisKey.VOICE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.user_id, payload.data.d.guild_id), GenKey(RedisKey.VOICE_KEY, payload.data.d.user_id, payload.data.d.guild_id));
+            await this.store.redis.sadd(GenKey(`${RedisKey.VOICE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.guild_id), GenKey(RedisKey.VOICE_KEY, payload.data.d.user_id, payload.data.d.guild_id));
         } else {
             await this.store.redis.unlink(GenKey(RedisKey.VOICE_KEY, payload.data.d.user_id, payload.data.d.guild_id));
-            await this.store.redis.srem(GenKey(`${RedisKey.VOICE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.user_id, payload.data.d.guild_id), GenKey(RedisKey.VOICE_KEY, payload.data.d.user_id, payload.data.d.guild_id));
+            await this.store.redis.srem(GenKey(`${RedisKey.VOICE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.guild_id), GenKey(RedisKey.VOICE_KEY, payload.data.d.user_id, payload.data.d.guild_id));
         }
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
