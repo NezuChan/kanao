@@ -14,7 +14,7 @@ export class MessageCreateListener extends Listener {
 
     public async run(payload: { data: GatewayMessageCreateDispatch; shardId: number }): Promise<void> {
         if (stateMembers) {
-            await this.store.redis.set(GenKey(RedisKey.MEMBER_KEY, payload.data.d.author.id, payload.data.d.guild_id), JSON.stringify(payload.data.d.author));
+            await this.store.redis.set(GenKey(RedisKey.MEMBER_KEY, payload.data.d.author.id, payload.data.d.guild_id), JSON.stringify(payload.data.d.member));
             await this.store.redis.sadd(GenKey(`${RedisKey.MEMBER_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.guild_id), GenKey(RedisKey.MEMBER_KEY, payload.data.d.author.id, payload.data.d.guild_id));
         }
 
