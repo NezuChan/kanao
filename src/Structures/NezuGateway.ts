@@ -135,7 +135,9 @@ export class NezuGateway extends EventEmitter {
                             replicaId,
                             clientId
                         })
-                    ));
+                    ), {
+                        correlationId: message.properties.correlationId
+                    });
                 });
             }
         });
