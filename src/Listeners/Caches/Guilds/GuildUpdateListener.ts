@@ -37,7 +37,7 @@ export class GuildCreateListener extends Listener {
             payload.data.d.emojis = [];
         }
 
-        await this.store.redis.sadd(GenKey(`${RedisKey.GUILD_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.id), GenKey(`${RedisKey.GUILD_KEY}`, payload.data.d.id));
+        await this.store.redis.sadd(GenKey(`${RedisKey.GUILD_KEY}${RedisKey.KEYS_SUFFIX}`), GenKey(`${RedisKey.GUILD_KEY}`, payload.data.d.id));
         await this.store.redis.set(GenKey(`${RedisKey.GUILD_KEY}`, payload.data.d.id), JSON.stringify(payload.data.d));
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
