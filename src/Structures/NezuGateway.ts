@@ -133,7 +133,11 @@ export class NezuGateway extends EventEmitter {
                         JSON.stringify({
                             results: stats,
                             replicaId,
-                            clientId
+                            clientId,
+                            memoryUsage: process.memoryUsage(),
+                            cpuUsage: process.cpuUsage(),
+                            uptime: process.uptime(),
+                            shardCount: await this.ws.getShardCount()
                         })
                     ), {
                         correlationId: message.properties.correlationId
