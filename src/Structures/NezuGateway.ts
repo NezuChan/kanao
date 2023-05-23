@@ -131,13 +131,13 @@ export class NezuGateway extends EventEmitter {
 
                     await amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, content.route, Buffer.from(
                         JSON.stringify({
-                            results: stats,
+                            shards: stats,
                             replicaId,
                             clientId,
                             memoryUsage: process.memoryUsage(),
                             cpuUsage: process.cpuUsage(),
                             uptime: process.uptime(),
-                            shardCount: await this.ws.getShardCount()
+                            shardCount: stats.length
                         })
                     ), {
                         correlationId: message.properties.correlationId
