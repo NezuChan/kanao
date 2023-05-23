@@ -48,7 +48,7 @@ export class GuildDeleteListener extends Listener {
         }
 
         await this.store.redis.unlink(GenKey(RedisKey.GUILD_KEY, payload.data.d.id));
-        await this.store.redis.unlink(GenKey(`${RedisKey.GUILD_KEY}${RedisKey.KEYS_SUFFIX}`));
+        await this.store.redis.srem(GenKey(`${RedisKey.GUILD_KEY}${RedisKey.KEYS_SUFFIX}`), GenKey(`${RedisKey.GUILD_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.id));
         await this.store.redis.unlink(GenKey(`${RedisKey.ROLE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.id));
         await this.store.redis.unlink(GenKey(`${RedisKey.CHANNEL_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.id));
         await this.store.redis.unlink(GenKey(`${RedisKey.MEMBER_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.id));
