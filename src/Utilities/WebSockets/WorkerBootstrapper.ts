@@ -13,7 +13,7 @@ import { Channel, ConsumeMessage } from "amqplib";
 import { BootStrapper, WebsocketShard } from "kearsarge";
 import { parentPort } from "node:worker_threads";
 
-export class ProcessBootstrapper extends BootStrapper {
+export class WorkerBootstrapper extends BootStrapper {
     public redis = createRedis({
         redisUsername,
         redisPassword,
