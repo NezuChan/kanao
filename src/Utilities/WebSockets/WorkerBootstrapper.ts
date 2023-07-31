@@ -1,6 +1,5 @@
 import { Collection } from "@discordjs/collection";
-import { BootstrapOptions, WebSocketShardEvents, WorkerReceivePayload, WorkerReceivePayloadOp, WorkerSendPayload, WorkerSendPayloadOp, WorkerData, WebSocketShardDestroyOptions, WorkerContextFetchingStrategy } from "@discordjs/ws";
-import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
+import { BootstrapOptions, WebSocketShardEvents, WorkerReceivePayload, WorkerReceivePayloadOp, WebSocketShardDestroyOptions, WorkerContextFetchingStrategy } from "@discordjs/ws";
 import { StoreRegistry } from "@sapphire/pieces";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
 import { discordToken, storeLogs, lokiHost, redisPassword, redisUsername, redisClusters, redisClusterScaleReads, redisDb, redisHost, redisNatMap, redisPort, amqp, clientId } from "../../config.js";
@@ -24,11 +23,6 @@ export class WorkerBootstrapper extends BootStrapper {
         redisClusters,
         redisNatMap
     });
-
-    /**
-	 * The data passed to the worker thread
-	 */
-    protected readonly data = JSON.parse(process.env.WORKER_DATA!) as WorkerData & { workerId: number };
 
     /**
 	 * The shards that are managed by this worker
@@ -100,9 +94,9 @@ export class WorkerBootstrapper extends BootStrapper {
             }
         });
 
-        amqpChannel.on("error", err => this.logger.error(err, `AMQP Channel on worker ${this.data.workerId} Error`));
-        amqpChannel.on("close", () => this.logger.warn(`AMQP Channel on worker ${this.data.workerId} Closed`));
-        amqpChannel.on("connect", () => this.logger.info(`AMQP Channel handler on worker ${this.data.workerId} connected`));
+        amqpChannel.on("error", err => this.logger.error(err, `AMQP Channel on worker ${process.pid} Error`));
+        amqpChannel.on("close", () => this.logger.warn(`AMQP Channel on worker ${process.pid} Closed`));
+        amqpChannel.on("connect", () => this.logger.info(`AMQP Channel handler on worker ${process.pid} connected`));
 
         this.stores.register(
             new ListenerStore({
@@ -159,80 +153,6 @@ export class WorkerBootstrapper extends BootStrapper {
             await new Promise(r => setTimeout(r, Math.min(++retries * 1000, 10000)));
             return this.connect(shardId, retries);
         }
-    }
-
-    /**
-     * Helper method to destroy a shard
-     */
-    protected async destroy(shardId: number, options?: WebSocketShardDestroyOptions): Promise<void> {
-        const shard = this.shards.get(shardId);
-        if (!shard) {
-            throw new RangeError(`Shard ${shardId} does not exist`);
-        }
-
-        await shard.destroy(options);
-    }
-
-    /**
-     * Helper method to attach event listeners to the parentPort
-     */
-    protected setupThreadEvents(): void {
-        process.on("message", async (payload: WorkerSendPayload) => {
-            switch (payload.op) {
-                case WorkerSendPayloadOp.Connect: {
-                    await this.connect(payload.shardId);
-                    const response: WorkerReceivePayload = {
-                        op: WorkerReceivePayloadOp.Connected,
-                        shardId: payload.shardId
-                    };
-                    parentPort!.postMessage(response);
-                    break;
-                }
-
-                case WorkerSendPayloadOp.Destroy: {
-                    await this.destroy(payload.shardId, payload.options);
-                    const response: WorkerReceivePayload = {
-                        op: WorkerReceivePayloadOp.Destroyed,
-                        shardId: payload.shardId
-                    };
-
-                    parentPort!.postMessage(response);
-                    break;
-                }
-
-                case WorkerSendPayloadOp.Send: {
-                    const shard = this.shards.get(payload.shardId);
-                    if (!shard) {
-                        throw new RangeError(`Shard ${payload.shardId} does not exist`);
-                    }
-
-                    await shard.send(payload.payload);
-                    break;
-                }
-
-                case WorkerSendPayloadOp.SessionInfoResponse: case WorkerSendPayloadOp.ShardIdentifyResponse: {
-                    // eslint-disable-next-line @typescript-eslint/dot-notation
-                    this.shards.forEach(shard => (shard["strategy"] as ProcessContextFetchingStrategy).messageCallback(payload));
-                    break;
-                }
-
-                case WorkerSendPayloadOp.FetchStatus: {
-                    const shard = this.shards.get(payload.shardId);
-                    if (!shard) {
-                        throw new Error(`Shard ${payload.shardId} does not exist`);
-                    }
-
-                    const response = {
-                        op: WorkerReceivePayloadOp.FetchStatusResponse,
-                        status: shard.status,
-                        nonce: payload.nonce
-                    };
-
-                    parentPort!.postMessage(response);
-                    break;
-                }
-            }
-        });
     }
 }
 
