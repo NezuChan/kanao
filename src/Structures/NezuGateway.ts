@@ -41,7 +41,7 @@ export class NezuGateway extends EventEmitter {
     public ws = new WebSocketManager({
         buildStrategy: (manager: WebSocketManager) => new KearsargeWorkerStrategy(manager, {
             shardsPerWorker: gatewayShardsPerWorkers,
-            workerPath: join(fileURLToPath(import.meta.url), "../Utilities/WebSockets/ShardProcess.js")
+            workerPath: join(fileURLToPath(import.meta.url), "../../Utilities/WebSockets/ShardProcess.js")
         }),
         intents: gatewayIntents,
         helloTimeout: gatewayHelloTimeout,
