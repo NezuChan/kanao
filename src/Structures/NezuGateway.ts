@@ -8,7 +8,7 @@ import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardEvents,
 import { Util, createAmqpChannel, createRedis, RoutingKey } from "@nezuchan/utilities";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { KearsargeWorkerStrategy } from "kearsarge";
+import { KearsargeWorkerStrategy, WebsocketEncoding } from "kearsarge";
 import { Result } from "@sapphire/result";
 import { Time } from "@sapphire/time-utilities";
 import APM from "prometheus-middleware";
@@ -41,7 +41,9 @@ export class NezuGateway extends EventEmitter {
     public ws = new WebSocketManager({
         buildStrategy: (manager: WebSocketManager) => new KearsargeWorkerStrategy(manager, {
             shardsPerWorker: gatewayShardsPerWorkers,
-            workerPath: join(fileURLToPath(import.meta.url), "../../Utilities/WebSockets/ShardProcess.js")
+            workerPath: join(fileURLToPath(import.meta.url), "../../Utilities/WebSockets/ShardProcess.js"),
+            // @ts-expect-error: it's fine
+            encoding: WebsocketEncoding.ETF
         }),
         intents: gatewayIntents,
         helloTimeout: gatewayHelloTimeout,
