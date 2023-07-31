@@ -1,5 +1,5 @@
 import { Collection } from "@discordjs/collection";
-import { BootstrapOptions, WebSocketShard, WebSocketShardEvents, WorkerReceivePayload, WorkerReceivePayloadOp, WorkerSendPayload, WorkerSendPayloadOp, WorkerData, WebSocketShardDestroyOptions } from "@discordjs/ws";
+import { BootstrapOptions, WebSocketShardEvents, WorkerReceivePayload, WorkerReceivePayloadOp, WorkerSendPayload, WorkerSendPayloadOp, WorkerData, WebSocketShardDestroyOptions, WorkerContextFetchingStrategy } from "@discordjs/ws";
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 import { StoreRegistry } from "@sapphire/pieces";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
@@ -10,8 +10,10 @@ import { createAmqpChannel, createRedis, RoutingKey, RoutingKeyToId } from "@nez
 import { RabbitMQ, ShardOp } from "@nezuchan/constants";
 import { GatewaySendPayload } from "discord-api-types/v10";
 import { Channel, ConsumeMessage } from "amqplib";
+import { BootStrapper, WebsocketShard } from "kearsarge";
+import { parentPort } from "node:worker_threads";
 
-export class ProcessBootstrapper {
+export class ProcessBootstrapper extends BootStrapper {
     public redis = createRedis({
         redisUsername,
         redisPassword,
@@ -31,21 +33,24 @@ export class ProcessBootstrapper {
     /**
 	 * The shards that are managed by this worker
 	 */
-    protected readonly shards = new Collection<number, WebSocketShard>();
+    // @ts-expect-error: custom shard class that has the same properties
+    protected readonly shards = new Collection<number, WebsocketShard>();
 
     public constructor(
         public logger = createLogger("nezu-gateway", Buffer.from(discordToken.split(".")[0], "base64").toString(), storeLogs, lokiHost),
         public stores = new StoreRegistry()
-    ) { }
+    ) {
+        super();
+    }
 
     /**
      * Bootstraps the child process with the provided options
      */
-    public async bootstrap(options: Readonly<BootstrapOptions> = {}): Promise<void> {
+    public override async bootstrap(options: Readonly<BootstrapOptions> = {}): Promise<void> {
         this.setupAmqp(); await this.stores.load();
         // Start by initializing the shards
         for (const shardId of this.data.shardIds) {
-            const shard = new WebSocketShard(new ProcessContextFetchingStrategy(this.data), shardId);
+            const shard = new WebsocketShard(shardId, new WorkerContextFetchingStrategy(this.data));
             for (const event of options.forwardEvents ?? Object.values(WebSocketShardEvents)) {
                 // @ts-expect-error: Event types incompatible
                 // eslint-disable-next-line @typescript-eslint/no-loop-func
@@ -56,13 +61,13 @@ export class ProcessBootstrapper {
                         data,
                         shardId
                     } satisfies WorkerReceivePayload;
-                    process.send!(payload);
+                    parentPort!.postMessage(payload);
                     this.stores.get("listeners")
                         .emitter.emit(event, { shard, data, shardId });
                 });
             }
 
-            // Any additional setup the user might want to do
+            // @ts-expect-error: custom shard class that has the same properties
             await options.shardCallback?.(shard);
             this.shards.set(shardId, shard);
         }
@@ -73,7 +78,7 @@ export class ProcessBootstrapper {
         const message = {
             op: WorkerReceivePayloadOp.WorkerReady
         } satisfies WorkerReceivePayload;
-        process.send!(message);
+        parentPort!.postMessage(message);
     }
 
     public setupAmqp() {
@@ -180,7 +185,7 @@ export class ProcessBootstrapper {
                         op: WorkerReceivePayloadOp.Connected,
                         shardId: payload.shardId
                     };
-                    process.send!(response);
+                    parentPort!.postMessage(response);
                     break;
                 }
 
@@ -191,7 +196,7 @@ export class ProcessBootstrapper {
                         shardId: payload.shardId
                     };
 
-                    process.send!(response);
+                    parentPort!.postMessage(response);
                     break;
                 }
 
@@ -223,7 +228,7 @@ export class ProcessBootstrapper {
                         nonce: payload.nonce
                     };
 
-                    process.send!(response);
+                    parentPort!.postMessage(response);
                     break;
                 }
             }
