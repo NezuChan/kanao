@@ -46,6 +46,7 @@ export class ProcessBootstrapper {
         this.setupAmqp(); await this.stores.load();
         // Start by initializing the shards
         for (const shardId of this.data.shardIds) {
+            console.log(`Initializing shard ${shardId}`);
             const shard = new WebsocketShard(shardId, new ProcessContextFetchingStrategy(this.data));
             for (const event of options.forwardEvents ?? Object.values(WebSocketShardEvents)) {
                 // @ts-expect-error: Event types incompatible

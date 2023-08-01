@@ -42,6 +42,7 @@ export class NezuGateway extends EventEmitter {
         buildStrategy: (manager: WebSocketManager) => new ProcessShardingStrategy(manager, {
             shardsPerWorker: gatewayShardsPerWorkers
         }),
+        encoding: "etf",
         intents: gatewayIntents,
         helloTimeout: gatewayHelloTimeout,
         readyTimeout: gatewayReadyTimeout,
