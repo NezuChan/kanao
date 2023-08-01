@@ -1,5 +1,5 @@
-import { WorkerBootstrapper } from "./WorkerBootstrapper.js";
+import { ProcessBootstrapper } from "./ProcessBootstrapper.js";
 
-const bootstrapper = new WorkerBootstrapper();
+const bootstrapper = new ProcessBootstrapper();
 
 void bootstrapper.bootstrap();

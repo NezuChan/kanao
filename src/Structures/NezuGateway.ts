@@ -4,17 +4,17 @@ import EventEmitter from "node:events";
 import { createLogger } from "../Utilities/Logger.js";
 import { amqp, clientId, discordToken, enablePrometheus, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, replicaId, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
-import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardEvents, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
+import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
 import { Util, createAmqpChannel, createRedis, RoutingKey } from "@nezuchan/utilities";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { KearsargeWorkerStrategy, WebsocketEncoding } from "kearsarge";
 import { Result } from "@sapphire/result";
 import { Time } from "@sapphire/time-utilities";
 import APM from "prometheus-middleware";
 import { GenKey } from "../Utilities/GenKey.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { Channel } from "amqplib";
+import { ProcessShardingStrategy } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
 
 const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../../package.json")}`);
 
@@ -39,11 +39,8 @@ export class NezuGateway extends EventEmitter {
     });
 
     public ws = new WebSocketManager({
-        buildStrategy: (manager: WebSocketManager) => new KearsargeWorkerStrategy(manager, {
-            shardsPerWorker: gatewayShardsPerWorkers,
-            workerPath: join(fileURLToPath(import.meta.url), "../../Utilities/WebSockets/ShardProcess.js"),
-            // @ts-expect-error: it's fine
-            encoding: WebsocketEncoding.ETF
+        buildStrategy: (manager: WebSocketManager) => new ProcessShardingStrategy(manager, {
+            shardsPerWorker: gatewayShardsPerWorkers
         }),
         intents: gatewayIntents,
         helloTimeout: gatewayHelloTimeout,
