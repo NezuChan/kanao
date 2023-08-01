@@ -4,7 +4,7 @@ import EventEmitter from "node:events";
 import { createLogger } from "../Utilities/Logger.js";
 import { amqp, clientId, discordToken, enablePrometheus, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, replicaId, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
-import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
+import { CompressionMethod, Encoding, SessionInfo, WebSocketManager, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
 import { Util, createAmqpChannel, createRedis, RoutingKey } from "@nezuchan/utilities";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,6 +15,7 @@ import APM from "prometheus-middleware";
 import { GenKey } from "../Utilities/GenKey.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { Channel } from "amqplib";
+import { WebsocketEncoding } from "kearsarge";
 
 const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../../package.json")}`);
 
@@ -75,6 +76,7 @@ export class NezuGateway extends EventEmitter {
             }
             return null;
         },
+        encoding: WebsocketEncoding.ETF as unknown as Encoding,
         compression: CompressionMethod.ZlibStream,
         rest: this.rest
     });

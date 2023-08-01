@@ -1,5 +1,5 @@
 import { Collection } from "@discordjs/collection";
-import { BootstrapOptions, WebSocketShard, WebSocketShardEvents, WorkerReceivePayload, WorkerReceivePayloadOp, WorkerSendPayload, WorkerSendPayloadOp, WorkerData, WebSocketShardDestroyOptions } from "@discordjs/ws";
+import { BootstrapOptions, WebSocketShardEvents, WorkerReceivePayload, WorkerReceivePayloadOp, WorkerSendPayload, WorkerSendPayloadOp, WorkerData, WebSocketShardDestroyOptions } from "@discordjs/ws";
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 import { StoreRegistry } from "@sapphire/pieces";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
@@ -10,6 +10,7 @@ import { createAmqpChannel, createRedis, RoutingKey, RoutingKeyToId } from "@nez
 import { RabbitMQ, ShardOp } from "@nezuchan/constants";
 import { GatewaySendPayload } from "discord-api-types/v10";
 import { Channel, ConsumeMessage } from "amqplib";
+import { WebsocketShard } from "kearsarge";
 
 export class ProcessBootstrapper {
     public redis = createRedis({
@@ -31,7 +32,7 @@ export class ProcessBootstrapper {
     /**
 	 * The shards that are managed by this worker
 	 */
-    protected readonly shards = new Collection<number, WebSocketShard>();
+    protected readonly shards = new Collection<number, WebsocketShard>();
 
     public constructor(
         public logger = createLogger("nezu-gateway", Buffer.from(discordToken.split(".")[0], "base64").toString(), storeLogs, lokiHost),
@@ -45,7 +46,7 @@ export class ProcessBootstrapper {
         this.setupAmqp(); await this.stores.load();
         // Start by initializing the shards
         for (const shardId of this.data.shardIds) {
-            const shard = new WebSocketShard(new ProcessContextFetchingStrategy(this.data), shardId);
+            const shard = new WebsocketShard(shardId, new ProcessContextFetchingStrategy(this.data));
             for (const event of options.forwardEvents ?? Object.values(WebSocketShardEvents)) {
                 // @ts-expect-error: Event types incompatible
                 // eslint-disable-next-line @typescript-eslint/no-loop-func
@@ -62,7 +63,7 @@ export class ProcessBootstrapper {
                 });
             }
 
-            // Any additional setup the user might want to do
+            // @ts-expect-error This should be fine
             await options.shardCallback?.(shard);
             this.shards.set(shardId, shard);
         }
