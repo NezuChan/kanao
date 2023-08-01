@@ -1,3 +1,4 @@
+import { PresenceUpdateStatus } from "discord-api-types/v10";
 import { default as IORedis } from "ioredis";
 import { hostname } from "os";
 
@@ -26,6 +27,7 @@ export const gatewayResume = process.env.GATEWAY_RESUME ? process.env.GATEWAY_RE
 export const gatewayGuildPerShard = Number(process.env.GUILD_PER_SHARD ?? 2000);
 export const gatewayPresenceType = Number(process.env.GATEWAY_PRESENCE_TYPE ?? 0);
 export const gatewayPresenceName = process.env.GATEWAY_PRESENCE_NAME;
+export const gatewayPresenceStatus = process.env.GATEWAY_PRESENCE_STATUS as PresenceUpdateStatus | undefined ?? PresenceUpdateStatus.Online;
 export const gatewayIntents = Number(process.env.GATEWAY_INTENTS ?? 0);
 export const gatewayShardsPerWorkers = Number(process.env.GATEWAY_SHARDS_PER_WORKERS ?? 10);
 export const gatewayHelloTimeout = process.env.GATEWAY_HELLO_TIMEOUT ? Number(process.env.GATEWAY_HELLO_TIMEOUT!) : null;

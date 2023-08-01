@@ -2,10 +2,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import EventEmitter from "node:events";
 import { createLogger } from "../Utilities/Logger.js";
-import { amqp, clientId, discordToken, enablePrometheus, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, replicaId, storeLogs } from "../config.js";
+import { amqp, clientId, discordToken, enablePrometheus, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, replicaId, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
-import { PresenceUpdateStatus } from "discord-api-types/v10";
 import { Util, createAmqpChannel, createRedis, RoutingKey } from "@nezuchan/utilities";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -58,8 +57,8 @@ export class NezuGateway extends EventEmitter {
                     type: gatewayPresenceType
                 }
             ],
-            since: Date.now(),
-            status: PresenceUpdateStatus.Online,
+            since: gatewayPresenceStatus === "idle" ? Date.now() : null,
+            status: gatewayPresenceStatus,
             afk: false
         },
         updateSessionInfo: async (shardId: number, sessionInfo: SessionInfo) => {
