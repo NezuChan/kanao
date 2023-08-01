@@ -4,7 +4,7 @@ import EventEmitter from "node:events";
 import { createLogger } from "../Utilities/Logger.js";
 import { amqp, clientId, discordToken, enablePrometheus, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, replicaId, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
-import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
+import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardEvents, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
 import { Util, createAmqpChannel, createRedis, RoutingKey } from "@nezuchan/utilities";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -97,6 +97,8 @@ export class NezuGateway extends EventEmitter {
             const { shards } = await this.ws.fetchGatewayInformation(true);
             this.ws.options.shardCount = Number(Math.ceil((shards * (1_000 / Number(gatewayGuildPerShard))) / 1));
         }
+
+        this.ws.on(WebSocketShardEvents.Debug, ({ message, shardId }) => this.logger.debug(message, `Shard ${shardId}`));
 
         await this.ws.connect();
         const shardCount = await this.ws.getShardCount();
