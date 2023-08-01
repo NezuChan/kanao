@@ -9,10 +9,10 @@ import { createAmqpChannel, createRedis, RoutingKey, RoutingKeyToId } from "@nez
 import { RabbitMQ, ShardOp } from "@nezuchan/constants";
 import { GatewaySendPayload } from "discord-api-types/v10";
 import { Channel, ConsumeMessage } from "amqplib";
-import { BootStrapper, WebsocketShard } from "kearsarge";
+import { KearsargeBootstrapper, WebsocketShard } from "kearsarge";
 import { parentPort } from "node:worker_threads";
 
-export class WorkerBootstrapper extends BootStrapper {
+export class WorkerBootstrapper extends KearsargeBootstrapper {
     public redis = createRedis({
         redisUsername,
         redisPassword,
