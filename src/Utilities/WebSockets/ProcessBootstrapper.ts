@@ -25,12 +25,12 @@ export class ProcessBootstrapper {
     });
 
     /**
-	 * The data passed to the worker thread
+	 * The data passed to the child process
 	 */
-    protected readonly data = JSON.parse(process.env.WORKER_DATA!) as WorkerData & { workerId: number };
+    protected readonly data = JSON.parse(process.env.WORKER_DATA!) as WorkerData & { processId: number };
 
     /**
-	 * The shards that are managed by this worker
+	 * The shards that are managed by this process
 	 */
     protected readonly shards = new Collection<number, WebsocketShard>();
 
@@ -96,9 +96,9 @@ export class ProcessBootstrapper {
             }
         });
 
-        amqpChannel.on("error", err => this.logger.error(err, `AMQP Channel on worker ${this.data.workerId} Error`));
-        amqpChannel.on("close", () => this.logger.warn(`AMQP Channel on worker ${this.data.workerId} Closed`));
-        amqpChannel.on("connect", () => this.logger.info(`AMQP Channel handler on worker ${this.data.workerId} connected`));
+        amqpChannel.on("error", err => this.logger.error(err, `AMQP Channel on process ${this.data.processId} Error`));
+        amqpChannel.on("close", () => this.logger.warn(`AMQP Channel on process ${this.data.processId} Closed`));
+        amqpChannel.on("connect", () => this.logger.info(`AMQP Channel handler on process ${this.data.processId} connected`));
 
         this.stores.register(
             new ListenerStore({
