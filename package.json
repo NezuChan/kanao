@@ -48,7 +48,7 @@
     "dotenv": "^16.3.1",
     "gradient-string": "^2.0.2",
     "ioredis": "^5.3.2",
-    "kearsarge": "github:Deivu/Kearsarge",
+    "kearsarge": "^1.0.3",
     "pino": "^8.14.2",
     "pino-pretty": "^10.2.0",
     "prometheus-middleware": "^1.1.3",
