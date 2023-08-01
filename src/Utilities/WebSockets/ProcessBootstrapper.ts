@@ -3,7 +3,7 @@ import { BootstrapOptions, WebSocketShard, WebSocketShardEvents, WorkerReceivePa
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 import { StoreRegistry } from "@sapphire/pieces";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
-import { discordToken, storeLogs, lokiHost, redisPassword, redisUsername, redisClusters, redisClusterScaleReads, redisDb, redisHost, redisNatMap, redisPort, amqp, clientId, gatewayResume } from "../../config.js";
+import { discordToken, storeLogs, lokiHost, redisPassword, redisUsername, redisClusters, redisClusterScaleReads, redisDb, redisHost, redisNatMap, redisPort, amqp, clientId } from "../../config.js";
 import { createLogger } from "../Logger.js";
 import EventEmitter from "events";
 import { createAmqpChannel, createRedis, RoutingKey, RoutingKeyToId } from "@nezuchan/utilities";
@@ -149,8 +149,6 @@ export class ProcessBootstrapper {
         }
 
         try {
-            // @ts-expect-error: Connect not resolved if we do resuming.
-            if (gatewayResume) shard.initialConnectResolved = true;
             await shard.connect();
         } catch {
             await new Promise(r => setTimeout(r, Math.min(++retries * 1000, 10000)));
