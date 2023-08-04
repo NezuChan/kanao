@@ -19,5 +19,27 @@
 - Automatic re-sharding
 - Large treshold support
 - Redis cluster support
+- Docker replica
+
+# Docker Replica
+
+To deploy replica the container must connected to docker sock in order know which replica in they are
+```yaml
+version: '3.8'
+
+services:
+  nezu-gateway:
+    deploy:
+      resources:
+        limits:
+          memory: "256M"
+      replicas: ${GATEWAY_REPLICA_COUNT:-3}
+    restart: always
+    image: 'ghcr.io/nezuchan/nezu-gateway:latest'
+    env_file:
+      - .env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+```
 
 Being used in production by NezukoChan, Musical Tune, and more.
