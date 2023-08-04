@@ -23,4 +23,4 @@ COPY --from=build-stage /tmp/build/package-lock.json .
 COPY --from=build-stage /tmp/build/node_modules ./node_modules
 COPY --from=build-stage /tmp/build/dist ./dist
 
-CMD node -r dotenv/config dist/index.js
+ENTRYPOINT [ "/entrypoint.sh" ]
