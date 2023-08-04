@@ -43,6 +43,10 @@ else
     echo "[ENTRYPOINT] INFO: Set initial shard ID to: $GATEWAY_SHARD_START & Set end shard ID to: $GATEWAY_SHARD_END, REPLICA ID $REPLICA_ID"
 fi
 
+yq -i ".gateway.shard_start = $GATEWAY_SHARD_START" /app/config.yml
+yq -i ".gateway.shard_end = $GATEWAY_SHARD_END" /app/config.yml
+yq -i ".replica.id = $REPLICA_ID" /app/config.yml
+
 function cleanup() {
     rm -f /tmp/shard_id_start /tmp/shard_id_end /tmp/replica_id
     echo "[ENTRYPOINT] INFO: Shutting down..."
@@ -52,9 +56,7 @@ function cleanup() {
 
 trap "cleanup" SIGKILL SIGTERM SIGHUP SIGINT
 
-yq -i ".gateway.shard_start = $GATEWAY_SHARD_START" /app/config.yml
-yq -i ".gateway.shard_end = $GATEWAY_SHARD_END" /app/config.yml
-yq -i ".replica.id = $REPLICA_ID" /app/config.yml
+echo "[ENTRYPOINT] Sleeping for 3s" && sleep 3
 
 echo "[ENTRYPOINT] Starting shard ID: $GATEWAY_SHARD_START & Ending shard ID: $GATEWAY_SHARD_END, REPLICA ID $REPLICA_ID, SHARD COUNT $GATEWAY_SHARD_COUNT"
 node -r dotenv/config dist/index.js
