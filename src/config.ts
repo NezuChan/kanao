@@ -14,7 +14,7 @@ export const getShardCount = async () => {
         const gatewayShardCount = process.env.GATEWAY_SHARD_COUNT ? Number(process.env.GATEWAY_SHARD_COUNT!) : null;
         const gatewayShardCountPerReplica = process.env.GATEWAY_SHARD_COUNT_PER_REPLICA ? Number(process.env.GATEWAY_SHARD_COUNT_PER_REPLICA!) : null;
         if (gatewayShardCount && gatewayShardCountPerReplica) {
-            const shards = gatewayShardCount > 1 ? range(0, gatewayShardCount, 1) : [0];
+            const shards = gatewayShardCount >= 2 ? range(0, gatewayShardCount, 1) : [0];
             const chunks = chunk(shards, gatewayShardCountPerReplica);
             const parts = inspect.Name.split("-");
             const replicaId = Number(parts[parts.length - 1] ?? 1) - 1;

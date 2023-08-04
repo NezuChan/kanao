@@ -15,7 +15,6 @@ import APM from "prometheus-middleware";
 import { GenKey } from "../Utilities/GenKey.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { Channel } from "amqplib";
-import { WebsocketEncoding } from "kearsarge";
 
 const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../../package.json")}`);
 const shardIds = await getShardCount();
