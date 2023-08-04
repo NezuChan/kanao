@@ -48,12 +48,11 @@ function cleanup() {
 
 trap "cleanup" SIGKILL SIGTERM SIGHUP SIGINT
 
-export GATEWAY_SHARD_END=$(cat /tmp/shard_id_end) 
-export GATEWAY_SHARD_END=$(cat /tmp/shard_id_end) 
+export GATEWAY_SHARD_END=$(cat /tmp/shard_id_end)
 export GATEWAY_SHARD_START=$(cat /tmp/shard_id_start)
+export REPLICA_ID=$(cat /tmp/replica_id)
 
-echo "[ENTRYPOINT] Sleeping for 5s" && sleep 5
-echo "[ENTRYPOINT] Starting shard ID: $GATEWAY_SHARD_START & Ending shard ID: $GATEWAY_SHARD_END, REPLICA ID $REPLICA_ID, SHARD_COUNT $SHARD_COUNT"
+echo "[ENTRYPOINT] Starting shard ID: $GATEWAY_SHARD_START & Ending shard ID: $GATEWAY_SHARD_END, REPLICA ID $REPLICA_ID, SHARD_COUNT $GATEWAY_SHARD_COUNT"
 node -r dotenv/config dist/index.js
 child=$!
 wait "$child"
