@@ -33,7 +33,7 @@ COPY --from=build-stage /tmp/build/dist ./dist
 COPY --from=build-stage /tmp/build/entrypoint.sh /
 COPY --from=build-stage /tmp/build/config.yml .
 
-RUN chmod 644 /config.yml
+RUN chmod 644 /app/config.yml
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT [ "/entrypoint.sh" ]
