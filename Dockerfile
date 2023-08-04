@@ -27,6 +27,9 @@ WORKDIR /opt/Gateway
 LABEL name "NezukoChan Gateway Production"
 LABEL maintainer "KagChi"
 
+RUN groupadd -g 322 gateway && \
+    useradd -r -u 322 -g gateway gateway
+
 COPY --from=build-stage --chmod=755 /tmp/build/yq_linux_amd64 /usr/local/bin/yq
 COPY --from=build-stage /tmp/build/package.json .
 COPY --from=build-stage /tmp/build/package-lock.json .
@@ -34,7 +37,7 @@ COPY --from=build-stage /tmp/build/node_modules ./node_modules
 COPY --from=build-stage /tmp/build/dist ./dist
 COPY --from=build-stage /tmp/build/entrypoint.sh /
 
-COPY --chown=lavalink:lavalink config.yml /opt/Gateway/config.yml
+COPY --chown=gateway:gateway config.yml /opt/Gateway/config.yml
 
 RUN chmod +x /entrypoint.sh
 
