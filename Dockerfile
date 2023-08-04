@@ -36,8 +36,7 @@ COPY --from=build-stage /tmp/build/package-lock.json .
 COPY --from=build-stage /tmp/build/node_modules ./node_modules
 COPY --from=build-stage /tmp/build/dist ./dist
 COPY --from=build-stage /tmp/build/entrypoint.sh /
-
-COPY --chown=gateway:gateway config.yml /opt/Gateway/config.yml
+COPY --chown=gateway:gateway /tmp/build/config.yml /opt/Gateway/config.yml
 
 RUN chmod +x /entrypoint.sh
 
