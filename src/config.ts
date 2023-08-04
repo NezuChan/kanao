@@ -5,7 +5,8 @@ import Dockerode from "dockerode";
 import { chunk, range } from "@sapphire/utilities";
 
 export const getShardCount = async () => {
-    if (process.env.REPLICA_COUNT !== "1") {
+    const replicaCount = process.env.GATEWAY_REPLICA_COUNT ? Number(process.env.GATEWAY_REPLICA_COUNT!) : null;
+    if (replicaCount && replicaCount > 1) {
         const docker = new Dockerode();
         const container = docker.getContainer(process.env.HOSTNAME!);
         const inspect = await container.inspect();
