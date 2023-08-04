@@ -34,7 +34,7 @@ else
     echo ${GATEWAY_SHARD_START:=0} > /tmp/shard_id_start
     GATEWAY_SHARD_START=$(cat /tmp/shard_id_start)
 
-    SHARD_END=$((GATEWAY_SHARD_END - 1))
+    SHARD_END=$((GATEWAY_SHARD_COUNT_PER_REPLICA - 1))
     echo "${SHARD_END}" > /tmp/shard_id_end
     GATEWAY_SHARD_END=$(cat /tmp/shard_id_end)
 
