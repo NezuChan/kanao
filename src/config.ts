@@ -1,12 +1,37 @@
-import { Result } from "@sapphire/result";
 import { PresenceUpdateStatus } from "discord-api-types/v10";
-import { readFileSync } from "fs";
 import { default as IORedis } from "ioredis";
 import { hostname } from "os";
-import { parse } from "yaml";
+import Dockerode from "dockerode";
+import { chunk, range } from "@sapphire/utilities";
 
-const file = Result.from(() => readFileSync(new URL("../config.yml", import.meta.url)).toString()).unwrapOr(null);
-const yaml = parse(file ?? "") as YamlConfig | null;
+export const getShardCount = async () => {
+    if (process.env.REPLICA_COUNT !== "1") {
+        const docker = new Dockerode();
+        const container = docker.getContainer(process.env.HOSTNAME!);
+        const inspect = await container.inspect();
+        const gatewayShardCount = process.env.GATEWAY_SHARD_COUNT ? Number(process.env.GATEWAY_SHARD_COUNT!) : null;
+        const gatewayShardCountPerReplica = process.env.GATEWAY_SHARD_COUNT_PER_REPLICA ? Number(process.env.GATEWAY_SHARD_COUNT_PER_REPLICA!) : null;
+        if (gatewayShardCount && gatewayShardCountPerReplica) {
+            const shards = range(0, gatewayShardCount, 1);
+            const chunks = chunk(shards, gatewayShardCountPerReplica);
+            const parts = inspect.Name.split("-");
+            const replicaId = Number(parts[parts.length - 1] ?? 1) - 1;
+            const shardIds = chunks[replicaId];
+            return {
+                end: shardIds[shardIds.length - 1],
+                start: shardIds[0]
+            };
+        }
+    }
+
+    return process.env.GATEWAY_SHARD_START && process.env.GATEWAY_SHARD_END
+        ? {
+            start: Number(process.env.GATEWAY_SHARD_START),
+            end: Number(process.env.GATEWAY_SHARD_END)
+        }
+        : null;
+};
+
 
 export const redisUsername = process.env.REDIS_USERNAME;
 export const redisPassword = process.env.REDIS_PASSWORD;
@@ -41,13 +66,7 @@ export const gatewayHelloTimeout = process.env.GATEWAY_HELLO_TIMEOUT ? Number(pr
 export const gatewayReadyTimeout = process.env.GATEWAY_READY_TIMEOUT ? Number(process.env.GATEWAY_READY_TIMEOUT!) : null;
 export const gatewayHandShakeTimeout = process.env.GATEWAY_HANDSHAKE_TIMEOUT ? Number(process.env.GATEWAY_HANDSHAKE_TIMEOUT!) : null;
 export const gatewayLargeThreshold = Number(process.env.GATEWAY_LARGE_THRESHOLD ?? 250);
-export const gatewayShardCount = yaml?.gateway.shard_count ?? process.env.GATEWAY_SHARD_COUNT ? Number(process.env.GATEWAY_SHARD_COUNT!) : null;
-export const gatewayShardIds = (yaml?.gateway.shard_start || process.env.GATEWAY_SHARD_START) && (yaml?.gateway.shard_end || process.env.GATEWAY_SHARD_END)
-    ? {
-        start: yaml?.gateway.shard_start ?? Number(process.env.GATEWAY_SHARD_START),
-        end: yaml?.gateway.shard_end ?? Number(process.env.GATEWAY_SHARD_END)
-    }
-    : null;
+export const gatewayShardCount = process.env.GATEWAY_SHARD_COUNT ? Number(process.env.GATEWAY_SHARD_COUNT!) : null;
 
 export const production = process.env.NODE_ENV === "production";
 
@@ -60,18 +79,6 @@ export const stateChannels = process.env.STATE_CHANNEL === "true";
 export const stateEmojis = process.env.STATE_EMOJI === "true";
 export const stateMessages = process.env.STATE_MESSAGE === "true";
 
-export const replicaId = yaml?.replica.id ?? process.env.REPLICA_ID ?? hostname();
-export const replicaCount = yaml?.replica.count ?? Number(process.env.REPLICA_COUNT ?? "1");
+export const replicaId = hostname();
+export const replicaCount = Number(process.env.REPLICA_COUNT ?? "1");
 
-interface YamlConfig {
-    gateway: {
-        shard_count?: number;
-        shard_start?: number;
-        shard_end?: number;
-        shard_per_replica?: number;
-    };
-    replica: {
-        id?: number;
-        count?: number;
-    };
-}
