@@ -8,12 +8,16 @@ set -e
 # GATEWAY_SHARD_COUNT = 18
 # GATEWAY_SHARD_COUNT_PER_REPLICA = 6
 
+do_math() {
+  awk "BEGIN { print $* }"
+}
+
 if [[ -f "/tmp/shard_id_start" ]] && [[ -f "/tmp/shard_id_end" ]] && [[ -f "/tmp/replica_id" ]]; then
     GATEWAY_SHARD_START=$(cat /tmp/shard_id_start)
     GATEWAY_SHARD_END=$(cat /tmp/shard_id_end)
     REPLICA_ID=$(cat /tmp/replica_id)
 
-    ((MAX_REPLICA = ${REPLICA_COUNT:-1} - 1))
+    MAX_REPLICA=$(do_math "${REPLICA_COUNT:-1} - 1")
     if [[ $REPLICA_ID -gt $MAX_REPLICA ]]; then
         echo "[ENTRYPOINT] ERROR: Max replica ID exceeded (${REPLICA_ID})."
         exit 1
