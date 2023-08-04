@@ -61,4 +61,5 @@ echo "[ENTRYPOINT] Sleeping for 3s" && sleep 3
 echo "[ENTRYPOINT] Starting shard ID: $GATEWAY_SHARD_START & Ending shard ID: $GATEWAY_SHARD_END, REPLICA ID $REPLICA_ID, SHARD COUNT $GATEWAY_SHARD_COUNT"
 node -r dotenv/config dist/index.js
 child=$!
+echo "[ENTRYPOINT] Waiting for child process: $child"
 wait "$child"
