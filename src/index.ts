@@ -44,7 +44,7 @@ console.log(
                 ` Nezu Gateway: v${packageJson.version}`,
                 ` ├ ReplicaId: ${replicaId}`,
                 ` ├ ReplicaCount: ${replicaCount}`,
-                ` ├ Shards: ${shardIds ? range(shardIds.start, shardIds.end, 1) : range(0, gateway.ws.options.shardCount ?? 1, 1)}`,
+                ` ├ Shards: ${shardIds ? range(shardIds.start, shardIds.end, 1) : range(0, (gateway.ws.options.shardCount ?? 1) - 1, 1)}`,
                 ` └ ShardCount: ${gateway.ws.options.shardCount ?? 1} shards`
             ]
         })
