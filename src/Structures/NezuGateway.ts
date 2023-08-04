@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import EventEmitter from "node:events";
 import { createLogger } from "../Utilities/Logger.js";
-import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, replicaId, storeLogs } from "../config.js";
+import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayEncoding, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, replicaId, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, Encoding, SessionInfo, WebSocketManager, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
 import { Util, createAmqpChannel, createRedis, RoutingKey } from "@nezuchan/utilities";
@@ -77,7 +77,7 @@ export class NezuGateway extends EventEmitter {
             }
             return null;
         },
-        encoding: WebsocketEncoding.ETF as unknown as Encoding,
+        encoding: gatewayEncoding as unknown as Encoding,
         compression: gatewayCompression ? CompressionMethod.ZlibStream : null,
         rest: this.rest
     });
