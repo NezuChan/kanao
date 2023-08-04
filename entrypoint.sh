@@ -57,6 +57,6 @@ yq -i ".gateway.shard_end = $GATEWAY_SHARD_END" /config.yml
 yq -i ".gateway.shard_count = $GATEWAY_SHARD_COUNT" /config.yml
 
 echo "[ENTRYPOINT] Starting shard ID: $GATEWAY_SHARD_START & Ending shard ID: $GATEWAY_SHARD_END, REPLICA ID $REPLICA_ID, SHARD COUNT $GATEWAY_SHARD_COUNT"
-node dotenv/config dist/index.js
+node -r dotenv/config dist/index.js
 child=$!
 wait "$child"
