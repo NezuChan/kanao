@@ -22,8 +22,6 @@ RUN npm prune --production
 
 FROM ghcr.io/hazmi35/node:18-alpine
 
-WORKDIR /opt/Gateway
-
 LABEL name "NezukoChan Gateway Production"
 LABEL maintainer "KagChi"
 
