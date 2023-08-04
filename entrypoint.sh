@@ -17,11 +17,11 @@ if [[ -f "/tmp/shard_id_start" ]] && [[ -f "/tmp/shard_id_end" ]] && [[ -f "/tmp
         echo "[ENTRYPOINT] ERROR: Max replica ID exceeded (${REPLICA_ID})."
         exit 1
     else
-        SHARD_START=$((TEMP_GATEWAY_SHARD_END + 1)) # 0 + 5 + 1 = 6 (Example calculation)
+        SHARD_START=$((TEMP_GATEWAY_SHARD_END + 1)) # 5 + 1 = 6 (Example calculation)
         echo "${SHARD_START}" > /tmp/shard_id_start 
         GATEWAY_SHARD_START=$(cat /tmp/shard_id_start)
 
-        SHARD_END=$((TEMP_GATEWAY_SHARD_END + GATEWAY_SHARD_COUNT_PER_REPLICA)) # 5 + 6 = 11 (Example calculation)
+        SHARD_END=$((TEMP_GATEWAY_SHARD_END + GATEWAY_SHARD_COUNT_PER_REPLICA - 1)) # 5 + 6 = 11 (Example calculation)
         echo "${SHARD_END}" > /tmp/shard_id_end
         GATEWAY_SHARD_END=$(cat /tmp/shard_id_end)
 

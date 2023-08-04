@@ -1,0 +1,9 @@
+gateway:
+  shard_count: 18
+  shard_start: 0
+  shard_end: 6
+  shard_per_replica: 6
+
+replica:
+  id: 0
+  count: 1
