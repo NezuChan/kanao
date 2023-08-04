@@ -52,9 +52,9 @@ export GATEWAY_SHARD_START=$(cat /tmp/shard_id_start)
 export GATEWAY_SHARD_END=$(cat /tmp/shard_id_end)
 export REPLICA_ID=$(cat /tmp/replica_id)
 
-yq -i ".gateway.shard_start = $GATEWAY_SHARD_START" /opt/Gateway/config.yml
-yq -i ".gateway.shard_end = $GATEWAY_SHARD_END" /opt/Gateway/config.yml
-yq -i ".gateway.shard_count = $GATEWAY_SHARD_COUNT" /opt/Gateway/config.yml
+yq -i ".gateway.shard_start = $GATEWAY_SHARD_START" /config.yml
+yq -i ".gateway.shard_end = $GATEWAY_SHARD_END" /config.yml
+yq -i ".gateway.shard_count = $GATEWAY_SHARD_COUNT" /config.yml
 
 echo "[ENTRYPOINT] Starting shard ID: $GATEWAY_SHARD_START & Ending shard ID: $GATEWAY_SHARD_END, REPLICA ID $REPLICA_ID, SHARD COUNT $GATEWAY_SHARD_COUNT"
 node dotenv/config dist/index.js
