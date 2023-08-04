@@ -5,8 +5,10 @@ import { default as IORedis } from "ioredis";
 import { hostname } from "os";
 import { parse } from "yaml";
 
-const file = Result.from(() => readFileSync("./config.yml", "utf-8")).unwrapOr(null);
+const file = Result.from(() => readFileSync(new URL("../config.yml", import.meta.url)).toString()).unwrapOr(null);
 const yaml = parse(file ?? "") as YamlConfig | null;
+
+console.log(yaml);
 
 export const redisUsername = process.env.REDIS_USERNAME;
 export const redisPassword = process.env.REDIS_PASSWORD;
