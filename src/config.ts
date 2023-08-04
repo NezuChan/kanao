@@ -80,5 +80,5 @@ export const stateEmojis = process.env.STATE_EMOJI === "true";
 export const stateMessages = process.env.STATE_MESSAGE === "true";
 
 export const replicaId = hostname();
-export const replicaCount = Number(process.env.REPLICA_COUNT ?? "1");
+export const replicaCount = Number(process.env.GATEWAY_REPLICA_COUNT ?? "1");
 
