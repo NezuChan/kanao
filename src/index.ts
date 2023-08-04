@@ -6,10 +6,12 @@ import { Util } from "@nezuchan/utilities";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { NezuGateway } from "./Structures/NezuGateway.js";
-import { enabledCaches, replicaCount, replicaId } from "./config.js";
+import { getShardCount, replicaCount, replicaId } from "./config.js";
+import { range } from "@sapphire/utilities";
 
 const gateway = new NezuGateway();
 const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../package.json")}`);
+const shardIds = await getShardCount();
 
 try {
     await gateway.connect();
@@ -42,13 +44,12 @@ console.log(
                 ` Nezu Gateway: v${packageJson.version}`,
                 ` ├ ReplicaId: ${replicaId}`,
                 ` ├ ReplicaCount: ${replicaCount}`,
+                ` ├ Shards: ${shardIds ? range(shardIds.start, shardIds.end, 1) : range(0, gateway.ws.options.shardCount ?? 1, 1)}`,
                 ` └ ShardCount: ${gateway.ws.options.shardCount ?? 1} shards`
             ]
         })
     )
 );
-
-gateway.logger.info(`Enabled caches: ${enabledCaches.join(", ")}`);
 
 process.on("unhandledRejection", e => {
     if (e instanceof Error) {

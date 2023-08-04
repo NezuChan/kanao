@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import EventEmitter from "node:events";
 import { createLogger } from "../Utilities/Logger.js";
-import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardIds, gatewayShardsPerWorkers, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, replicaId, storeLogs } from "../config.js";
+import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, replicaId, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, Encoding, SessionInfo, WebSocketManager, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
 import { Util, createAmqpChannel, createRedis, RoutingKey } from "@nezuchan/utilities";
@@ -18,6 +18,7 @@ import { Channel } from "amqplib";
 import { WebsocketEncoding } from "kearsarge";
 
 const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../../package.json")}`);
+const shardIds = await getShardCount();
 
 export class NezuGateway extends EventEmitter {
     public rest = new REST({ api: proxy, rejectOnRateLimit: proxy === "https://discord.com/api" ? null : () => false });
@@ -50,7 +51,7 @@ export class NezuGateway extends EventEmitter {
         largeThreshold: gatewayLargeThreshold,
         token: discordToken,
         shardCount: gatewayShardCount,
-        shardIds: gatewayShardIds,
+        shardIds,
         initialPresence: {
             activities: [
                 {
@@ -101,8 +102,8 @@ export class NezuGateway extends EventEmitter {
         const shardCount = await this.ws.getShardCount();
 
         // When multiple replica is running, only reset few shards statuses
-        const shardStart = gatewayShardIds?.start ?? 0;
-        const shardEnd = gatewayShardIds?.end ?? shardCount;
+        const shardStart = shardIds?.start ?? 0;
+        const shardEnd = shardIds?.end ?? shardCount;
 
         for (let i = shardStart; i < shardEnd; i++) {
             await this.redis.set(GenKey(RedisKey.STATUSES_KEY, i.toString()), JSON.stringify({ latency: -1, status: WebSocketShardStatus.Connecting, startAt: Date.now() }));

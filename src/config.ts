@@ -1,6 +1,37 @@
 import { PresenceUpdateStatus } from "discord-api-types/v10";
 import { default as IORedis } from "ioredis";
 import { hostname } from "os";
+import Dockerode from "dockerode";
+import { chunk, range } from "@sapphire/utilities";
+
+export const getShardCount = async () => {
+    if (process.env.REPLICA_COUNT !== "1") {
+        const docker = new Dockerode();
+        const container = docker.getContainer(process.env.HOSTNAME!);
+        const inspect = await container.inspect();
+        const gatewayShardCount = process.env.GATEWAY_SHARD_COUNT ? Number(process.env.GATEWAY_SHARD_COUNT!) : null;
+        const gatewayShardCountPerReplica = process.env.GATEWAY_SHARD_COUNT_PER_REPLICA ? Number(process.env.GATEWAY_SHARD_COUNT_PER_REPLICA!) : null;
+        if (gatewayShardCount && gatewayShardCountPerReplica) {
+            const shards = range(0, gatewayShardCount, 1);
+            const chunks = chunk(shards, gatewayShardCountPerReplica);
+            const parts = inspect.Name.split("-");
+            const replicaId = Number(parts[parts.length - 1] ?? 1) - 1;
+            const shardIds = chunks[replicaId];
+            return {
+                end: shardIds[shardIds.length - 1],
+                start: shardIds[0]
+            };
+        }
+    }
+
+    return process.env.GATEWAY_SHARD_START && process.env.GATEWAY_SHARD_END
+        ? {
+            start: Number(process.env.GATEWAY_SHARD_START),
+            end: Number(process.env.GATEWAY_SHARD_END)
+        }
+        : null;
+};
+
 
 export const redisUsername = process.env.REDIS_USERNAME;
 export const redisPassword = process.env.REDIS_PASSWORD;
@@ -36,12 +67,6 @@ export const gatewayReadyTimeout = process.env.GATEWAY_READY_TIMEOUT ? Number(pr
 export const gatewayHandShakeTimeout = process.env.GATEWAY_HANDSHAKE_TIMEOUT ? Number(process.env.GATEWAY_HANDSHAKE_TIMEOUT!) : null;
 export const gatewayLargeThreshold = Number(process.env.GATEWAY_LARGE_THRESHOLD ?? 250);
 export const gatewayShardCount = process.env.GATEWAY_SHARD_COUNT ? Number(process.env.GATEWAY_SHARD_COUNT!) : null;
-export const gatewayShardIds = process.env.GATEWAY_SHARD_START && process.env.GATEWAY_SHARD_END
-    ? {
-        start: Number(process.env.GATEWAY_SHARD_START),
-        end: Number(process.env.GATEWAY_SHARD_END)
-    }
-    : null;
 
 export const production = process.env.NODE_ENV === "production";
 
@@ -54,39 +79,6 @@ export const stateChannels = process.env.STATE_CHANNEL === "true";
 export const stateEmojis = process.env.STATE_EMOJI === "true";
 export const stateMessages = process.env.STATE_MESSAGE === "true";
 
-export const replicaId = process.env.REPLICA_ID ?? hostname();
-export const replicaCount = Number(process.env.REPLICA_COUNT ?? "1");
+export const replicaId = hostname();
+export const replicaCount = Number(process.env.GATEWAY_REPLICA_COUNT ?? "1");
 
-export const enabledCaches: string[] = [];
-
-if (stateChannels) {
-    enabledCaches.push("channels");
-}
-
-if (stateEmojis) {
-    enabledCaches.push("emojis");
-}
-
-if (stateMembers) {
-    enabledCaches.push("members");
-}
-
-if (stateMessages) {
-    enabledCaches.push("messages");
-}
-
-if (stateRoles) {
-    enabledCaches.push("roles");
-}
-
-if (stateUsers) {
-    enabledCaches.push("users");
-}
-
-if (stateVoices) {
-    enabledCaches.push("voices");
-}
-
-if (statePresences) {
-    enabledCaches.push("presences");
-}
