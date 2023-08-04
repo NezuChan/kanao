@@ -12,8 +12,10 @@ if [[ -f "/tmp/shard_id_start" ]] && [[ -f "/tmp/shard_id_end" ]] && [[ -f "/tmp
     TEMP_GATEWAY_SHARD_START=$(cat /tmp/shard_id_start)
     TEMP_GATEWAY_SHARD_END=$(cat /tmp/shard_id_end)
     TEMP_REPLICA_ID=$(cat /tmp/replica_id)
+    MAX_REPLICA=$((REPLICA_COUNT - 1))
 
-    if [[ $TEMP_REPLICA_ID -ge $REPLICA_COUNT ]]; then
+    if [[ $TEMP_REPLICA_ID -ge $MAX_REPLICA ]]; then
+        rm -f /tmp/shard_id_start /tmp/shard_id_end /tmp/replica_id
         echo "[ENTRYPOINT] ERROR: Max replica ID exceeded (${REPLICA_ID})."
         exit 1
     else
