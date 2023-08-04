@@ -14,7 +14,7 @@ if [[ -f "/tmp/shard_id_start" ]] && [[ -f "/tmp/shard_id_end" ]] && [[ -f "/tmp
     TEMP_GATEWAY_SHARD_END=$(cat /tmp/shard_id_end)
     TEMP_REPLICA_ID=$(cat /tmp/replica_id)
 
-    if [[ $TEMP_REPLICA_ID -gt $REPLICA_COUNT ]]; then
+    if [[ $TEMP_REPLICA_ID -ge $REPLICA_COUNT ]]; then
         echo "[ENTRYPOINT] ERROR: Max replica ID exceeded (${REPLICA_ID})."
         exit 1
     else
@@ -48,11 +48,15 @@ function cleanup() {
 
 trap "cleanup" SIGKILL SIGTERM SIGHUP SIGINT
 
-export GATEWAY_SHARD_END=$(cat /tmp/shard_id_end)
 export GATEWAY_SHARD_START=$(cat /tmp/shard_id_start)
+export GATEWAY_SHARD_END=$(cat /tmp/shard_id_end)
 export REPLICA_ID=$(cat /tmp/replica_id)
 
-echo "[ENTRYPOINT] Starting shard ID: $GATEWAY_SHARD_START & Ending shard ID: $GATEWAY_SHARD_END, REPLICA ID $REPLICA_ID, SHARD_COUNT $GATEWAY_SHARD_COUNT"
-node -r dotenv/config dist/index.js
+yq -i ".gateway.shard_start = $GATEWAY_SHARD_START" /opt/Gateway/config.yml
+yq -i ".gateway.shard_end = $GATEWAY_SHARD_END" /opt/Gateway/config.yml
+yq -i ".gateway.shard_count = $GATEWAY_SHARD_COUNT" /opt/Gateway/config.yml
+
+echo "[ENTRYPOINT] Starting shard ID: $GATEWAY_SHARD_START & Ending shard ID: $GATEWAY_SHARD_END, REPLICA ID $REPLICA_ID, SHARD COUNT $GATEWAY_SHARD_COUNT"
+node dotenv/config dist/index.js
 child=$!
 wait "$child"
