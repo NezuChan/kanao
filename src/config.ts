@@ -3,7 +3,6 @@ import { default as IORedis } from "ioredis";
 import { hostname } from "os";
 import Dockerode from "dockerode";
 import { chunk, range } from "@sapphire/utilities";
-import { WebsocketEncoding } from "kearsarge";
 
 export const getShardCount = async () => {
     const replicaCount = process.env.GATEWAY_REPLICA_COUNT ? Number(process.env.GATEWAY_REPLICA_COUNT!) : null;
@@ -56,7 +55,6 @@ export const enablePrometheus = process.env.ENABLE_PROMETHEUS === "true";
 export const prometheusPort = Number(process.env.PROMETHEUS_PORT ?? 9090);
 export const prometheusPath = process.env.PROMETHEUS_PATH ?? "/metrics";
 
-export const gatewayEncoding = process.env.GATEWAY_ENCODING as WebsocketEncoding | undefined ?? WebsocketEncoding.ETF;
 export const gatewayCompression = process.env.GATEWAY_COMPRESSION === "true";
 export const gatewayResume = process.env.GATEWAY_RESUME ? process.env.GATEWAY_RESUME === "true" : true;
 export const gatewayGuildPerShard = Number(process.env.GUILD_PER_SHARD ?? 2000);
