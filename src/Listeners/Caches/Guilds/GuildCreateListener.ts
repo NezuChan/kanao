@@ -1,6 +1,6 @@
 import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayDispatchEvents, GatewayGuildCreateDispatch } from "discord-api-types/v10";
-import { clientId, stateChannels, stateEmojis, stateMembers, stateRoles, stateUsers, stateVoices } from "../../../config.js";
+import { clientId, stateChannels, stateEmojis, stateMembers, stateRoles, stateUsers, stateVoices, statePresences } from "../../../config.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { GenKey } from "../../../Utilities/GenKey.js";
 import { RoutingKey } from "@nezuchan/utilities";
@@ -62,6 +62,14 @@ export class GuildCreateListener extends Listener {
                 }
             }
             payload.data.d.emojis = [];
+        }
+
+        if (statePresences) {
+            for (const presence of payload.data.d.presences) {
+                await this.store.redis.set(GenKey(`${RedisKey.PRESENCE_KEY}`, presence.user.id, payload.data.d.id), JSON.stringify(presence));
+                await this.store.redis.sadd(GenKey(`${RedisKey.PRESENCE_KEY}${RedisKey.KEYS_SUFFIX}`, presence.user.id, payload.data.d.id), GenKey(`${RedisKey.PRESENCE_KEY}`, presence.user.id, payload.data.d.id));
+            }
+            payload.data.d.presences = [];
         }
 
         await this.store.redis.sadd(GenKey(`${RedisKey.GUILD_KEY}${RedisKey.KEYS_SUFFIX}`), GenKey(`${RedisKey.GUILD_KEY}`, payload.data.d.id));
