@@ -3,26 +3,30 @@ import { default as IORedis } from "ioredis";
 import { hostname } from "os";
 import Dockerode from "dockerode";
 import { chunk, range } from "@sapphire/utilities";
+import { Result } from "@sapphire/result";
 
 export const getShardCount = async () => {
     const replicaCount = process.env.GATEWAY_REPLICA_COUNT ? Number(process.env.GATEWAY_REPLICA_COUNT!) : null;
     if (replicaCount && replicaCount > 1) {
-        const docker = new Dockerode();
-        const container = docker.getContainer(process.env.HOSTNAME!);
-        const inspect = await container.inspect();
-        const gatewayShardCount = process.env.GATEWAY_SHARD_COUNT ? Number(process.env.GATEWAY_SHARD_COUNT!) : null;
-        const gatewayShardCountPerReplica = process.env.GATEWAY_SHARD_COUNT_PER_REPLICA ? Number(process.env.GATEWAY_SHARD_COUNT_PER_REPLICA!) : null;
-        if (gatewayShardCount && gatewayShardCountPerReplica) {
-            const shards = gatewayShardCount >= 2 ? range(0, gatewayShardCount, 1) : [0];
-            const chunks = chunk(shards, gatewayShardCountPerReplica);
-            const parts = inspect.Name.split("-");
-            const replicaId = Number(parts[parts.length - 1] ?? 1) - 1;
-            const shardIds = chunks[replicaId];
-            return {
-                end: shardIds[shardIds.length - 1],
-                start: shardIds[0]
-            };
-        }
+        const result = await Result.fromAsync(async () => {
+            const docker = new Dockerode();
+            const container = docker.getContainer(process.env.HOSTNAME!);
+            const inspect = await container.inspect();
+            const gatewayShardCount = process.env.GATEWAY_SHARD_COUNT ? Number(process.env.GATEWAY_SHARD_COUNT!) : null;
+            const gatewayShardCountPerReplica = process.env.GATEWAY_SHARD_COUNT_PER_REPLICA ? Number(process.env.GATEWAY_SHARD_COUNT_PER_REPLICA!) : null;
+            if (gatewayShardCount && gatewayShardCountPerReplica) {
+                const shards = gatewayShardCount >= 2 ? range(0, gatewayShardCount, 1) : [0];
+                const chunks = chunk(shards, gatewayShardCountPerReplica);
+                const parts = inspect.Name.split("-");
+                const replicaId = Number(parts[parts.length - 1] ?? 1) - 1;
+                const shardIds = chunks[replicaId];
+                return {
+                    end: shardIds[shardIds.length - 1],
+                    start: shardIds[0]
+                };
+            }
+        });
+        if (result.isOk()) return result.unwrap();
     }
 
     return process.env.GATEWAY_SHARD_START && process.env.GATEWAY_SHARD_END
