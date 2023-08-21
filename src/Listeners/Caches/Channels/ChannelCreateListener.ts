@@ -8,18 +8,17 @@ import { RoutingKey } from "@nezuchan/utilities";
 export class ChannelCreateListener extends Listener {
     public constructor(context: ListenerContext) {
         super(context, {
-            event: GatewayDispatchEvents.ChannelCreate,
-            enabled: stateChannels
+            event: GatewayDispatchEvents.ChannelCreate
         });
     }
 
     public async run(payload: { data: GatewayChannelCreateDispatch; shardId: number }): Promise<void> {
-        if ("guild_id" in payload.data.d && payload.data.d.guild_id) {
+        if (stateChannels && "guild_id" in payload.data.d && payload.data.d.guild_id) {
             await this.store.redis.set(GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id, payload.data.d.guild_id), JSON.stringify(payload.data.d));
-            await this.store.redis.sadd(GenKey(`${RedisKey.CHANNEL_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.id, payload.data.d.guild_id), GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id, payload.data.d.guild_id));
-        } else {
+            await this.store.redis.sadd(GenKey(`${RedisKey.CHANNEL_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.guild_id), GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id, payload.data.d.guild_id));
+        } else if (stateChannels) {
             await this.store.redis.set(GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id), JSON.stringify(payload.data.d));
-            await this.store.redis.sadd(GenKey(`${RedisKey.CHANNEL_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.id), GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id));
+            await this.store.redis.sadd(GenKey(`${RedisKey.CHANNEL_KEY}${RedisKey.KEYS_SUFFIX}`), GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id));
         }
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));

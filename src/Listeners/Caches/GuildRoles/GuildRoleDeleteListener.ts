@@ -8,16 +8,17 @@ import { RoutingKey } from "@nezuchan/utilities";
 export class GuildRoleDeleteListener extends Listener {
     public constructor(context: ListenerContext) {
         super(context, {
-            event: GatewayDispatchEvents.GuildRoleDelete,
-            enabled: stateRoles
+            event: GatewayDispatchEvents.GuildRoleDelete
         });
     }
 
     public async run(payload: { data: GatewayGuildRoleDeleteDispatch; shardId: number }): Promise<void> {
         const old = await this.store.redis.get(GenKey(RedisKey.ROLE_KEY, payload.data.d.role_id, payload.data.d.guild_id));
 
-        await this.store.redis.unlink(GenKey(RedisKey.ROLE_KEY, payload.data.d.role_id, payload.data.d.guild_id));
-        await this.store.redis.srem(GenKey(`${RedisKey.ROLE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.guild_id), GenKey(RedisKey.ROLE_KEY, payload.data.d.role_id, payload.data.d.guild_id));
+        if (stateRoles) {
+            await this.store.redis.unlink(GenKey(RedisKey.ROLE_KEY, payload.data.d.role_id, payload.data.d.guild_id));
+            await this.store.redis.srem(GenKey(`${RedisKey.ROLE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.guild_id), GenKey(RedisKey.ROLE_KEY, payload.data.d.role_id, payload.data.d.guild_id));
+        }
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
             ...payload.data,

@@ -8,8 +8,7 @@ import { RoutingKey } from "@nezuchan/utilities";
 export class GuildRoleUpdateListener extends Listener {
     public constructor(context: ListenerContext) {
         super(context, {
-            event: GatewayDispatchEvents.GuildRoleUpdate,
-            enabled: stateRoles
+            event: GatewayDispatchEvents.GuildRoleUpdate
         });
     }
 

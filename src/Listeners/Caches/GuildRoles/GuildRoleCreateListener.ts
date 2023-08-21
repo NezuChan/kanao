@@ -8,14 +8,15 @@ import { RoutingKey } from "@nezuchan/utilities";
 export class GuildRoleCreateListener extends Listener {
     public constructor(context: ListenerContext) {
         super(context, {
-            event: GatewayDispatchEvents.GuildRoleCreate,
-            enabled: stateRoles
+            event: GatewayDispatchEvents.GuildRoleCreate
         });
     }
 
     public async run(payload: { data: GatewayGuildRoleCreateDispatch; shardId: number }): Promise<void> {
-        await this.store.redis.set(GenKey(RedisKey.ROLE_KEY, payload.data.d.role.id, payload.data.d.guild_id), JSON.stringify(payload.data.d.role));
-        await this.store.redis.sadd(GenKey(`${RedisKey.ROLE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.guild_id), GenKey(RedisKey.ROLE_KEY, payload.data.d.role.id, payload.data.d.guild_id));
+        if (stateRoles) {
+            await this.store.redis.set(GenKey(RedisKey.ROLE_KEY, payload.data.d.role.id, payload.data.d.guild_id), JSON.stringify(payload.data.d.role));
+            await this.store.redis.sadd(GenKey(`${RedisKey.ROLE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.guild_id), GenKey(RedisKey.ROLE_KEY, payload.data.d.role.id, payload.data.d.guild_id));
+        }
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }
 }
