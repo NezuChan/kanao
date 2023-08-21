@@ -17,9 +17,9 @@ export class ChannelPintsUpdateListener extends Listener {
         const channel = await this.store.redis.get(GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id, "guild_id" in payload.data.d && payload.data.d.guild_id ? payload.data.d.guild_id : undefined));
 
         if ("guild_id" in payload.data.d && payload.data.d.guild_id) {
-            await this.store.redis.unlink(GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id, payload.data.d.guild_id));
+            await this.store.redis.unlink(GenKey(RedisKey.CHANNEL_KEY, payload.data.d.guild_id));
         } else {
-            await this.store.redis.unlink(GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id));
+            await this.store.redis.unlink(GenKey(RedisKey.CHANNEL_KEY));
         }
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({

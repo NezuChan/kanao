@@ -3,7 +3,7 @@ import { GatewayDispatchEvents, GatewayGuildDeleteDispatch } from "discord-api-t
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { RoutingKey, redisSScanStreamPromise } from "@nezuchan/utilities";
 import { GenKey } from "../../../Utilities/GenKey.js";
-import { clientId } from "../../../config.js";
+import { clientId, redisClusters } from "../../../config.js";
 
 export class GuildDeleteListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -23,28 +23,52 @@ export class GuildDeleteListener extends Listener {
         const presences = await redisSScanStreamPromise(this.store.redis, GenKey(`${RedisKey.PRESENCE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.id), "*", 1000);
         const voiceStates = await redisSScanStreamPromise(this.store.redis, GenKey(`${RedisKey.VOICE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.id), "*", 1000);
 
-        for (const role of roles) {
-            await this.store.redis.unlink(role);
+        if (redisClusters.length) {
+            for (const role of roles) {
+                await this.store.redis.unlink(role);
+            }
+        } else {
+            await this.store.redis.unlink(...roles);
         }
 
-        for (const channel of channels) {
-            await this.store.redis.unlink(channel);
+        if (redisClusters.length) {
+            for (const channel of channels) {
+                await this.store.redis.unlink(channel);
+            }
+        } else {
+            await this.store.redis.unlink(...channels);
         }
 
-        for (const member of members) {
-            await this.store.redis.unlink(member);
+        if (redisClusters.length) {
+            for (const member of members) {
+                await this.store.redis.unlink(member);
+            }
+        } else {
+            await this.store.redis.unlink(...members);
         }
 
-        for (const emoji of emojis) {
-            await this.store.redis.unlink(emoji);
+        if (redisClusters.length) {
+            for (const emoji of emojis) {
+                await this.store.redis.unlink(emoji);
+            }
+        } else {
+            await this.store.redis.unlink(...emojis);
         }
 
-        for (const presence of presences) {
-            await this.store.redis.unlink(presence);
+        if (redisClusters.length) {
+            for (const presence of presences) {
+                await this.store.redis.unlink(presence);
+            }
+        } else {
+            await this.store.redis.unlink(...presences);
         }
 
-        for (const voiceState of voiceStates) {
-            await this.store.redis.unlink(voiceState);
+        if (redisClusters.length) {
+            for (const voiceState of voiceStates) {
+                await this.store.redis.unlink(voiceState);
+            }
+        } else {
+            await this.store.redis.unlink(...voiceStates);
         }
 
         await this.store.redis.unlink(GenKey(RedisKey.GUILD_KEY, payload.data.d.id));
