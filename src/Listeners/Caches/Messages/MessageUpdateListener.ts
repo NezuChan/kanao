@@ -15,11 +15,11 @@ export class MessageUpdateListener extends Listener {
 
     public async run(payload: { data: GatewayMessageUpdateDispatch; shardId: number }): Promise<void> {
         const raw_message = await this.store.redis.get(GenKey(RedisKey.MESSAGE_KEY, payload.data.d.id, payload.data.d.guild_id));
-        
+
         if (stateMessages) {
             if (raw_message) {
                 const message = JSON.parse(raw_message) as APIMessage;
-    
+
                 if (message.attachments.length) message.attachments = payload.data.d.attachments ?? [];
                 if (message.content) message.content = payload.data.d.content ?? "";
                 if (message.embeds.length) message.embeds = payload.data.d.embeds ?? [];
@@ -30,7 +30,7 @@ export class MessageUpdateListener extends Listener {
                 if (message.pinned) message.pinned = payload.data.d.pinned ?? false;
                 if (message.timestamp) message.timestamp = payload.data.d.timestamp ?? new Date().toString();
                 if (message.tts) message.tts = payload.data.d.tts ?? false;
-    
+
                 await this.store.redis.set(GenKey(RedisKey.MESSAGE_KEY, payload.data.d.id, payload.data.d.guild_id), JSON.stringify(message));
             } else {
                 await this.store.redis.set(GenKey(RedisKey.MESSAGE_KEY, payload.data.d.id, payload.data.d.guild_id), JSON.stringify(payload.data.d));
