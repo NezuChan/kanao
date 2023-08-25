@@ -64,11 +64,11 @@
     "@types/amqplib": "^0.10.1",
     "@types/dockerode": "^3.3.19",
     "@types/gradient-string": "^1.1.2",
-    "@types/node": "^18.17.9",
+    "@types/node": "^18.17.11",
     "@typescript-eslint/eslint-plugin": "^6.4.1",
     "@typescript-eslint/parser": "^6.4.1",
     "@vladfrangu/async_event_emitter": "^2.2.2",
-    "discord-api-types": "^0.37.54",
+    "discord-api-types": "^0.37.55",
     "eslint": "^8.47.0",
     "rimraf": "^5.0.1",
     "typescript": "^5.1.6"
