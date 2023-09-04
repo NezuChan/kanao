@@ -61,7 +61,7 @@ export abstract class Listener extends Piece {
 
     private async _run(...args: unknown[]): Promise<void> {
         const result = await Result.fromAsync(() => this.run(...args));
-        if (result.isErr()) this.logger.error(result.unwrapErr());
+        if (result.isErr()) this.logger.error(result.unwrapErr(), this.name);
     }
 
     private async _runOnce(...args: unknown[]): Promise<void> {
