@@ -131,7 +131,7 @@ export class NezuGateway extends EventEmitter {
                         const shard_status = raw_value ? JSON.parse(raw_value) as { latency: number } : { latency: -1 };
                         stats.push({ shardId, status, latency: shard_status.latency });
                     }
-
+                    channel.ack(message);
                     await amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, content.route, Buffer.from(
                         JSON.stringify({
                             shards: stats,
