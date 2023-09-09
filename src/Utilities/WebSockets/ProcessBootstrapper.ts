@@ -90,7 +90,7 @@ export class ProcessBootstrapper {
                 );
 
 
-                await channel.consume(queue, this.onConsumeMessage.bind(this));
+                await channel.consume(queue, m => this.onConsumeMessage(channel, m));
             }
         });
 
@@ -108,8 +108,9 @@ export class ProcessBootstrapper {
         );
     }
 
-    public async onConsumeMessage(message: ConsumeMessage | null) {
+    public async onConsumeMessage(channel: Channel, message: ConsumeMessage | null) {
         if (!message) return;
+        channel.ack(message);
         const content = JSON.parse(message.content.toString()) as { op: number; data: unknown };
         const shardId = RoutingKeyToId(clientId, message.fields.routingKey);
         switch (content.op) {
