@@ -8,7 +8,7 @@ import { RoutingKey } from "@nezuchan/utilities";
 export class VoiceStateUpdateListener extends Listener {
     public constructor(context: ListenerContext) {
         super(context, {
-            event: GatewayDispatchEvents.VoiceStateUpdate
+            event: GatewayDispatchEvents.VoiceServerUpdate
         });
     }
 
