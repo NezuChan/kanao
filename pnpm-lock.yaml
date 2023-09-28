@@ -15,8 +15,8 @@ dependencies:
     specifier: ^1.0.1
     version: 1.0.1(bufferutil@4.0.7)(utf-8-validate@6.0.3)
   '@nezuchan/constants':
-    specifier: ^0.5.6
-    version: 0.5.6
+    specifier: ^0.5.8
+    version: 0.5.8
   '@nezuchan/utilities':
     specifier: ^0.5.1
     version: 0.5.1(amqplib@0.10.3)
@@ -322,8 +322,8 @@ packages:
       os-filter-obj: 2.0.0
     dev: true
 
-  /@nezuchan/constants@0.5.6:
-    resolution: {integrity: sha512-PSF1XVyqZTb+EnN5BdWpChD0dU7tl8JleUMVjmnw2tME1aRYvUAIaoQhJ/ZI9Ul6tJn4HP5sgX7IfmZpBslIvQ==}
+  /@nezuchan/constants@0.5.8:
+    resolution: {integrity: sha512-3uA7qcsNbFywyIu69tDStAskW0BBH8VAXXF6iaAGMEr9Im73BGBc5GYHqoZFFpuvdEUw3MQbu5uniB0PiMDMPw==}
     dev: false
 
   /@nezuchan/utilities@0.5.1(amqplib@0.10.3):
@@ -1572,7 +1572,7 @@ packages:
     hasBin: true
     dependencies:
       foreground-child: 3.1.1
-      jackspeak: 2.3.5
+      jackspeak: 2.3.6
       minimatch: 9.0.3
       minipass: 7.0.3
       path-scurry: 1.10.1
@@ -1782,8 +1782,8 @@ packages:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
     dev: true
 
-  /jackspeak@2.3.5:
-    resolution: {integrity: sha512-Ratx+B8WeXLAtRJn26hrhY8S1+Jz6pxPMrkrdkgb/NstTNiqMhX0/oFVu5wX+g5n6JlEu2LPsDJmY8nRP4+alw==}
+  /jackspeak@2.3.6:
+    resolution: {integrity: sha512-N3yCS/NegsOBokc8GAdM8UcmfsKiSS8cipheD/nivzr700H+nsMOxJjQnvwOcRYVuFkdH0wGUvW2WbXGmrZGbQ==}
     engines: {node: '>=14'}
     dependencies:
       '@isaacs/cliui': 8.0.2

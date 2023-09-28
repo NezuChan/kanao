@@ -36,6 +36,7 @@ export class ReadyListener extends Listener {
             case GatewayDispatchEvents.GuildRoleUpdate:
             case GatewayDispatchEvents.GuildRoleDelete:
             case GatewayDispatchEvents.PresenceUpdate:
+            case GatewayDispatchEvents.VoiceServerUpdate:
                 this.store.emitter.emit(payload.data.data.t, { shardId: payload.shardId, data: payload.data.data });
                 break;
             default:
