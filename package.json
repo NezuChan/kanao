@@ -56,7 +56,7 @@
     "pino-pretty": "^10.2.3",
     "prometheus-middleware": "^1.1.4",
     "utf-8-validate": "^6.0.3",
-    "yaml": "^2.3.2",
+    "yaml": "^2.3.3",
     "zlib-sync": "^0.1.8"
   },
   "devDependencies": {
