@@ -13,7 +13,7 @@ dependencies:
     version: 2.0.1
   '@discordjs/ws':
     specifier: ^1.0.1
-    version: 1.0.1(bufferutil@4.0.7)(utf-8-validate@6.0.3)
+    version: 1.0.1(bufferutil@4.0.8)(utf-8-validate@6.0.3)
   '@nezuchan/constants':
     specifier: ^0.5.8
     version: 0.5.8
@@ -42,8 +42,8 @@ dependencies:
     specifier: ^0.10.3
     version: 0.10.3
   bufferutil:
-    specifier: ^4.0.7
-    version: 4.0.7
+    specifier: ^4.0.8
+    version: 4.0.8
   discord-api-types:
     specifier: ^0.37.60
     version: 0.37.60
@@ -61,7 +61,7 @@ dependencies:
     version: 5.3.2
   kearsarge:
     specifier: ^1.0.3
-    version: 1.0.3(bufferutil@4.0.7)(discord.js@14.13.0)(utf-8-validate@6.0.3)
+    version: 1.0.3(bufferutil@4.0.8)(discord.js@14.13.0)(utf-8-validate@6.0.3)
   pino:
     specifier: ^8.16.0
     version: 8.16.0
@@ -194,7 +194,7 @@ packages:
     engines: {node: '>=16.11.0'}
     dev: false
 
-  /@discordjs/ws@1.0.1(bufferutil@4.0.7)(utf-8-validate@6.0.3):
+  /@discordjs/ws@1.0.1(bufferutil@4.0.8)(utf-8-validate@6.0.3):
     resolution: {integrity: sha512-avvAolBqN3yrSvdBPcJ/0j2g42ABzrv3PEL76e3YTp2WYMGH7cuspkjfSyNWaqYl1J+669dlLp+YFMxSVQyS5g==}
     engines: {node: '>=16.11.0'}
     dependencies:
@@ -206,7 +206,7 @@ packages:
       '@vladfrangu/async_event_emitter': 2.2.2
       discord-api-types: 0.37.50
       tslib: 2.6.2
-      ws: 8.13.0(bufferutil@4.0.7)(utf-8-validate@6.0.3)
+      ws: 8.13.0(bufferutil@4.0.8)(utf-8-validate@6.0.3)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -992,8 +992,8 @@ packages:
       ieee754: 1.2.1
     dev: false
 
-  /bufferutil@4.0.7:
-    resolution: {integrity: sha512-kukuqc39WOHtdxtw4UScxF/WVnMFVSQVKhtx3AjZJzhd0RGZZldcrfSEbVsWWe6KNH253574cq5F+wpv0G9pJw==}
+  /bufferutil@4.0.8:
+    resolution: {integrity: sha512-4T53u4PdgsXqKaIctwF8ifXlRTTmEPJ8iEPWFdGZvcf7sbwYo6FKFEX9eNNAnzFZ7EzJAQ3CJeOtCRA4rDp7Pw==}
     engines: {node: '>=6.14.2'}
     requiresBuild: true
     dependencies:
@@ -1177,7 +1177,7 @@ packages:
     resolution: {integrity: sha512-5BELXTsv7becqVHrD81nZrqT4oEyXXWBwbsO/kwDDu6X3u19VV1tYDB5I5vaVAK+c1chcDeheI9zACBLm41LiQ==}
     dev: false
 
-  /discord.js@14.13.0(bufferutil@4.0.7)(utf-8-validate@6.0.3):
+  /discord.js@14.13.0(bufferutil@4.0.8)(utf-8-validate@6.0.3):
     resolution: {integrity: sha512-Kufdvg7fpyTEwANGy9x7i4od4yu5c6gVddGi5CKm4Y5a6sF0VBODObI3o0Bh7TGCj0LfNT8Qp8z04wnLFzgnbA==}
     engines: {node: '>=16.11.0'}
     dependencies:
@@ -1186,7 +1186,7 @@ packages:
       '@discordjs/formatters': 0.3.2
       '@discordjs/rest': 2.0.1
       '@discordjs/util': 1.0.1
-      '@discordjs/ws': 1.0.1(bufferutil@4.0.7)(utf-8-validate@6.0.3)
+      '@discordjs/ws': 1.0.1(bufferutil@4.0.8)(utf-8-validate@6.0.3)
       '@sapphire/snowflake': 3.5.1
       '@types/ws': 8.5.5
       discord-api-types: 0.37.50
@@ -1194,7 +1194,7 @@ packages:
       lodash.snakecase: 4.1.1
       tslib: 2.6.2
       undici: 5.22.1
-      ws: 8.13.0(bufferutil@4.0.7)(utf-8-validate@6.0.3)
+      ws: 8.13.0(bufferutil@4.0.8)(utf-8-validate@6.0.3)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -1702,8 +1702,8 @@ packages:
       '@discordjs/ws': '>=1.0.0'
       discord.js: '>=14.10.x'
     dependencies:
-      '@discordjs/ws': 1.0.1(bufferutil@4.0.7)(utf-8-validate@6.0.3)
-      discord.js: 14.13.0(bufferutil@4.0.7)(utf-8-validate@6.0.3)
+      '@discordjs/ws': 1.0.1(bufferutil@4.0.8)(utf-8-validate@6.0.3)
+      discord.js: 14.13.0(bufferutil@4.0.8)(utf-8-validate@6.0.3)
     dev: false
 
   /inflight@1.0.6:
@@ -1815,11 +1815,11 @@ packages:
     resolution: {integrity: sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==}
     dev: true
 
-  /kearsarge@1.0.3(bufferutil@4.0.7)(discord.js@14.13.0)(utf-8-validate@6.0.3):
+  /kearsarge@1.0.3(bufferutil@4.0.8)(discord.js@14.13.0)(utf-8-validate@6.0.3):
     resolution: {integrity: sha512-HuV4VbVCZogGegCHj/CLkTafIWU/QzLqV8whlxPa54OuefAh5r6o/4ksOVmSqz6DQI5mVmj0Ziz/QmUyX6mt9Q==}
     dependencies:
       '@discordjs/collection': 1.5.3
-      '@discordjs/ws': 1.0.1(bufferutil@4.0.7)(utf-8-validate@6.0.3)
+      '@discordjs/ws': 1.0.1(bufferutil@4.0.8)(utf-8-validate@6.0.3)
       '@sapphire/async-queue': 1.5.0
       '@vladfrangu/async_event_emitter': 2.2.2
       discord-api-types: 0.37.60
@@ -2745,7 +2745,7 @@ packages:
   /wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
-  /ws@8.13.0(bufferutil@4.0.7)(utf-8-validate@6.0.3):
+  /ws@8.13.0(bufferutil@4.0.8)(utf-8-validate@6.0.3):
     resolution: {integrity: sha512-x9vcZYTrFPC7aSIbj7sRCYo7L/Xb8Iy+pW0ng0wt2vCJv7M9HOMy0UoN3rr+IFC7hb7vXoqS+P9ktyLLLhO+LA==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
@@ -2757,7 +2757,7 @@ packages:
       utf-8-validate:
         optional: true
     dependencies:
-      bufferutil: 4.0.7
+      bufferutil: 4.0.8
       utf-8-validate: 6.0.3
     dev: false
 
