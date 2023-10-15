@@ -45,7 +45,7 @@
     "@skyra/start-banner": "^2.0.0",
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.3",
-    "bufferutil": "^4.0.7",
+    "bufferutil": "^4.0.8",
     "discord-api-types": "^0.37.60",
     "dockerode": "^3.3.5",
     "dotenv": "^16.3.1",
