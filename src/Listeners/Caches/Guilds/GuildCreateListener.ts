@@ -48,8 +48,8 @@ export class GuildCreateListener extends Listener {
 
         if (stateVoices) {
             for (const voice of payload.data.d.voice_states) {
-                await this.store.redis.set(GenKey(RedisKey.ROLE_KEY, voice.user_id, payload.data.d.id), JSON.stringify(voice));
-                await this.store.redis.sadd(GenKey(`${RedisKey.ROLE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.id), GenKey(`${RedisKey.VOICE_KEY}`, voice.user_id, payload.data.d.id));
+                await this.store.redis.set(GenKey(RedisKey.VOICE_KEY, voice.user_id, payload.data.d.id), JSON.stringify(voice));
+                await this.store.redis.sadd(GenKey(`${RedisKey.VOICE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.id), GenKey(`${RedisKey.VOICE_KEY}`, voice.user_id, payload.data.d.id));
             }
             payload.data.d.voice_states = [];
         }
