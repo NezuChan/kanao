@@ -100,8 +100,8 @@ devDependencies:
     specifier: ^0.10.3
     version: 0.10.3
   '@types/dockerode':
-    specifier: ^3.3.21
-    version: 3.3.21
+    specifier: ^3.3.22
+    version: 3.3.22
   '@types/gradient-string':
     specifier: ^1.1.4
     version: 1.1.4
@@ -618,8 +618,8 @@ packages:
       '@types/ssh2': 1.11.13
     dev: true
 
-  /@types/dockerode@3.3.21:
-    resolution: {integrity: sha512-1d4GSWFpOnqu2rbpz+YR97txVVouHE4/HJm7CU9JTCs/IigNO8AhVOYh+6Rqv/IRznUycMR4MVBnTHrf39Es7g==}
+  /@types/dockerode@3.3.22:
+    resolution: {integrity: sha512-LkyWGoH2CqQlUXc9AMlee5mqv8TR6k9STIOKFh5Fe8MeBHLlJ/qz3XCufJj9DNJIb/pZZg7s9O4x0Ysv/57+Gg==}
     dependencies:
       '@types/docker-modem': 3.0.3
       '@types/node': 18.18.8
@@ -1111,7 +1111,7 @@ packages:
     requiresBuild: true
     dependencies:
       buildcheck: 0.0.6
-      nan: 2.17.0
+      nan: 2.18.0
     dev: false
     optional: true
 
@@ -1978,12 +1978,6 @@ packages:
   /ms@2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
 
-  /nan@2.17.0:
-    resolution: {integrity: sha512-2ZTgtl0nJsO0KQCjEpxcIr5D+Yv90plTitZt9JBfQvVJDS5seMl3FOvsh3+9CoYWXf/1l5OaZzzF6nDm4cagaQ==}
-    requiresBuild: true
-    dev: false
-    optional: true
-
   /nan@2.18.0:
     resolution: {integrity: sha512-W7tfG7vMOGtD30sHoZSSc/JVYiyDPEyQVso/Zz+/uQd0B0L46gtC+pHha5FFMRpil6fm/AoEcRWyOVi4+E/f8w==}
     dev: false
@@ -2492,7 +2486,7 @@ packages:
       bcrypt-pbkdf: 1.0.2
     optionalDependencies:
       cpu-features: 0.0.9
-      nan: 2.17.0
+      nan: 2.18.0
     dev: false
 
   /standard-as-callback@2.1.0:
