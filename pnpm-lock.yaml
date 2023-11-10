@@ -48,8 +48,8 @@ dependencies:
     specifier: ^0.37.63
     version: 0.37.63
   dockerode:
-    specifier: ^3.3.5
-    version: 3.3.5
+    specifier: ^4.0.0
+    version: 4.0.0
   dotenv:
     specifier: ^16.3.1
     version: 16.3.1
@@ -1206,8 +1206,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /docker-modem@3.0.8:
-    resolution: {integrity: sha512-f0ReSURdM3pcKPNS30mxOHSbaFLcknGmQjwSfmbcdOw1XWKXVhukM3NJHhr7NpY9BIyyWQb0EBo3KQvvuU5egQ==}
+  /docker-modem@5.0.1:
+    resolution: {integrity: sha512-vqrE/nrweCyzmCpVpdFRC41qS+tfTF+IoUKlTZr52O82urbUqdfyJBGWMvT01pYUprWepLr8IkyVTEWJKRTQSg==}
     engines: {node: '>= 8.0'}
     dependencies:
       debug: 4.3.4
@@ -1218,12 +1218,12 @@ packages:
       - supports-color
     dev: false
 
-  /dockerode@3.3.5:
-    resolution: {integrity: sha512-/0YNa3ZDNeLr/tSckmD69+Gq+qVNhvKfAHNeZJBnp7EOP6RGKV8ORrJHkUn20So5wU+xxT7+1n5u8PjHbfjbSA==}
+  /dockerode@4.0.0:
+    resolution: {integrity: sha512-3LF7/3MPz5+9RsUo91rD0MCcx0yxjC9bnbtgtVjOLKyKxlZSJ7/Kk3OPAgARlwlWHqXwAGYhmkAHYx7IwD0tJQ==}
     engines: {node: '>= 8.0'}
     dependencies:
       '@balena/dockerignore': 1.0.2
-      docker-modem: 3.0.8
+      docker-modem: 5.0.1
       tar-fs: 2.0.1
     transitivePeerDependencies:
       - supports-color
