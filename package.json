@@ -34,8 +34,8 @@
   },
   "dependencies": {
     "@discordjs/collection": "^1.5.3",
-    "@discordjs/rest": "^2.0.1",
-    "@discordjs/ws": "^1.0.1",
+    "@discordjs/rest": "^2.1.0",
+    "@discordjs/ws": "^1.0.2",
     "@nezuchan/constants": "^0.5.8",
     "@nezuchan/utilities": "^0.5.1",
     "@sapphire/pieces": "^3.7.0",
