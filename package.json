@@ -33,7 +33,7 @@
     }
   },
   "dependencies": {
-    "@discordjs/collection": "^1.5.3",
+    "@discordjs/collection": "^2.0.0",
     "@discordjs/rest": "^2.1.0",
     "@discordjs/ws": "^1.0.2",
     "@nezuchan/constants": "^0.5.8",
