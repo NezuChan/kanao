@@ -1,4 +1,4 @@
-FROM ghcr.io/hazmi35/node:18-dev-alpine as build-stage
+FROM ghcr.io/hazmi35/node:20-dev-alpine as build-stage
 
 LABEL name "NezukoChan Gateway (Docker Build)"
 LABEL maintainer "KagChi"
@@ -16,7 +16,7 @@ RUN pnpm run build
 
 RUN pnpm prune --production
 
-FROM ghcr.io/hazmi35/node:18-alpine
+FROM ghcr.io/hazmi35/node:20-alpine
 
 LABEL name "NezukoChan Gateway Production"
 LABEL maintainer "KagChi"
