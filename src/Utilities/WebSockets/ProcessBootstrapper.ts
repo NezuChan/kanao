@@ -111,7 +111,7 @@ export class ProcessBootstrapper {
     public async onConsumeMessage(channel: Channel, message: ConsumeMessage | null) {
         if (!message) return;
         channel.ack(message);
-        const content = JSON.parse(message.content.toString()) as { op: number; data: unknown };
+        const content = JSON.parse(message.content.toString()) as { op: ShardOp; data: unknown };
         const shardId = RoutingKeyToId(clientId, message.fields.routingKey);
         switch (content.op) {
             case ShardOp.SEND: {
