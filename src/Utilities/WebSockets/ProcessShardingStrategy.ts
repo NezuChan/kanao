@@ -5,6 +5,8 @@ import { Collection } from "@discordjs/collection";
 import { GatewaySendPayload } from "discord-api-types/v10";
 import { WebSocketManager, WebSocketShardDestroyOptions, WebSocketShardStatus, managerToFetchingStrategyOptions, IShardingStrategy, WorkerShardingStrategyOptions, WorkerData, WorkerSendPayload, WorkerSendPayloadOp, WorkerReceivePayload, WorkerReceivePayloadOp, WebSocketShardEvents, IIdentifyThrottler } from "@discordjs/ws";
 import * as url from "url";
+import { clientId, storeLogs, lokiHost } from "../../config.js";
+import { createLogger } from "../Logger.js";
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
@@ -13,6 +15,7 @@ const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 * Strategy used to spawn threads in child_process
 */
 export class ProcessShardingStrategy implements IShardingStrategy {
+    public logger = createLogger("nezu-gateway", clientId, storeLogs, lokiHost);
     private readonly manager: WebSocketManager;
 
     private readonly options: WorkerShardingStrategyOptions;
@@ -160,19 +163,19 @@ export class ProcessShardingStrategy implements IShardingStrategy {
 
         worker
             .on("error", error => {
-                // this.manager.emit(WebSocketShardEvents.Error, { error, shardId: workerData.shardIds[0] });
+                this.logger.error({ error, shardIds: workerData.shardIds }, "process emitted error !");
                 worker.removeAllListeners();
                 this.#workers.splice(this.#workers.indexOf(worker), 1);
                 this.restartWorker(workerData);
             })
             .on("messageerror", error => {
-                // this.manager.emit(WebSocketShardEvents.Error, { error, shardId: workerData.shardIds[0] });
+                this.logger.error({ error, shardIds: workerData.shardIds }, "process emitted messageerror !");
                 worker.removeAllListeners();
                 this.#workers.splice(this.#workers.indexOf(worker), 1);
                 this.restartWorker(workerData);
             })
             .on("close", (code, signal) => {
-                // this.manager.emit(WebSocketShardEvents.Error, { error: new Error(`Process closed with code ${code ?? "-"} and signal ${signal ?? "-"}. attempting to restart`), shardId: workerData.shardIds[0] });
+                this.logger.error({ code, signal }, "process emitted close !");
                 worker.removeAllListeners();
                 this.#workers.splice(this.#workers.indexOf(worker), 1);
                 this.restartWorker(workerData);
@@ -239,6 +242,8 @@ export class ProcessShardingStrategy implements IShardingStrategy {
     }
 
     private async onMessage(worker: ChildProcess, payload: WorkerReceivePayload) {
+        worker.on("error", () => undefined);
+
         switch (payload.op) {
             case WorkerReceivePayloadOp.Connected: {
                 this.connectPromises.get(payload.shardId)?.();
