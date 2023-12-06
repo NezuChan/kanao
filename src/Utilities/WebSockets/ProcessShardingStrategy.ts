@@ -65,8 +65,6 @@ export class ProcessShardingStrategy implements IShardingStrategy {
     * {@inheritDoc IShardingStrategy.connect}
     */
     public async connect() {
-        const promises = [];
-
         for (const [shardId, worker] of this.#workerByShardId.entries()) {
             const payload = {
                 op: WorkerSendPayloadOp.Connect,
