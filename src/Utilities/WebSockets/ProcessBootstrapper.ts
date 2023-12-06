@@ -85,13 +85,9 @@ export class ProcessBootstrapper {
                 await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_SEND, "direct", { durable: false });
                 const { queue } = await channel.assertQueue("", { exclusive: true });
 
-
-                await Promise.all(
-                    this.data.shardIds.map(async shardId => {
-                        await channel.bindQueue(queue, RabbitMQ.GATEWAY_EXCHANGE, RoutingKey(clientId, shardId));
-                    })
-                );
-
+                for (const shard of this.data.shardIds) {
+                    await channel.bindQueue(queue, RabbitMQ.GATEWAY_EXCHANGE, RoutingKey(clientId, shard))
+                }
 
                 await channel.consume(queue, m => this.onConsumeMessage(channel, m));
             }

@@ -86,8 +86,6 @@ export class ProcessShardingStrategy implements IShardingStrategy {
     * {@inheritDoc IShardingStrategy.destroy}
     */
     public async destroy(options: Omit<WebSocketShardDestroyOptions, "recover"> = {}) {
-        const promises = [];
-
         for (const [shardId, worker] of this.#workerByShardId.entries()) {
             const payload = {
                 op: WorkerSendPayloadOp.Destroy,
@@ -95,20 +93,17 @@ export class ProcessShardingStrategy implements IShardingStrategy {
                 options
             } satisfies WorkerSendPayload;
 
-            promises.push(
-                new Promise<void>(resolve => this.destroyPromises.set(shardId, resolve)).then(() => worker.kill())
-            );
+            const promise = new Promise<void>(resolve => this.destroyPromises.set(shardId, resolve)).then(() => worker.kill());
             try {
                 worker.send(payload);
             } catch {
                 setTimeout(() => Result.fromAsync(() => worker.send(payload)), 2000);
             }
+            await promise;
         }
 
         this.#workers = [];
         this.#workerByShardId.clear();
-
-        await Promise.all(promises);
     }
 
     /**
