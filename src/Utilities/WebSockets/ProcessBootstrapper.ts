@@ -86,7 +86,7 @@ export class ProcessBootstrapper {
                 const { queue } = await channel.assertQueue("", { exclusive: true });
 
                 for (const shard of this.data.shardIds) {
-                    await channel.bindQueue(queue, RabbitMQ.GATEWAY_EXCHANGE, RoutingKey(clientId, shard))
+                    await channel.bindQueue(queue, RabbitMQ.GATEWAY_EXCHANGE, RoutingKey(clientId, shard));
                 }
 
                 await channel.consume(queue, m => this.onConsumeMessage(channel, m));
