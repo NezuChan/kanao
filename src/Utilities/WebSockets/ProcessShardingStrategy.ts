@@ -242,8 +242,6 @@ export class ProcessShardingStrategy implements IShardingStrategy {
     }
 
     private async onMessage(worker: ChildProcess, payload: WorkerReceivePayload) {
-        worker.on("error", () => undefined);
-
         switch (payload.op) {
             case WorkerReceivePayloadOp.Connected: {
                 this.connectPromises.get(payload.shardId)?.();
