@@ -73,7 +73,7 @@
     "@vladfrangu/async_event_emitter": "^2.2.4",
     "eslint": "^8.55.0",
     "rimraf": "^5.0.5",
-    "typescript": "^5.3.2"
+    "typescript": "^5.3.3"
   },
   "optionalDependencies": {
     "pino-loki": "^2.1.3"
