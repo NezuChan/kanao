@@ -43,6 +43,9 @@ export class ProcessBootstrapper {
      */
     public async bootstrap(options: Readonly<BootstrapOptions> = {}): Promise<void> {
         this.setupAmqp(); await this.stores.load();
+
+        this.redis.on("error", console.log);
+
         // Start by initializing the shards
         for (const shardId of this.data.shardIds) {
             const shard = new WebSocketShard(new ProcessContextFetchingStrategy(this.data), shardId);

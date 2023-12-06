@@ -3,10 +3,11 @@ import { join, isAbsolute, resolve } from "node:path";
 import { ChildProcess, fork } from "node:child_process";
 import { Collection } from "@discordjs/collection";
 import { GatewaySendPayload } from "discord-api-types/v10";
-import { WebSocketManager, WebSocketShardDestroyOptions, WebSocketShardStatus, managerToFetchingStrategyOptions, IShardingStrategy, WorkerShardingStrategyOptions, WorkerData, WorkerSendPayload, WorkerSendPayloadOp, WorkerReceivePayload, WorkerReceivePayloadOp, WebSocketShardEvents, IIdentifyThrottler } from "@discordjs/ws";
+import { WebSocketManager, WebSocketShardDestroyOptions, WebSocketShardStatus, managerToFetchingStrategyOptions, IShardingStrategy, WorkerShardingStrategyOptions, WorkerData, WorkerSendPayload, WorkerSendPayloadOp, WorkerReceivePayload, WorkerReceivePayloadOp, IIdentifyThrottler } from "@discordjs/ws";
 import * as url from "url";
 import { clientId, storeLogs, lokiHost } from "../../config.js";
 import { createLogger } from "../Logger.js";
+import { Result } from "@sapphire/result";
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
@@ -77,7 +78,11 @@ export class ProcessShardingStrategy implements IShardingStrategy {
 
             // eslint-disable-next-line no-promise-executor-return
             const promise = new Promise<void>(resolve => this.connectPromises.set(shardId, resolve));
-            worker.send(payload);
+            try {
+                worker.send(payload);
+            } catch {
+                setTimeout(() => Result.fromAsync(() => worker.send(payload)), 2000);
+            }
             promises.push(promise);
         }
 
@@ -100,7 +105,11 @@ export class ProcessShardingStrategy implements IShardingStrategy {
             promises.push(
                 new Promise<void>(resolve => this.destroyPromises.set(shardId, resolve)).then(() => worker.kill())
             );
-            worker.send(payload);
+            try {
+                worker.send(payload);
+            } catch {
+                setTimeout(() => Result.fromAsync(() => worker.send(payload)), 2000);
+            }
         }
 
         this.#workers = [];
@@ -123,7 +132,11 @@ export class ProcessShardingStrategy implements IShardingStrategy {
             shardId,
             payload: data
         } satisfies WorkerSendPayload;
-        worker.send(payload);
+        try {
+            worker.send(payload);
+        } catch {
+            setTimeout(() => Result.fromAsync(() => worker.send(payload)), 2000);
+        }
     }
 
     /**
@@ -142,7 +155,11 @@ export class ProcessShardingStrategy implements IShardingStrategy {
 
             // eslint-disable-next-line no-promise-executor-return
             const promise = new Promise<WebSocketShardStatus>(resolve => this.fetchStatusPromises.set(nonce, resolve));
-            worker.send(payload);
+            try {
+                worker.send(payload);
+            } catch {
+                setTimeout(() => Result.fromAsync(() => worker.send(payload)), 2000);
+            }
 
             const status = await promise;
             statuses.set(shardId, status);
@@ -196,9 +213,14 @@ export class ProcessShardingStrategy implements IShardingStrategy {
                     op: WorkerSendPayloadOp.Connect,
                     shardId
                 } satisfies WorkerSendPayload;
-                worker.send(payload);
+                try {
+                    worker.send(payload);
+                } catch {
+                    setTimeout(() => Result.fromAsync(() => worker.send(payload)), 2000);
+                }
             }
         }).catch(error => setTimeout(() => {
+            this.logger.error(error, "Error when starting worker !");
             const worker = this.#workerByShardId.get(workerData.shardIds[0])!;
             this.#workers.splice(this.#workers.indexOf(worker), 1);
             this.restartWorker(workerData);
@@ -269,7 +291,11 @@ export class ProcessShardingStrategy implements IShardingStrategy {
                         nonce: payload.nonce,
                         session
                     };
-                    worker.send(response);
+                    try {
+                        worker.send(response);
+                    } catch {
+                        setTimeout(() => Result.fromAsync(() => worker.send(response)), 2000);
+                    }
                 }
                 break;
             }
@@ -296,7 +322,11 @@ export class ProcessShardingStrategy implements IShardingStrategy {
                         nonce: payload.nonce,
                         ok: true
                     };
-                    worker.send(response);
+                    try {
+                        worker.send(response);
+                    } catch {
+                        setTimeout(() => Result.fromAsync(() => worker.send(response)), 2000);
+                    }
                 }
                 break;
             }
@@ -320,7 +350,11 @@ export class ProcessShardingStrategy implements IShardingStrategy {
                     nonce: payload.nonce,
                     ok: false
                 };
-                worker.send(response);
+                try {
+                    worker.send(response);
+                } catch {
+                    setTimeout(() => Result.fromAsync(() => worker.send(response)));
+                }
 
                 break;
             }

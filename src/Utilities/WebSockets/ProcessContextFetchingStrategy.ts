@@ -1,5 +1,6 @@
 import { Collection } from "@discordjs/collection";
 import { SessionInfo, WorkerReceivePayload, WorkerSendPayload, WorkerReceivePayloadOp, WorkerSendPayloadOp, FetchingStrategyOptions, IContextFetchingStrategy } from "@discordjs/ws";
+import { Result } from "@sapphire/result";
 
 interface PolyFillAbortSignal {
     readonly aborted: boolean;
@@ -41,7 +42,12 @@ export class ProcessContextFetchingStrategy implements IContextFetchingStrategy 
         } satisfies WorkerReceivePayload;
         // eslint-disable-next-line no-promise-executor-return
         const promise = new Promise<SessionInfo | null>(resolve => this.sessionPromises.set(nonce, resolve));
-        process.send!(payload);
+
+        try {
+            process.send!(payload);
+        } catch {
+            setTimeout(() => Result.fromAsync(() => process.send!(payload)), 2000);
+        }
         return promise;
     }
 
@@ -52,7 +58,11 @@ export class ProcessContextFetchingStrategy implements IContextFetchingStrategy 
             shardId,
             session: sessionInfo
         } satisfies WorkerReceivePayload;
-        process.send!(payload);
+        try {
+            process.send!(payload);
+        } catch {
+            setTimeout(() => Result.fromAsync(() => process.send!(payload)), 2000);
+        }
     }
 
     public async waitForIdentify(shardId: number, signal: AbortSignal): Promise<void> {
@@ -66,7 +76,11 @@ export class ProcessContextFetchingStrategy implements IContextFetchingStrategy 
 
         const promise = new Promise<void>((resolve, reject) => this.waitForIdentifyPromises.set(nonce, { resolve, reject }));
 
-        process.send!(payload);
+        try {
+            process.send!(payload);
+        } catch {
+            setTimeout(() => Result.fromAsync(() => process.send!(payload)), 2000);
+        }
 
         const listener = () => {
             process.send!({
