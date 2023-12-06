@@ -48,7 +48,6 @@ export class ProcessShardingStrategy implements IShardingStrategy {
         const strategyOptions = await managerToFetchingStrategyOptions(this.manager);
 
         const loops = Math.ceil(shardIds.length / shardsPerWorker);
-        const promises: Promise<void>[] = [];
 
         for (let idx = 0; idx < loops; idx++) {
             const slice = shardIds.slice(idx * shardsPerWorker, (idx + 1) * shardsPerWorker);
@@ -58,10 +57,8 @@ export class ProcessShardingStrategy implements IShardingStrategy {
                 processId: idx
             };
 
-            promises.push(this.setupWorker(workerData));
+            await this.setupWorker(workerData);
         }
-
-        await Promise.all(promises);
     }
 
     /**
@@ -83,10 +80,8 @@ export class ProcessShardingStrategy implements IShardingStrategy {
             } catch {
                 setTimeout(() => Result.fromAsync(() => worker.send(payload)), 2000);
             }
-            promises.push(promise);
+            await promise;
         }
-
-        await Promise.all(promises);
     }
 
     /**
