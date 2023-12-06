@@ -16,8 +16,7 @@
 
 # Features
 - Zero downtime deployments, You will almost never need to restart the gateway service, allowing absolute 100% uptime for your bot. Even when a restart is required, nezu-gateway will resume the sessions, so you will not lose a single event.
-- Large treshold support
-- Redis cluster support
+- Big Bot Sharding support
 - Docker replica
 
 # Docker Replica
