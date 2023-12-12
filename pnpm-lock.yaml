@@ -33,8 +33,8 @@ dependencies:
     specifier: ^3.14.0
     version: 3.14.0
   '@skyra/start-banner':
-    specifier: ^2.0.0
-    version: 2.0.0
+    specifier: ^2.0.1
+    version: 2.0.1
   amqp-connection-manager:
     specifier: ^4.1.14
     version: 4.1.14(amqplib@0.10.3)
@@ -45,8 +45,8 @@ dependencies:
     specifier: ^4.0.8
     version: 4.0.8
   discord-api-types:
-    specifier: ^0.37.65
-    version: 0.37.65
+    specifier: ^0.37.66
+    version: 0.37.66
   dockerode:
     specifier: ^4.0.0
     version: 4.0.0
@@ -69,8 +69,8 @@ dependencies:
     specifier: ^10.2.3
     version: 10.2.3
   prometheus-middleware:
-    specifier: ^1.2.0
-    version: 1.2.0
+    specifier: ^1.3.1
+    version: 1.3.1
   tslib:
     specifier: ^2.6.2
     version: 2.6.2
@@ -109,8 +109,8 @@ devDependencies:
     specifier: ^1.1.5
     version: 1.1.5
   '@types/node':
-    specifier: ^20.10.3
-    version: 20.10.3
+    specifier: ^20.10.4
+    version: 20.10.4
   '@typescript-eslint/eslint-plugin':
     specifier: ^6.14.0
     version: 6.14.0(@typescript-eslint/parser@6.14.0)(eslint@8.55.0)(typescript@5.3.3)
@@ -455,8 +455,8 @@ packages:
     engines: {node: '>=10'}
     requiresBuild: true
 
-  /@skyra/start-banner@2.0.0:
-    resolution: {integrity: sha512-Km7mA3P8xoEe1ltTDgmX965iJwzJ9Tzf0WkFtfmfmBv9TNnwbS8+tGqMFdLpsiPwhibbVjUjN2tSiS/mnzxFTA==}
+  /@skyra/start-banner@2.0.1:
+    resolution: {integrity: sha512-4lsccTM5PZ41GPGCZVGeo3/F7/bAWocsYdWT109HTxSKVRnUF0D8ZrJe4vAJE0cazGGDeA4JFUbmjidDWm1s9g==}
     engines: {node: '>=16.9.0', npm: '>=8.0.0'}
     dev: false
 
@@ -607,7 +607,7 @@ packages:
   /@types/amqplib@0.10.4:
     resolution: {integrity: sha512-Y5Sqquh/LqDxSgxYaAAFNM0M7GyONtSDCcFMJk+DQwYEjibPyW6y+Yu9H9omdkKc3epyXULmFN3GTaeBHhn2Hg==}
     dependencies:
-      '@types/node': 20.10.3
+      '@types/node': 20.10.4
     dev: true
 
   /@types/cacheable-request@6.0.3:
@@ -616,13 +616,13 @@ packages:
     dependencies:
       '@types/http-cache-semantics': 4.0.1
       '@types/keyv': 3.1.4
-      '@types/node': 20.10.3
+      '@types/node': 20.10.4
       '@types/responselike': 1.0.0
 
   /@types/docker-modem@3.0.3:
     resolution: {integrity: sha512-i1A2Etnav7uHizZ87vUf4EqwJehY3JOcTfBS0pGBlO+HQ0jg2lUMCaJRg9VQM8ldZkpYdIfsenxcTOCpwxPXEg==}
     dependencies:
-      '@types/node': 20.10.3
+      '@types/node': 20.10.4
       '@types/ssh2': 1.11.13
     dev: true
 
@@ -630,7 +630,7 @@ packages:
     resolution: {integrity: sha512-Lz5J+NFgZS4cEVhquwjIGH4oQwlVn2h7LXD3boitujBnzOE5o7s9H8hchEjoDK2SlRsJTogdKnQeiJgPPKLIEw==}
     dependencies:
       '@types/docker-modem': 3.0.3
-      '@types/node': 20.10.3
+      '@types/node': 20.10.4
     dev: true
 
   /@types/gradient-string@1.1.5:
@@ -651,7 +651,7 @@ packages:
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
     requiresBuild: true
     dependencies:
-      '@types/node': 20.10.3
+      '@types/node': 20.10.4
 
   /@types/node@18.18.9:
     resolution: {integrity: sha512-0f5klcuImLnG4Qreu9hPj/rEfFq6YRc5n2mAjSsH+ec/mJL+3voBH0+8T7o8RpFjH7ovc+TRsL/c7OYIQsPTfQ==}
@@ -659,8 +659,8 @@ packages:
       undici-types: 5.26.5
     dev: true
 
-  /@types/node@20.10.3:
-    resolution: {integrity: sha512-XJavIpZqiXID5Yxnxv3RUDKTN5b81ddNC3ecsA0SoFXz/QU8OGBwZGMomiq0zw+uuqbL/krztv/DINAQ/EV4gg==}
+  /@types/node@20.10.4:
+    resolution: {integrity: sha512-D08YG6rr8X90YB56tSIuBaddy/UXAA9RKJoFvrsnogAum/0pmjkgi4+2nx96A330FmioegBWmEYQ+syqCFaveg==}
     dependencies:
       undici-types: 5.26.5
 
@@ -668,7 +668,7 @@ packages:
     resolution: {integrity: sha512-85Y2BjiufFzaMIlvJDvTTB8Fxl2xfLo4HgmHzVBz08w4wDePCTjYw66PdrolO0kzli3yam/YCgRufyo1DdQVTA==}
     requiresBuild: true
     dependencies:
-      '@types/node': 20.10.3
+      '@types/node': 20.10.4
 
   /@types/semver@7.5.0:
     resolution: {integrity: sha512-G8hZ6XJiHnuhQKR7ZmysCeJWE08o8T0AXtk5darsCaTVsYZhhgUrq53jizaR2FvsoeCwJhlmwTjkXBY5Pn/ZHw==}
@@ -686,7 +686,7 @@ packages:
   /@types/ws@8.5.9:
     resolution: {integrity: sha512-jbdrY0a8lxfdTp/+r7Z4CkycbOFN8WX+IOchLJr3juT/xzbJ8URyTVSJ/hvNdadTgM1mnedb47n+Y31GsFnQlg==}
     dependencies:
-      '@types/node': 20.10.3
+      '@types/node': 20.10.4
     dev: false
 
   /@typescript-eslint/eslint-plugin@6.14.0(@typescript-eslint/parser@6.14.0)(eslint@8.55.0)(typescript@5.3.3):
@@ -1197,8 +1197,8 @@ packages:
     resolution: {integrity: sha512-o/dXNFfhBpYHpQFdT6FWzeO7pKc838QeeZ9d91CfVAtpr5XLK4B/zYxQbYgPdoMiTDvJfzcsLW5naXgmHGDNXw==}
     dev: false
 
-  /discord-api-types@0.37.65:
-    resolution: {integrity: sha512-CQHW3Nu04LEHIj1Xps/sfGhTdrowilxnek2tirpLhwvrmgmLr1C6A+4JFLs+0kJMH2IX2QgDyA9GfNehqN+xPQ==}
+  /discord-api-types@0.37.66:
+    resolution: {integrity: sha512-3Q+6uBODmVaPAmZZ1jYQiQBbp0hqArgSU9Y6DuYY6KW5Sdij91bwbmFnnVI5XvATRkY+Wk9KMBWFzAEwSDs+1w==}
     dev: false
 
   /discord.js@14.13.0(bufferutil@4.0.8)(utf-8-validate@6.0.3):
@@ -1847,7 +1847,7 @@ packages:
       '@discordjs/ws': 1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.3)
       '@sapphire/async-queue': 1.5.0
       '@vladfrangu/async_event_emitter': 2.2.4
-      discord-api-types: 0.37.65
+      discord-api-types: 0.37.66
       indomitable: 4.0.3(@discordjs/ws@1.0.2)(discord.js@14.13.0)
     transitivePeerDependencies:
       - bufferutil
@@ -2233,11 +2233,12 @@ packages:
       tdigest: 0.1.2
     dev: false
 
-  /prometheus-middleware@1.2.0:
-    resolution: {integrity: sha512-vBCurpWvN1oGdrCKozx+d6Tnoa2P6RySnKTsy687I3z6ENZ8BbhB4KaKUvsd0ibscY71Wy8HXC44wYDB7Y2DUw==}
+  /prometheus-middleware@1.3.1:
+    resolution: {integrity: sha512-/otYEF6MIlLmF9MtHYXKtByowHp8fkvC2In6vw3frLLL7yxrV4vPhuag0Ov/lCj+sPaC1qOkHBtPO8F1fs29Iw==}
     engines: {node: '>=16.0.0'}
     hasBin: true
     dependencies:
+      '@opentelemetry/api': 1.7.0
       debug: 4.3.4
       prom-client: 15.0.0
       url-value-parser: 2.2.0
