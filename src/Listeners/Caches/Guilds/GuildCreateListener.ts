@@ -37,7 +37,7 @@ export class GuildCreateListener extends Listener {
 
         if (stateRoles) {
             for (const role of payload.data.d.roles) {
-                await this.store.redis.set(GenKey(`${RedisKey.ROLE_KEY}`, role.id, payload.data.d.id), JSON.stringify(role));
+                await this.store.redis.set(GenKey(RedisKey.ROLE_KEY, role.id, payload.data.d.id), JSON.stringify(role));
             }
             payload.data.d.roles = [];
         }
@@ -60,12 +60,12 @@ export class GuildCreateListener extends Listener {
 
         if (statePresences) {
             for (const presence of payload.data.d.presences) {
-                await this.store.redis.set(GenKey(`${RedisKey.PRESENCE_KEY}`, presence.user.id, payload.data.d.id), JSON.stringify(presence));
+                await this.store.redis.set(GenKey(RedisKey.PRESENCE_KEY, presence.user.id, payload.data.d.id), JSON.stringify(presence));
             }
             payload.data.d.presences = [];
         }
 
-        await this.store.redis.set(GenKey(`${RedisKey.GUILD_KEY}`, payload.data.d.id), JSON.stringify(payload.data.d));
+        await this.store.redis.set(GenKey(RedisKey.GUILD_KEY, payload.data.d.id), JSON.stringify(payload.data.d));
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }

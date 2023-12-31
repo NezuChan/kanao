@@ -6,7 +6,7 @@ import { createLogger } from "../Utilities/Logger.js";
 import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, replicaId, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
-import { Util, createAmqpChannel, createRedis, RoutingKey } from "@nezuchan/utilities";
+import { Util, createAmqpChannel, createRedis, RoutingKey, redisScan } from "@nezuchan/utilities";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ProcessShardingStrategy } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
@@ -131,7 +131,8 @@ export class NezuGateway extends EventEmitter {
                         const shard_status = raw_value ? JSON.parse(raw_value) as { latency: number } : { latency: -1 };
                         stats.push({ shardId, status, latency: shard_status.latency });
                     }
-                    const guildCount = await this.redis.scard(GenKey(`${RedisKey.GUILD_KEY}${RedisKey.KEYS_SUFFIX}`));
+                    const guildCount = await redisScan(this.redis, GenKey(RedisKey.GUILD_KEY), "*", 1000)
+                        .then(g => g.length);
                     channel.ack(message);
                     await amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, content.route, Buffer.from(
                         JSON.stringify({
@@ -189,15 +190,18 @@ export class NezuGateway extends EventEmitter {
 
         setInterval(async () => {
             guildCounter.reset();
-            const guild = await this.redis.scard(GenKey(`${RedisKey.GUILD_KEY}${RedisKey.KEYS_SUFFIX}`));
+            const guild = await redisScan(this.redis, GenKey(RedisKey.GUILD_KEY), "*", 1000)
+                .then(g => g.length);
             guildCounter.inc(guild);
 
             channelCounter.reset();
-            const channel = await this.redis.scard(GenKey(`${RedisKey.CHANNEL_KEY}${RedisKey.KEYS_SUFFIX}`));
+            const channel = await redisScan(this.redis, GenKey(RedisKey.CHANNEL_KEY), "*", 1000)
+                .then(c => c.length);
             channelCounter.inc(channel);
 
             userCounter.reset();
-            const user = await this.redis.scard(GenKey(`${RedisKey.USER_KEY}${RedisKey.KEYS_SUFFIX}`));
+            const user = await redisScan(this.redis, GenKey(RedisKey.USER_KEY), "*", 1000)
+                .then(u => u.length);
             userCounter.inc(user);
 
             const shards_statuses = await this.ws.fetchStatus();
