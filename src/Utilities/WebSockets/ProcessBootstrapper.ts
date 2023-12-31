@@ -3,7 +3,7 @@ import { BootstrapOptions, WebSocketShardEvents, WebSocketShard, WorkerReceivePa
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 import { StoreRegistry } from "@sapphire/pieces";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
-import { discordToken, storeLogs, lokiHost, redisPassword, redisUsername, redisClusters, redisClusterScaleReads, redisDb, redisHost, redisNatMap, redisPort, amqp, clientId } from "../../config.js";
+import { discordToken, storeLogs, lokiHost, redisPassword, redisUsername, redisClusters, redisClusterScaleReads, redisDb, redisHost, redisNatMap, redisPort, amqp, clientId, redisDisablePipelining } from "../../config.js";
 import { createLogger } from "../Logger.js";
 import EventEmitter from "events";
 import { createAmqpChannel, createRedis, RoutingKey, RoutingKeyToId } from "@nezuchan/utilities";
@@ -20,7 +20,8 @@ export class ProcessBootstrapper {
         redisDb,
         redisClusterScaleReads,
         redisClusters,
-        redisNatMap
+        redisNatMap,
+        enableAutoPipelining: !redisDisablePipelining
     });
 
     /**

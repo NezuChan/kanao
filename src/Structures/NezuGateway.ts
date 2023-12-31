@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
 import EventEmitter from "node:events";
 import { createLogger } from "../Utilities/Logger.js";
-import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisScanCount, redisUsername, replicaId, storeLogs } from "../config.js";
+import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisDisablePipelining, redisHost, redisNatMap, redisPassword, redisPort, redisScanCount, redisUsername, replicaId, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
 import { Util, createAmqpChannel, createRedis, RoutingKey, redisScan } from "@nezuchan/utilities";
@@ -32,7 +32,8 @@ export class NezuGateway extends EventEmitter {
         redisDb,
         redisClusterScaleReads,
         redisClusters,
-        redisNatMap
+        redisNatMap,
+        enableAutoPipelining: !redisDisablePipelining
     });
 
     public prometheus = new APM({
