@@ -18,8 +18,8 @@ dependencies:
     specifier: ^0.6.0
     version: 0.6.0
   '@nezuchan/utilities':
-    specifier: ^0.6.1
-    version: 0.6.1(amqplib@0.10.3)
+    specifier: ^0.6.2
+    version: 0.6.2(amqplib@0.10.3)
   '@sapphire/pieces':
     specifier: ^4.2.0
     version: 4.2.0
@@ -339,8 +339,8 @@ packages:
     resolution: {integrity: sha512-Ou302x200EZCYKcbVByROavenO2gF2d4KV6Tfh6q0rRxpMZ/7dWelB8DkbA5Iyg4Rhe3jxMKjFS3rfYbwUZDUg==}
     dev: false
 
-  /@nezuchan/utilities@0.6.1(amqplib@0.10.3):
-    resolution: {integrity: sha512-jP8zu64MACCqEwGwzWjReyzDqEb2qr30QsyUIiZj0ax7Iezxs0ueycx9YSfnN8l3d1O6xC8YLvlIPN/VKxMeSw==}
+  /@nezuchan/utilities@0.6.2(amqplib@0.10.3):
+    resolution: {integrity: sha512-1Nsf9SCzVlCvG61SvwJI9KUwJtXqt8/KGdDVHlPeoQuzo66Kfu1Vr1a/aKKFWArJTocqQ7i70e1quYXn2Tog0g==}
     dependencies:
       '@sapphire/snowflake': 3.5.2
       amqp-connection-manager: 4.1.14(amqplib@0.10.3)
@@ -1832,6 +1832,7 @@ packages:
 
   /json-buffer@3.0.1:
     resolution: {integrity: sha512-4bV5BfR2mqfQTJm+V5tPPdf+ZpuhiIvTuAB5g8kcrXOZpTT/QwwVRWBywX1ozr6lEuPdbHxwaJlm9G6mI2sfSQ==}
+    requiresBuild: true
 
   /json-schema-traverse@0.4.1:
     resolution: {integrity: sha512-xbbCH5dCYU5T8LcEhhuh7HJ88HXuW3qsI3Y0zOZFKfZEHcpWiHU/Jxzk629Brsab/mMiHQti9wMP+845RPe3Vg==}
