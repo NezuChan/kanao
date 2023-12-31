@@ -46,6 +46,8 @@ export const redisDb = Number(process.env.REDIS_DB ?? 0);
 export const redisNatMap = JSON.parse(process.env.REDIS_NAT_MAP ?? "{}");
 export const redisClusters: IORedis.ClusterNode[] = JSON.parse(process.env.REDIS_CLUSTERS ?? "[]");
 export const redisClusterScaleReads = process.env.REDIS_CLUSTER_SCALE_READS as IORedis.NodeRole | undefined ?? process.env.REDIS_SCALE_READS as IORedis.NodeRole | undefined ?? "all" as IORedis.NodeRole;
+export const redisScanCount = Number(process.env.REDIS_SCAN_COUNT ?? 1000);
+export const redisDisablePipelining = process.env.REDIS_DISABLE_PIPELINING === "true";
 
 export const storeLogs = process.env.STORE_LOGS === "true";
 export const lokiHost = process.env.LOKI_HOST ? new URL(process.env.LOKI_HOST) : undefined;
@@ -86,4 +88,3 @@ export const stateMessages = process.env.STATE_MESSAGE === "true";
 
 export const replicaId = hostname();
 export const replicaCount = Number(process.env.GATEWAY_REPLICA_COUNT ?? "1");
-

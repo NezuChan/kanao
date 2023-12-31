@@ -18,8 +18,8 @@ dependencies:
     specifier: ^0.6.0
     version: 0.6.0
   '@nezuchan/utilities':
-    specifier: ^0.6.0
-    version: 0.6.0(amqplib@0.10.3)
+    specifier: ^0.6.1
+    version: 0.6.1(amqplib@0.10.3)
   '@sapphire/pieces':
     specifier: ^3.10.0
     version: 3.10.0
@@ -339,8 +339,8 @@ packages:
     resolution: {integrity: sha512-Ou302x200EZCYKcbVByROavenO2gF2d4KV6Tfh6q0rRxpMZ/7dWelB8DkbA5Iyg4Rhe3jxMKjFS3rfYbwUZDUg==}
     dev: false
 
-  /@nezuchan/utilities@0.6.0(amqplib@0.10.3):
-    resolution: {integrity: sha512-Nb/miSPOb+auaE7+3vqTKVa3RRULxQ7DapYvXCeXAJrKrJwkPBgPXgzPyk5FaX+PG5KvTPrA1fKDDND4xEQ0kA==}
+  /@nezuchan/utilities@0.6.1(amqplib@0.10.3):
+    resolution: {integrity: sha512-jP8zu64MACCqEwGwzWjReyzDqEb2qr30QsyUIiZj0ax7Iezxs0ueycx9YSfnN8l3d1O6xC8YLvlIPN/VKxMeSw==}
     dependencies:
       '@sapphire/snowflake': 3.5.2
       amqp-connection-manager: 4.1.14(amqplib@0.10.3)
@@ -1231,7 +1231,7 @@ packages:
       '@discordjs/rest': 2.2.0
       '@discordjs/util': 1.0.2
       '@discordjs/ws': 1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.3)
-      '@sapphire/snowflake': 3.5.1
+      '@sapphire/snowflake': 3.5.2
       '@types/ws': 8.5.9
       discord-api-types: 0.37.50
       fast-deep-equal: 3.1.3

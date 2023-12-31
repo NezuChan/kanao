@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
 import EventEmitter from "node:events";
 import { createLogger } from "../Utilities/Logger.js";
-import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, replicaId, storeLogs } from "../config.js";
+import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisDisablePipelining, redisHost, redisNatMap, redisPassword, redisPort, redisScanCount, redisUsername, replicaId, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
 import { Util, createAmqpChannel, createRedis, RoutingKey, redisScan } from "@nezuchan/utilities";
@@ -32,7 +32,8 @@ export class NezuGateway extends EventEmitter {
         redisDb,
         redisClusterScaleReads,
         redisClusters,
-        redisNatMap
+        redisNatMap,
+        enableAutoPipelining: !redisDisablePipelining
     });
 
     public prometheus = new APM({
@@ -190,17 +191,17 @@ export class NezuGateway extends EventEmitter {
 
         setInterval(async () => {
             guildCounter.reset();
-            const guild = await redisScan(this.redis, GenKey(RedisKey.GUILD_KEY), "*", 1000)
+            const guild = await redisScan(this.redis, GenKey(RedisKey.GUILD_KEY), "*", redisScanCount)
                 .then(g => g.length);
             guildCounter.inc(guild);
 
             channelCounter.reset();
-            const channel = await redisScan(this.redis, GenKey(RedisKey.CHANNEL_KEY), "*", 1000)
+            const channel = await redisScan(this.redis, GenKey(RedisKey.CHANNEL_KEY), "*", redisScanCount)
                 .then(c => c.length);
             channelCounter.inc(channel);
 
             userCounter.reset();
-            const user = await redisScan(this.redis, GenKey(RedisKey.USER_KEY), "*", 1000)
+            const user = await redisScan(this.redis, GenKey(RedisKey.USER_KEY), "*", redisScanCount)
                 .then(u => u.length);
             userCounter.inc(user);
 

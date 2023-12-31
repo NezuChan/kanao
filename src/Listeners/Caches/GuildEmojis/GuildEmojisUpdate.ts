@@ -1,6 +1,6 @@
 import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayGuildEmojisUpdateDispatch, GatewayDispatchEvents } from "discord-api-types/v10";
-import { clientId, stateEmojis } from "../../../config.js";
+import { clientId, redisScanCount, stateEmojis } from "../../../config.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { RoutingKey, redisScan } from "@nezuchan/utilities";
 import { GenKey } from "../../../Utilities/GenKey.js";
@@ -13,7 +13,7 @@ export class GuildEmojisUpdate extends Listener {
     }
 
     public async run(payload: { data: GatewayGuildEmojisUpdateDispatch; shardId: number }): Promise<void> {
-        const old_emojis = await redisScan(this.store.redis, GenKey(RedisKey.EMOJI_KEY, payload.data.d.guild_id), "*", 1000);
+        const old_emojis = await redisScan(this.store.redis, GenKey(RedisKey.EMOJI_KEY, payload.data.d.guild_id), "*", redisScanCount);
         if (stateEmojis) {
             for (const emoji of old_emojis) {
                 await this.store.redis.unlink(emoji);

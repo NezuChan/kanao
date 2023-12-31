@@ -3,7 +3,7 @@ import { GatewayDispatchEvents, GatewayGuildDeleteDispatch } from "discord-api-t
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { RoutingKey, redisScan } from "@nezuchan/utilities";
 import { GenKey } from "../../../Utilities/GenKey.js";
-import { clientId } from "../../../config.js";
+import { clientId, redisScanCount } from "../../../config.js";
 
 export class GuildDeleteListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -16,12 +16,12 @@ export class GuildDeleteListener extends Listener {
         const old = await this.store.redis.get(GenKey(RedisKey.GUILD_KEY, payload.data.d.id));
         const old_parsed = old ? JSON.parse(old) : {};
 
-        const roles = await redisScan(this.store.redis, GenKey(RedisKey.ROLE_KEY, payload.data.d.id), "*", 1000);
-        const channels = await redisScan(this.store.redis, GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id), "*", 1000);
-        const members = await redisScan(this.store.redis, GenKey(RedisKey.MEMBER_KEY, payload.data.d.id), "*", 1000);
-        const emojis = await redisScan(this.store.redis, GenKey(RedisKey.EMOJI_KEY, payload.data.d.id), "*", 1000);
-        const presences = await redisScan(this.store.redis, GenKey(RedisKey.PRESENCE_KEY, payload.data.d.id), "*", 1000);
-        const voiceStates = await redisScan(this.store.redis, GenKey(RedisKey.VOICE_KEY, payload.data.d.id), "*", 1000);
+        const roles = await redisScan(this.store.redis, GenKey(RedisKey.ROLE_KEY, payload.data.d.id), "*", redisScanCount);
+        const channels = await redisScan(this.store.redis, GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id), "*", redisScanCount);
+        const members = await redisScan(this.store.redis, GenKey(RedisKey.MEMBER_KEY, payload.data.d.id), "*", redisScanCount);
+        const emojis = await redisScan(this.store.redis, GenKey(RedisKey.EMOJI_KEY, payload.data.d.id), "*", redisScanCount);
+        const presences = await redisScan(this.store.redis, GenKey(RedisKey.PRESENCE_KEY, payload.data.d.id), "*", redisScanCount);
+        const voiceStates = await redisScan(this.store.redis, GenKey(RedisKey.VOICE_KEY, payload.data.d.id), "*", redisScanCount);
 
         for (const role of roles) await this.store.redis.unlink(role);
         for (const channel of channels) await this.store.redis.unlink(channel);
