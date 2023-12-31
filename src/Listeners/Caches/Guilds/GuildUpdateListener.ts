@@ -1,6 +1,6 @@
 import { Listener, ListenerContext } from "../../../Stores/Listener.js";
 import { GatewayDispatchEvents, GatewayGuildUpdateDispatch } from "discord-api-types/v10";
-import { clientId, stateEmojis, stateRoles } from "../../../config.js";
+import { clientId, redisScanCount, stateEmojis, stateRoles } from "../../../config.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { GenKey } from "../../../Utilities/GenKey.js";
 import { RoutingKey, redisScan } from "@nezuchan/utilities";
@@ -16,8 +16,8 @@ export class GuildCreateListener extends Listener {
         const old = await this.store.redis.get(GenKey(RedisKey.GUILD_KEY, payload.data.d.id));
         const old_parsed = old ? JSON.parse(old) : {};
 
-        const roles = await redisScan(this.store.redis, GenKey(RedisKey.ROLE_KEY, payload.data.d.id), "*", 1000);
-        const emojis = await redisScan(this.store.redis, GenKey(RedisKey.EMOJI_KEY, payload.data.d.id), "*", 1000);
+        const roles = await redisScan(this.store.redis, GenKey(RedisKey.ROLE_KEY, payload.data.d.id), "*", redisScanCount);
+        const emojis = await redisScan(this.store.redis, GenKey(RedisKey.EMOJI_KEY, payload.data.d.id), "*", redisScanCount);
 
         if (stateRoles) {
             for (const role of payload.data.d.roles) {
