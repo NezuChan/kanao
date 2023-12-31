@@ -191,17 +191,17 @@ export class NezuGateway extends EventEmitter {
 
         setInterval(async () => {
             guildCounter.reset();
-            const guild = await redisScan(this.redis, GenKey(RedisKey.GUILD_KEY), "*", redisScanCount)
+            const guild = await redisScan(this.redis, GenKey(RedisKey.GUILD_KEY), redisScanCount)
                 .then(g => g.length);
             guildCounter.inc(guild);
 
             channelCounter.reset();
-            const channel = await redisScan(this.redis, GenKey(RedisKey.CHANNEL_KEY), "*", redisScanCount)
+            const channel = await redisScan(this.redis, GenKey(RedisKey.CHANNEL_KEY), redisScanCount)
                 .then(c => c.length);
             channelCounter.inc(channel);
 
             userCounter.reset();
-            const user = await redisScan(this.redis, GenKey(RedisKey.USER_KEY), "*", redisScanCount)
+            const user = await redisScan(this.redis, GenKey(RedisKey.USER_KEY), redisScanCount)
                 .then(u => u.length);
             userCounter.inc(user);
 

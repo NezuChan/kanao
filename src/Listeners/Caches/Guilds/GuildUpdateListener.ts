@@ -16,8 +16,8 @@ export class GuildCreateListener extends Listener {
         const old = await this.store.redis.get(GenKey(RedisKey.GUILD_KEY, payload.data.d.id));
         const old_parsed = old ? JSON.parse(old) : {};
 
-        const roles = await redisScan(this.store.redis, GenKey(RedisKey.ROLE_KEY, payload.data.d.id), "*", redisScanCount);
-        const emojis = await redisScan(this.store.redis, GenKey(RedisKey.EMOJI_KEY, payload.data.d.id), "*", redisScanCount);
+        const roles = await redisScan(this.store.redis, GenKey(RedisKey.ROLE_KEY, payload.data.d.id), redisScanCount);
+        const emojis = await redisScan(this.store.redis, GenKey(RedisKey.EMOJI_KEY, payload.data.d.id), redisScanCount);
 
         if (stateRoles) {
             for (const role of payload.data.d.roles) {
