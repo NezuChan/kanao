@@ -21,8 +21,8 @@ dependencies:
     specifier: ^0.6.1
     version: 0.6.1(amqplib@0.10.3)
   '@sapphire/pieces':
-    specifier: ^3.10.0
-    version: 3.10.0
+    specifier: ^4.2.0
+    version: 4.2.0
   '@sapphire/result':
     specifier: ^2.6.5
     version: 2.6.5
@@ -398,8 +398,8 @@ packages:
     engines: {node: '>=v14.0.0', npm: '>=7.0.0'}
     dev: false
 
-  /@sapphire/pieces@3.10.0:
-    resolution: {integrity: sha512-iBaux50dA+VYjtBqmaceWcskdmw7ua51ojEPkyaSJyg2t9ln/Wc9NqYoQheRCWltZeDTERCUBIYYMqDuCs1Okw==}
+  /@sapphire/pieces@4.2.0:
+    resolution: {integrity: sha512-Bh462mJbPv0VbrPhaNpFYD8Bdg9xnKPZEF6h8xA/lMTNnEbhM8e967klBNd8Gw+iDO0Bve60Pg2t4a1xyxdLxA==}
     engines: {node: '>=v14.0.0', npm: '>=7.0.0'}
     dependencies:
       '@discordjs/collection': 1.5.3
