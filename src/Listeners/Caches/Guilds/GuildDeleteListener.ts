@@ -19,7 +19,7 @@ export class GuildDeleteListener extends Listener {
         const roles = await redisScan(this.store.redis, GenKey(RedisKey.ROLE_KEY, payload.data.d.id), redisScanCount);
         const channels = await redisScan(this.store.redis, GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id), redisScanCount);
         const members = await redisScan(this.store.redis, GenKey(RedisKey.MEMBER_KEY, payload.data.d.id), redisScanCount);
-        const emojis = await redisScan(this.store.redis, GenKey(RedisKey.EMOJI_KEY, payload.data.d.id), edisScanCount);
+        const emojis = await redisScan(this.store.redis, GenKey(RedisKey.EMOJI_KEY, payload.data.d.id), redisScanCount);
         const presences = await redisScan(this.store.redis, GenKey(RedisKey.PRESENCE_KEY, payload.data.d.id), redisScanCount);
         const voiceStates = await redisScan(this.store.redis, GenKey(RedisKey.VOICE_KEY, payload.data.d.id), redisScanCount);
 
