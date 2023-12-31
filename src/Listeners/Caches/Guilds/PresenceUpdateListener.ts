@@ -14,8 +14,7 @@ export class PresenceUpdateListener extends Listener {
 
     public async run(payload: { data: GatewayPresenceUpdateDispatch; shardId: number }): Promise<void> {
         if (statePresences) {
-            await this.store.redis.set(GenKey(`${RedisKey.PRESENCE_KEY}`, payload.data.d.user.id, payload.data.d.guild_id), JSON.stringify(payload.data.d));
-            await this.store.redis.sadd(GenKey(`${RedisKey.PRESENCE_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.guild_id), GenKey(`${RedisKey.PRESENCE_KEY}`, payload.data.d.user.id, payload.data.d.guild_id));
+            await this.store.redis.set(GenKey(RedisKey.PRESENCE_KEY, payload.data.d.user.id, payload.data.d.guild_id), JSON.stringify(payload.data.d));
         }
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));

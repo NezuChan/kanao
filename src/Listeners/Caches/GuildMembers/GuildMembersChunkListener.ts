@@ -17,12 +17,10 @@ export class GuildMembersChunkListener extends Listener {
             for (const member of payload.data.d.members) {
                 if (stateUsers) {
                     await this.store.redis.set(GenKey(RedisKey.USER_KEY, member.user!.id), JSON.stringify(member.user));
-                    await this.store.redis.sadd(GenKey(`${RedisKey.USER_KEY}${RedisKey.KEYS_SUFFIX}`), GenKey(RedisKey.USER_KEY, member.user!.id));
                 }
 
                 if (stateMembers) {
                     await this.store.redis.set(GenKey(RedisKey.MEMBER_KEY, member.user!.id, payload.data.d.guild_id), JSON.stringify(member));
-                    await this.store.redis.sadd(GenKey(`${RedisKey.MEMBER_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.guild_id), GenKey(RedisKey.MEMBER_KEY, member.user!.id, payload.data.d.guild_id));
                 }
             }
         }
