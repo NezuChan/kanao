@@ -12,6 +12,7 @@ export class GuildEmojisUpdate extends Listener {
         });
     }
 
+    // TODO: what
     public async run(payload: { data: GatewayGuildEmojisUpdateDispatch; shardId: number }): Promise<void> {
         const old_emojis = await redisSScanStreamPromise(this.store.redis, GenKey(`${RedisKey.EMOJI_KEY}${RedisKey.KEYS_SUFFIX}`, payload.data.d.guild_id), "*", 1000);
         if (stateEmojis) {

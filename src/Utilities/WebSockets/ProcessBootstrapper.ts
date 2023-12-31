@@ -44,7 +44,7 @@ export class ProcessBootstrapper {
     public async bootstrap(options: Readonly<BootstrapOptions> = {}): Promise<void> {
         this.setupAmqp(); await this.stores.load();
 
-        this.redis.on("error", console.log);
+        this.redis.on("error", (err: Error) => this.logger.error(err, "Redis Error"));
 
         // Start by initializing the shards
         for (const shardId of this.data.shardIds) {

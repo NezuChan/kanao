@@ -18,10 +18,8 @@ export class VoiceStateUpdateListener extends Listener {
         if (stateVoices) {
             if (payload.data.d.endpoint) {
                 await this.store.redis.set(GenKey(RedisKey.VOICE_SERVER_KEY, payload.data.d.guild_id), JSON.stringify(payload.data.d));
-                await this.store.redis.sadd(GenKey(`${RedisKey.VOICE_SERVER_KEY}${RedisKey.KEYS_SUFFIX}`), GenKey(RedisKey.VOICE_SERVER_KEY, payload.data.d.guild_id));
             } else {
                 await this.store.redis.unlink(GenKey(RedisKey.VOICE_SERVER_KEY, payload.data.d.guild_id));
-                await this.store.redis.srem(GenKey(`${RedisKey.VOICE_SERVER_KEY}${RedisKey.KEYS_SUFFIX}`), GenKey(RedisKey.VOICE_SERVER_KEY, payload.data.d.guild_id));
             }
         }
 
