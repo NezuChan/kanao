@@ -15,8 +15,8 @@ dependencies:
     specifier: ^1.0.2
     version: 1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.3)
   '@nezuchan/constants':
-    specifier: ^0.6.0
-    version: 0.6.0
+    specifier: ^0.7.0
+    version: 0.7.0
   '@nezuchan/utilities':
     specifier: ^0.6.2
     version: 0.6.2(amqplib@0.10.3)
@@ -335,8 +335,8 @@ packages:
       os-filter-obj: 2.0.0
     dev: true
 
-  /@nezuchan/constants@0.6.0:
-    resolution: {integrity: sha512-Ou302x200EZCYKcbVByROavenO2gF2d4KV6Tfh6q0rRxpMZ/7dWelB8DkbA5Iyg4Rhe3jxMKjFS3rfYbwUZDUg==}
+  /@nezuchan/constants@0.7.0:
+    resolution: {integrity: sha512-S6ij9tuddkkmIQcWSz6zNLI6JRPEYESff/sz9OWkNdpqLmDHvTd6KUFDCY+QvIP4uKW7RBUD43Mu1fWuZiY9uQ==}
     dev: false
 
   /@nezuchan/utilities@0.6.2(amqplib@0.10.3):
