@@ -170,6 +170,8 @@ export class NezuGateway extends EventEmitter {
 
     public setupPrometheus() {
         this.prometheus.init();
+        this.prometheus.client.register.setDefaultLabels({ replicaId, clientId });
+
         this.logger.info("Prometheus initialized");
 
         const guildCounter = new this.prometheus.client.Counter({
