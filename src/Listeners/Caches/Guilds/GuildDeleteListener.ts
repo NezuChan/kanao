@@ -31,6 +31,8 @@ export class GuildDeleteListener extends Listener {
         for (const voiceState of voiceStates) await this.store.redis.unlink(voiceState);
 
         await this.store.redis.unlink(GenKey(RedisKey.GUILD_KEY, payload.data.d.id));
+        await this.store.redis.decr(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT));
+        await this.store.redis.decrby(GenKey(RedisKey.CHANNEL_KEY, RedisKey.COUNT), channels.length);
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
             ...payload.data,

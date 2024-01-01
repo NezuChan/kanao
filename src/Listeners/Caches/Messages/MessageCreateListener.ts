@@ -19,6 +19,7 @@ export class MessageCreateListener extends Listener {
 
         if (stateUsers) {
             await this.store.redis.set(GenKey(RedisKey.USER_KEY, payload.data.d.author.id), JSON.stringify(payload.data.d.author));
+            await this.store.redis.incr(GenKey(RedisKey.USER_KEY, RedisKey.COUNT));
         }
 
         if (stateMessages) {
