@@ -112,13 +112,23 @@ export class NezuGateway extends EventEmitter {
 
         // Check if this is the first replica
         if (shardStart === 0) {
-            let status = await this.ws.fetchStatus();
+            const getStatus = async (): Promise<WebSocketShardStatus[]> => {
+                const status: WebSocketShardStatus[] = [];
+                // Do a loop from 0 to shardCount times
+                for (let i = 0; i < shardCount; i++) {
+                    const stat: { status: WebSocketShardStatus } = JSON.parse((await this.redis.get(GenKey(RedisKey.STATUSES_KEY, i.toString())))!);
+                    status.push(stat.status);
+                }
+                return status;
+            };
+
+            let status = await getStatus();
 
             // Wait until all shards are ready
-            while (status.size !== shardCount) {
+            while (status.find(s => s !== WebSocketShardStatus.Ready)) {
                 // Sleep for 30 seconds
                 await sleep(Time.Second * 30);
-                status = await this.ws.fetchStatus();
+                status = await getStatus();
             }
 
             // Update counter
