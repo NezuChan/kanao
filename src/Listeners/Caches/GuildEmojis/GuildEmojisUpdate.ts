@@ -13,8 +13,10 @@ export class GuildEmojisUpdate extends Listener {
     }
 
     public async run(payload: { data: GatewayGuildEmojisUpdateDispatch; shardId: number }): Promise<void> {
-        const old_emojis = await redisScan(this.store.redis, GenKey(RedisKey.EMOJI_KEY, payload.data.d.guild_id), redisScanCount);
+        let old_emojis: string[] = [];
+
         if (stateEmojis) {
+            old_emojis = await redisScan(this.store.redis, GenKey(RedisKey.EMOJI_KEY, payload.data.d.guild_id), redisScanCount);
             for (const emoji of old_emojis) {
                 await this.store.redis.unlink(emoji);
             }
