@@ -86,7 +86,5 @@ export const stateChannels = process.env.STATE_CHANNEL === "true";
 export const stateEmojis = process.env.STATE_EMOJI === "true";
 export const stateMessages = process.env.STATE_MESSAGE === "true";
 
-export const guildUpdateDontFetchOlds = process.env.GUILD_UPDATE_DONT_FETCH_OLDS === "true";
-
 export const replicaId = hostname();
 export const replicaCount = Number(process.env.GATEWAY_REPLICA_COUNT ?? "1");
