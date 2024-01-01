@@ -217,6 +217,6 @@ export class NezuGateway extends EventEmitter {
             }
 
             this.logger.debug(`Updated prometheus metrics for ${shards_statuses.size} shards in replica ${replicaId}`);
-        }, Time.Second * 10);
+        }, Time.Minute * 3);
     }
 }
