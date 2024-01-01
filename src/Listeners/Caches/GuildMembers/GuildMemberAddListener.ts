@@ -15,6 +15,7 @@ export class GuildMemberAddListener extends Listener {
     public async run(payload: { data: GatewayGuildMemberAddDispatch; shardId: number }): Promise<void> {
         if (stateUsers) {
             await this.store.redis.set(GenKey(RedisKey.USER_KEY, payload.data.d.user!.id), JSON.stringify(payload.data.d.user));
+            await this.store.redis.incr(GenKey(RedisKey.USER_KEY, RedisKey.COUNT));
         }
 
         if (stateMembers) {

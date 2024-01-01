@@ -3,10 +3,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
 import EventEmitter from "node:events";
 import { createLogger } from "../Utilities/Logger.js";
-import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisDisablePipelining, redisHost, redisNatMap, redisPassword, redisPort, redisScanCount, redisUsername, replicaId, storeLogs } from "../config.js";
+import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisDisablePipelining, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, replicaId, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
-import { Util, createAmqpChannel, createRedis, RoutingKey, redisScan } from "@nezuchan/utilities";
+import { Util, createAmqpChannel, createRedis, RoutingKey } from "@nezuchan/utilities";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ProcessShardingStrategy } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
@@ -132,8 +132,8 @@ export class NezuGateway extends EventEmitter {
                         const shard_status = raw_value ? JSON.parse(raw_value) as { latency: number } : { latency: -1 };
                         stats.push({ shardId, status, latency: shard_status.latency });
                     }
-                    const guildCount = await redisScan(this.redis, GenKey(RedisKey.GUILD_KEY), redisScanCount)
-                        .then(g => g.length);
+                    const guildCount = await this.redis.get(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT))
+                        .then(c => (c ? Number(c) : 0));
                     channel.ack(message);
                     await amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, content.route, Buffer.from(
                         JSON.stringify({
@@ -191,18 +191,18 @@ export class NezuGateway extends EventEmitter {
 
         setInterval(async () => {
             guildCounter.reset();
-            const guild = await redisScan(this.redis, GenKey(RedisKey.GUILD_KEY), redisScanCount)
-                .then(g => g.length);
+            const guild = await this.redis.get(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT))
+                .then(c => (c ? Number(c) : 0));
             guildCounter.inc(guild);
 
             channelCounter.reset();
-            const channel = await redisScan(this.redis, GenKey(RedisKey.CHANNEL_KEY), redisScanCount)
-                .then(c => c.length);
+            const channel = await this.redis.get(GenKey(RedisKey.CHANNEL_KEY, RedisKey.COUNT))
+                .then(c => (c ? Number(c) : 0));
             channelCounter.inc(channel);
 
             userCounter.reset();
-            const user = await redisScan(this.redis, GenKey(RedisKey.USER_KEY), redisScanCount)
-                .then(u => u.length);
+            const user = await this.redis.get(GenKey(RedisKey.USER_KEY, RedisKey.COUNT))
+                .then(c => (c ? Number(c) : 0));
             userCounter.inc(user);
 
             const shards_statuses = await this.ws.fetchStatus();

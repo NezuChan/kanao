@@ -25,6 +25,7 @@ export class GuildCreateListener extends Listener {
                     await this.store.redis.set(GenKey(RedisKey.USER_KEY, member.user!.id), JSON.stringify(member.user));
                 }
             }
+            await this.store.redis.incrby(GenKey(RedisKey.USER_KEY, RedisKey.COUNT), payload.data.d.members.length);
             payload.data.d.members = [];
         }
 
@@ -66,6 +67,7 @@ export class GuildCreateListener extends Listener {
         }
 
         await this.store.redis.set(GenKey(RedisKey.GUILD_KEY, payload.data.d.id), JSON.stringify(payload.data.d));
+        await this.store.redis.incr(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT));
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }
