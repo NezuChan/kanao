@@ -3,10 +3,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
 import EventEmitter from "node:events";
 import { createLogger } from "../Utilities/Logger.js";
-import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisDisablePipelining, redisHost, redisNatMap, redisPassword, redisPort, redisUsername, replicaId, storeLogs } from "../config.js";
+import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisDisablePipelining, redisHost, redisNatMap, redisPassword, redisPort, redisScanCount, redisUsername, replicaId, storeLogs } from "../config.js";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, SessionInfo, WebSocketManager, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
-import { Util, createAmqpChannel, createRedis, RoutingKey } from "@nezuchan/utilities";
+import { Util, createAmqpChannel, createRedis, RoutingKey, redisScan } from "@nezuchan/utilities";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ProcessShardingStrategy } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
@@ -108,6 +108,16 @@ export class NezuGateway extends EventEmitter {
         for (let i = shardStart; i < shardEnd; i++) {
             await this.redis.set(GenKey(RedisKey.STATUSES_KEY, i.toString()), JSON.stringify({ latency: -1, status: WebSocketShardStatus.Connecting, startAt: Date.now() }));
         }
+
+        // Update counters
+        const guild = await redisScan(this.redis, GenKey(RedisKey.GUILD_KEY), redisScanCount);
+        await this.redis.set(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT), guild.length);
+
+        const channel = await redisScan(this.redis, GenKey(RedisKey.CHANNEL_KEY), redisScanCount);
+        await this.redis.set(GenKey(RedisKey.CHANNEL_KEY, RedisKey.COUNT), channel.length);
+
+        const user = await redisScan(this.redis, GenKey(RedisKey.USER_KEY), redisScanCount);
+        await this.redis.set(GenKey(RedisKey.USER_KEY, RedisKey.COUNT), user.length);
 
         await this.redis.set(GenKey(RedisKey.SHARDS_KEY), shardCount);
     }
