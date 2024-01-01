@@ -16,6 +16,7 @@ import APM from "prometheus-middleware";
 import { GenKey } from "../Utilities/GenKey.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { Channel } from "amqplib";
+import { sleep } from "@sapphire/utilities";
 
 const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../../package.json")}`);
 const shardIds = await getShardCount();
@@ -109,17 +110,31 @@ export class NezuGateway extends EventEmitter {
             await this.redis.set(GenKey(RedisKey.STATUSES_KEY, i.toString()), JSON.stringify({ latency: -1, status: WebSocketShardStatus.Connecting, startAt: Date.now() }));
         }
 
-        // Update counters
-        const guild = await redisScan(this.redis, GenKey(RedisKey.GUILD_KEY), redisScanCount);
-        await this.redis.set(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT), guild.length);
+        // Check if this is the first replica
+        if (shardStart === 0) {
+            let status = await this.ws.fetchStatus();
 
-        const channel = await redisScan(this.redis, GenKey(RedisKey.CHANNEL_KEY), redisScanCount);
-        await this.redis.set(GenKey(RedisKey.CHANNEL_KEY, RedisKey.COUNT), channel.length);
+            // Wait until all shards are ready
+            while (status.size !== shardCount) {
+                // Sleep for 30 seconds
+                await sleep(Time.Second * 30);
+                status = await this.ws.fetchStatus();
+            }
 
-        const user = await redisScan(this.redis, GenKey(RedisKey.USER_KEY), redisScanCount);
-        await this.redis.set(GenKey(RedisKey.USER_KEY, RedisKey.COUNT), user.length);
+            // Update counter
+            this.logger.info("All shards are ready, updating counter");
 
-        await this.redis.set(GenKey(RedisKey.SHARDS_KEY), shardCount);
+            const guild = await redisScan(this.redis, GenKey(RedisKey.GUILD_KEY), redisScanCount);
+            await this.redis.set(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT), guild.length);
+
+            const channel = await redisScan(this.redis, GenKey(RedisKey.CHANNEL_KEY), redisScanCount);
+            await this.redis.set(GenKey(RedisKey.CHANNEL_KEY, RedisKey.COUNT), channel.length);
+
+            const user = await redisScan(this.redis, GenKey(RedisKey.USER_KEY), redisScanCount);
+            await this.redis.set(GenKey(RedisKey.USER_KEY, RedisKey.COUNT), user.length);
+
+            await this.redis.set(GenKey(RedisKey.SHARDS_KEY), shardCount);
+        }
     }
 
     public setupAmqp() {
