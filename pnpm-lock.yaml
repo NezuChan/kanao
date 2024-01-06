@@ -30,8 +30,8 @@ dependencies:
     specifier: ^1.7.11
     version: 1.7.11
   '@sapphire/utilities':
-    specifier: ^3.15.1
-    version: 3.15.1
+    specifier: ^3.15.2
+    version: 3.15.2
   '@skyra/start-banner':
     specifier: ^2.0.1
     version: 2.0.1
@@ -390,7 +390,7 @@ packages:
     resolution: {integrity: sha512-Yyo4dL/5Fqfvt//exNNZVnnYovS05iharOO+IdZyYwkU+Gyltb/al/rttbAH4cctXfcpW4aDlMJ7PFDxgtUCaA==}
     engines: {node: '>=v14.0.0', npm: '>=7.0.0'}
     dependencies:
-      '@sapphire/utilities': 3.15.1
+      '@sapphire/utilities': 3.15.2
     dev: false
 
   /@sapphire/duration@1.1.1:
@@ -403,7 +403,7 @@ packages:
     engines: {node: '>=v14.0.0', npm: '>=7.0.0'}
     dependencies:
       '@discordjs/collection': 1.5.3
-      '@sapphire/utilities': 3.15.1
+      '@sapphire/utilities': 3.15.2
       tslib: 2.6.2
     dev: false
 
@@ -450,8 +450,8 @@ packages:
     engines: {node: '>=v14.0.0', npm: '>=7.0.0'}
     dev: false
 
-  /@sapphire/utilities@3.15.1:
-    resolution: {integrity: sha512-Pce4++kXf+2vgVfO1kEJ2LiZzO8zB2TTyIu6XePHNmNEotcEHkq0RmOSaKw3ElA+5gRvTE269RMwmlAw1twuLg==}
+  /@sapphire/utilities@3.15.2:
+    resolution: {integrity: sha512-pp4+8wHK8C1oFMjA1nwGXT7rgf41NzlRlJi9QIy+PGOOEHjuaUHQRgfzghkJgSJtSKjjoO9KxBQ8YmyCnjlu+g==}
     engines: {node: '>=v14.0.0'}
     dev: false
 
