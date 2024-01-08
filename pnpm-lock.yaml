@@ -69,8 +69,8 @@ dependencies:
     specifier: ^10.3.1
     version: 10.3.1
   prometheus-middleware:
-    specifier: ^1.3.2
-    version: 1.3.2
+    specifier: ^1.3.3
+    version: 1.3.3
   tslib:
     specifier: ^2.6.2
     version: 2.6.2
@@ -2214,22 +2214,22 @@ packages:
     engines: {node: '>= 0.6.0'}
     dev: false
 
-  /prom-client@15.0.0:
-    resolution: {integrity: sha512-UocpgIrKyA2TKLVZDSfm8rGkL13C19YrQBAiG3xo3aDFWcHedxRxI3z+cIcucoxpSO0h5lff5iv/SXoxyeopeA==}
+  /prom-client@15.1.0:
+    resolution: {integrity: sha512-cCD7jLTqyPdjEPBo/Xk4Iu8jxjuZgZJ3e/oET3L+ZwOuap/7Cw3dH/TJSsZKs1TQLZ2IHpIlRAKw82ef06kmMw==}
     engines: {node: ^16 || ^18 || >=20}
     dependencies:
       '@opentelemetry/api': 1.7.0
       tdigest: 0.1.2
     dev: false
 
-  /prometheus-middleware@1.3.2:
-    resolution: {integrity: sha512-jU8zggTs/tDNvpuxRMYmVBtw0jfLijakj8rAZrCGHcrJOQ24WfgHrMum4zNqNQb1dJWrO3Ml5sYrobFk5fArug==}
+  /prometheus-middleware@1.3.3:
+    resolution: {integrity: sha512-pjsK8rIs/2lsvbZd9TGrJfc/LQbJt//QNyK/EoRONiZAB5owstyGNJEcvMgErwPyYsHMG7LOCMYKftHHSBpwaQ==}
     engines: {node: '>=16.0.0'}
     hasBin: true
     dependencies:
       '@opentelemetry/api': 1.7.0
       debug: 4.3.4
-      prom-client: 15.0.0
+      prom-client: 15.1.0
       url-value-parser: 2.2.0
     transitivePeerDependencies:
       - supports-color
