@@ -15,17 +15,21 @@ export class GuildCreateListener extends Listener {
     public async run(payload: { data: GatewayGuildCreateDispatch; shardId: number }): Promise<void> {
         if (payload.data.d.unavailable) return;
 
+        let alreadyExists = 0;
         if (stateMembers || stateUsers) {
             for (const member of payload.data.d.members) {
+                if (stateUsers) {
+                    const key = GenKey(RedisKey.USER_KEY, member.user!.id);
+                    // Redis Exists return 1 if the key exists, 0 if it does not
+                    alreadyExists += await this.store.redis.exists(key);
+                    await this.store.redis.set(key, JSON.stringify(member.user));
+                }
+
                 if (stateMembers) {
                     await this.store.redis.set(GenKey(RedisKey.MEMBER_KEY, member.user!.id, payload.data.d.id), JSON.stringify(member));
                 }
-
-                if (stateUsers) {
-                    await this.store.redis.set(GenKey(RedisKey.USER_KEY, member.user!.id), JSON.stringify(member.user));
-                }
             }
-            await this.store.redis.incrby(GenKey(RedisKey.USER_KEY, RedisKey.COUNT), payload.data.d.members.length);
+            await this.store.redis.incrby(GenKey(RedisKey.USER_KEY, RedisKey.COUNT), payload.data.d.members.length - alreadyExists);
             payload.data.d.members = [];
         }
 
@@ -66,8 +70,11 @@ export class GuildCreateListener extends Listener {
             payload.data.d.presences = [];
         }
 
-        await this.store.redis.set(GenKey(RedisKey.GUILD_KEY, payload.data.d.id), JSON.stringify(payload.data.d));
-        await this.store.redis.incr(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT));
+        const key = GenKey(RedisKey.GUILD_KEY, payload.data.d.id);
+        const exists = await this.store.redis.exists(key);
+        await this.store.redis.set(key, JSON.stringify(payload.data.d));
+
+        if (exists === 0) await this.store.redis.incr(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT));
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }
