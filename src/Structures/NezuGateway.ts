@@ -116,8 +116,11 @@ export class NezuGateway extends EventEmitter {
                 const status: WebSocketShardStatus[] = [];
                 // Do a loop from 0 to shardCount times
                 for (let i = 0; i < shardCount; i++) {
-                    const stat: { status: WebSocketShardStatus } = JSON.parse((await this.redis.get(GenKey(RedisKey.STATUSES_KEY, i.toString())))!);
-                    status.push(stat.status);
+                    const s = await this.redis.get(GenKey(RedisKey.STATUSES_KEY, i.toString()));
+                    if (s) {
+                        const stat: { status: WebSocketShardStatus } = JSON.parse(s);
+                        status.push(stat.status);
+                    }
                 }
                 return status;
             };
