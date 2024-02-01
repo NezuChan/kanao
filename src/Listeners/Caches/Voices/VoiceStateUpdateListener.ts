@@ -18,7 +18,15 @@ export class VoiceStateUpdateListener extends Listener {
         if (stateVoices) {
             if (payload.data.d.channel_id) {
                 const key = GenKey(RedisKey.VOICE_KEY, payload.data.d.user_id, payload.data.d.guild_id);
-                await this.store.redis.set(key, JSON.stringify(payload.data.d));
+                await this.store.redis.set(key, JSON.stringify({
+                    ...payload.data.d,
+                    member: payload.data.d.member
+                        ? {
+                            ...payload.data.d.member,
+                            roles: []
+                        }
+                        : null
+                }));
                 await this.store.redis.sadd(GenKey(RedisKey.VOICE_KEY, RedisKey.LIST, payload.data.d.guild_id), key);
             } else {
                 const key = GenKey(RedisKey.VOICE_KEY, payload.data.d.user_id, payload.data.d.guild_id);
