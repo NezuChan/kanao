@@ -30,28 +30,24 @@ export class GuildCreateListener extends Listener {
                 }
             }
             await this.store.redis.incrby(GenKey(RedisKey.USER_KEY, RedisKey.COUNT), payload.data.d.members.length - alreadyExists);
-            payload.data.d.members = [];
         }
 
         if (stateChannels) {
             for (const channel of payload.data.d.channels) {
                 await this.store.redis.set(GenKey(RedisKey.CHANNEL_KEY, channel.id, payload.data.d.id), JSON.stringify(channel));
             }
-            payload.data.d.channels = [];
         }
 
         if (stateRoles) {
             for (const role of payload.data.d.roles) {
                 await this.store.redis.set(GenKey(RedisKey.ROLE_KEY, role.id, payload.data.d.id), JSON.stringify(role));
             }
-            payload.data.d.roles = [];
         }
 
         if (stateVoices) {
             for (const voice of payload.data.d.voice_states) {
                 await this.store.redis.set(GenKey(RedisKey.VOICE_KEY, voice.user_id, payload.data.d.id), JSON.stringify(voice));
             }
-            payload.data.d.voice_states = [];
         }
 
         if (stateEmojis) {
@@ -60,19 +56,27 @@ export class GuildCreateListener extends Listener {
                     await this.store.redis.set(GenKey(RedisKey.EMOJI_KEY, emoji.id, payload.data.d.id), JSON.stringify(emoji));
                 }
             }
-            payload.data.d.emojis = [];
         }
 
         if (statePresences) {
             for (const presence of payload.data.d.presences) {
                 await this.store.redis.set(GenKey(RedisKey.PRESENCE_KEY, presence.user.id, payload.data.d.id), JSON.stringify(presence));
             }
-            payload.data.d.presences = [];
         }
 
         const key = GenKey(RedisKey.GUILD_KEY, payload.data.d.id);
         const exists = await this.store.redis.exists(key);
-        await this.store.redis.set(key, JSON.stringify(payload.data.d));
+        await this.store.redis.set(key, JSON.stringify({
+            ...payload.data.d,
+            members: [],
+            voice_states: [],
+            emojis: [],
+            presences: [],
+            channels: [],
+            stickers: [],
+            soundboard_sounds: [],
+            threads: []
+        }));
 
         if (exists === 0) await this.store.redis.incr(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT));
 
