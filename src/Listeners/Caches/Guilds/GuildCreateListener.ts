@@ -74,7 +74,8 @@ export class GuildCreateListener extends Listener {
             presences: [],
             channels: [],
             stickers: [],
-            soundboards: []
+            soundboard_sounds: [],
+            threads: []
         }));
 
         if (exists === 0) await this.store.redis.incr(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT));
