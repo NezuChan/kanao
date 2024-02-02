@@ -7,7 +7,7 @@
   "type": "module",
   "main": "dist",
   "scripts": {
-    "build": "rimraf dist && swc src -d dist",
+    "build": "rimraf dist && swc ./src -d dist --config-file .swcrc --strip-leading-paths",
     "lint": "eslint src --ext ts",
     "lint:fix": "eslint src --fix --ext ts",
     "start": "npm run build && node -r dotenv/config dist/index.js"
