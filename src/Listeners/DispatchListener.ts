@@ -1,8 +1,11 @@
+import { Buffer } from "node:buffer";
 import { WebSocketShardEvents } from "@discordjs/ws";
-import { Listener, ListenerContext } from "../Stores/Listener.js";
-import { GatewayDispatchEvents, GatewayDispatchPayload } from "discord-api-types/v10";
 import { RabbitMQ } from "@nezuchan/constants";
 import { RoutingKey } from "@nezuchan/utilities";
+import type { GatewayDispatchPayload } from "discord-api-types/v10";
+import { GatewayDispatchEvents } from "discord-api-types/v10";
+import type { ListenerContext } from "../Stores/Listener.js";
+import { Listener } from "../Stores/Listener.js";
 import { clientId } from "../config.js";
 
 export class ReadyListener extends Listener {
@@ -12,7 +15,7 @@ export class ReadyListener extends Listener {
         });
     }
 
-    public async run(payload: { shardId: number; data: { data: GatewayDispatchPayload } }): Promise<void> {
+    public async run(payload: { shardId: number; data: { data: GatewayDispatchPayload; }; }): Promise<void> {
         switch (payload.data.data.t) {
             case GatewayDispatchEvents.ChannelCreate:
             case GatewayDispatchEvents.ChannelPinsUpdate:

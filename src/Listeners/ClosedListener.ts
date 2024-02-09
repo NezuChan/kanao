@@ -1,5 +1,6 @@
 import { WebSocketShardEvents } from "@discordjs/ws";
-import { Listener, ListenerContext } from "../Stores/Listener.js";
+import type { ListenerContext } from "../Stores/Listener.js";
+import { Listener } from "../Stores/Listener.js";
 
 export class ClosedListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -8,7 +9,7 @@ export class ClosedListener extends Listener {
         });
     }
 
-    public run(payload: { data: { code: number }; shardId: number }): unknown {
-        return this.logger.info(`Shard ${payload.shardId} has been closed, close code ${payload.data.code}`);
+    public run(payload: { data: { code: number; }; shardId: number; }): unknown {
+        this.logger.info(`Shard ${payload.shardId} has been closed, close code ${payload.data.code}`);
     }
 }

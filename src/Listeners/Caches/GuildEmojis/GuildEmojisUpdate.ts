@@ -1,9 +1,14 @@
-import { Listener, ListenerContext } from "../../../Stores/Listener.js";
-import { GatewayGuildEmojisUpdateDispatch, GatewayDispatchEvents } from "discord-api-types/v10";
-import { clientId, redisScanCount, stateEmojis } from "../../../config.js";
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable no-await-in-loop */
+import { Buffer } from "node:buffer";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { RoutingKey, redisScan } from "@nezuchan/utilities";
+import type { GatewayGuildEmojisUpdateDispatch } from "discord-api-types/v10";
+import { GatewayDispatchEvents } from "discord-api-types/v10";
+import type { ListenerContext } from "../../../Stores/Listener.js";
+import { Listener } from "../../../Stores/Listener.js";
 import { GenKey } from "../../../Utilities/GenKey.js";
+import { clientId, redisScanCount, stateEmojis } from "../../../config.js";
 
 export class GuildEmojisUpdate extends Listener {
     public constructor(context: ListenerContext) {
@@ -12,7 +17,7 @@ export class GuildEmojisUpdate extends Listener {
         });
     }
 
-    public async run(payload: { data: GatewayGuildEmojisUpdateDispatch; shardId: number }): Promise<void> {
+    public async run(payload: { data: GatewayGuildEmojisUpdateDispatch; shardId: number; }): Promise<void> {
         let old_emojis: string[] = [];
 
         if (stateEmojis) {
@@ -22,7 +27,7 @@ export class GuildEmojisUpdate extends Listener {
             }
 
             for (const emoji of payload.data.d.emojis) {
-                if (emoji.id) {
+                if (emoji.id !== null) {
                     await this.store.redis.set(GenKey(RedisKey.EMOJI_KEY, emoji.id, payload.data.d.guild_id), JSON.stringify(emoji));
                 }
             }

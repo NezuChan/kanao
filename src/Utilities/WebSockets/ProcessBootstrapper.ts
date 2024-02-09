@@ -1,15 +1,29 @@
+/* eslint-disable promise/param-names */
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-promise-executor-return */
+/* eslint-disable consistent-return */
+
+/* eslint-disable no-await-in-loop */
+
+/* eslint-disable @typescript-eslint/no-confusing-void-expression */
+
+import { Buffer } from "node:buffer";
+import EventEmitter from "node:events";
+import process from "node:process";
+import { setTimeout } from "node:timers";
 import { Collection } from "@discordjs/collection";
-import { BootstrapOptions, WebSocketShardEvents, WebSocketShard, WorkerReceivePayload, WorkerReceivePayloadOp, WorkerSendPayload, WorkerSendPayloadOp, WorkerData, WebSocketShardDestroyOptions } from "@discordjs/ws";
-import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
+import type { BootstrapOptions, WorkerReceivePayload, WorkerSendPayload, WorkerData, WebSocketShardDestroyOptions } from "@discordjs/ws";
+import { WebSocketShardEvents, WebSocketShard, WorkerReceivePayloadOp, WorkerSendPayloadOp } from "@discordjs/ws";
+import { RabbitMQ, ShardOp } from "@nezuchan/constants";
+import { createAmqpChannel, createRedis, RoutingKey, RoutingKeyToId } from "@nezuchan/utilities";
 import { StoreRegistry } from "@sapphire/pieces";
+import type { Channel, ConsumeMessage } from "amqplib";
+import type { GatewaySendPayload } from "discord-api-types/v10";
+import type { Listener } from "../../Stores/Listener.js";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
 import { discordToken, storeLogs, lokiHost, redisPassword, redisUsername, redisClusters, redisClusterScaleReads, redisDb, redisHost, redisNatMap, redisPort, amqp, clientId, redisDisablePipelining } from "../../config.js";
 import { createLogger } from "../Logger.js";
-import EventEmitter from "events";
-import { createAmqpChannel, createRedis, RoutingKey, RoutingKeyToId } from "@nezuchan/utilities";
-import { RabbitMQ, ShardOp } from "@nezuchan/constants";
-import { GatewaySendPayload } from "discord-api-types/v10";
-import { Channel, ConsumeMessage } from "amqplib";
+import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 
 export class ProcessBootstrapper {
     public redis = createRedis({
@@ -25,19 +39,19 @@ export class ProcessBootstrapper {
     });
 
     /**
-	 * The data passed to the child process
-	 */
-    protected readonly data = JSON.parse(process.env.WORKER_DATA!) as WorkerData & { processId: number };
+     * The data passed to the child process
+     */
+    protected readonly data = JSON.parse(process.env.WORKER_DATA!) as WorkerData & { processId: number; };
 
     /**
-	 * The shards that are managed by this process
-	 */
+     * The shards that are managed by this process
+     */
     protected readonly shards = new Collection<number, WebSocketShard>();
 
     public constructor(
         public logger = createLogger("nezu-gateway", Buffer.from(discordToken.split(".")[0], "base64").toString(), storeLogs, lokiHost),
         public stores = new StoreRegistry()
-    ) { }
+    ) {}
 
     /**
      * Bootstraps the child process with the provided options
@@ -52,7 +66,7 @@ export class ProcessBootstrapper {
             const shard = new WebSocketShard(new ProcessContextFetchingStrategy(this.data), shardId);
             for (const event of options.forwardEvents ?? Object.values(WebSocketShardEvents)) {
                 // @ts-expect-error: Event types incompatible
-                // eslint-disable-next-line @typescript-eslint/no-loop-func
+
                 shard.on(event, data => {
                     const payload = {
                         op: WorkerReceivePayloadOp.Event,
@@ -61,8 +75,7 @@ export class ProcessBootstrapper {
                         shardId
                     } satisfies WorkerReceivePayload;
                     process.send!(payload);
-                    this.stores.get("listeners")
-                        .emitter.emit(event, { shard, data, shardId });
+                    (this.stores.get("listeners") as unknown as Listener).emitter!.emit(event, { shard, data, shardId });
                 });
             }
 
@@ -79,7 +92,7 @@ export class ProcessBootstrapper {
         process.send!(message);
     }
 
-    public setupAmqp() {
+    public setupAmqp(): void {
         const amqpChannel = createAmqpChannel(amqp, {
             setup: async (channel: Channel) => {
                 await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "direct", { durable: false });
@@ -90,7 +103,7 @@ export class ProcessBootstrapper {
                     await channel.bindQueue(queue, RabbitMQ.GATEWAY_EXCHANGE, RoutingKey(clientId, shard));
                 }
 
-                await channel.consume(queue, m => this.onConsumeMessage(channel, m));
+                await channel.consume(queue, async m => this.onConsumeMessage(channel, m));
             }
         });
 
@@ -108,10 +121,10 @@ export class ProcessBootstrapper {
         );
     }
 
-    public async onConsumeMessage(channel: Channel, message: ConsumeMessage | null) {
+    public async onConsumeMessage(channel: Channel, message: ConsumeMessage | null): Promise<void> {
         if (!message) return;
         channel.ack(message);
-        const content = JSON.parse(message.content.toString()) as { op: ShardOp; data: unknown };
+        const content = JSON.parse(message.content.toString()) as { op: ShardOp; data: unknown; };
         const shardId = RoutingKeyToId(clientId, message.fields.routingKey);
         switch (content.op) {
             case ShardOp.SEND: {
@@ -136,6 +149,9 @@ export class ProcessBootstrapper {
                 }
                 break;
             }
+
+            default:
+                break;
         }
     }
 
@@ -151,7 +167,7 @@ export class ProcessBootstrapper {
         try {
             await shard.connect();
         } catch {
-            await new Promise(r => setTimeout(r, Math.min(++retries * 1000, 10000)));
+            await new Promise(r => setTimeout(r, Math.min(++retries * 1_000, 10_000)));
             return this.connect(shardId, retries);
         }
     }
@@ -206,8 +222,8 @@ export class ProcessBootstrapper {
                 }
 
                 case WorkerSendPayloadOp.SessionInfoResponse: case WorkerSendPayloadOp.ShardIdentifyResponse: {
-                    // eslint-disable-next-line @typescript-eslint/dot-notation
-                    this.shards.forEach(shard => (shard["strategy"] as ProcessContextFetchingStrategy).messageCallback(payload));
+                    // @ts-expect-error Expected.
+                    for (const shard of this.shards) (shard.strategy as ProcessContextFetchingStrategy).messageCallback(payload);
                     break;
                 }
 
@@ -226,13 +242,16 @@ export class ProcessBootstrapper {
                     process.send!(response);
                     break;
                 }
+
+                default:
+                    break;
             }
         });
     }
 }
 
 declare module "@sapphire/pieces" {
-    interface StoreRegistryEntries {
+    type StoreRegistryEntries = {
         listeners: ListenerStore;
-    }
+    };
 }

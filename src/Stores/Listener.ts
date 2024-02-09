@@ -1,13 +1,15 @@
-/* eslint-disable no-nested-ternary */
-import { Piece, PieceContext, PieceOptions } from "@sapphire/pieces";
+/* eslint-disable unicorn/no-nested-ternary */
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
+import type { EventEmitter } from "node:events";
+import type { PieceContext, PieceOptions } from "@sapphire/pieces";
+import { Piece } from "@sapphire/pieces";
 import { Result } from "@sapphire/result";
-import { EventEmitter } from "node:events";
-import { ListenerStore } from "./ListenerStore.js";
-import { Logger } from "pino";
+import type { Logger } from "pino";
+import type { ListenerStore } from "./ListenerStore.js";
 
-export interface ListenerContext extends PieceContext {
+export type ListenerContext = PieceContext & {
     store: ListenerStore;
-}
+};
 
 export abstract class Listener extends Piece {
     public store: ListenerStore;
@@ -72,7 +74,7 @@ export abstract class Listener extends Piece {
     public abstract run(...args: unknown[]): unknown;
 }
 
-export interface ListenerOptions extends PieceOptions {
+export type ListenerOptions = PieceOptions & {
     event?: string | symbol;
     once?: boolean;
-}
+};

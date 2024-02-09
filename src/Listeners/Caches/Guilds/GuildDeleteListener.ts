@@ -1,7 +1,11 @@
-import { Listener, ListenerContext } from "../../../Stores/Listener.js";
-import { GatewayDispatchEvents, GatewayGuildDeleteDispatch } from "discord-api-types/v10";
+/* eslint-disable no-await-in-loop */
+import { Buffer } from "node:buffer";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { RoutingKey, redisScan } from "@nezuchan/utilities";
+import type { GatewayGuildDeleteDispatch } from "discord-api-types/v10";
+import { GatewayDispatchEvents } from "discord-api-types/v10";
+import type { ListenerContext } from "../../../Stores/Listener.js";
+import { Listener } from "../../../Stores/Listener.js";
 import { GenKey } from "../../../Utilities/GenKey.js";
 import { clientId, redisScanCount } from "../../../config.js";
 
@@ -12,9 +16,9 @@ export class GuildDeleteListener extends Listener {
         });
     }
 
-    public async run(payload: { data: GatewayGuildDeleteDispatch; shardId: number }): Promise<void> {
+    public async run(payload: { data: GatewayGuildDeleteDispatch; shardId: number; }): Promise<void> {
         const old = await this.store.redis.get(GenKey(RedisKey.GUILD_KEY, payload.data.d.id));
-        const old_parsed = old ? JSON.parse(old) : {};
+        const old_parsed = old === null ? {} : JSON.parse(old);
 
         const roles = await redisScan(this.store.redis, GenKey(RedisKey.ROLE_KEY, payload.data.d.id), redisScanCount);
         const channels = await redisScan(this.store.redis, GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id), redisScanCount);

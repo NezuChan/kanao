@@ -8,29 +8,9 @@
   "main": "dist",
   "scripts": {
     "build": "rimraf dist && swc ./src -d dist --config-file .swcrc --strip-leading-paths",
-    "lint": "eslint src --ext ts",
-    "lint:fix": "eslint src --fix --ext ts",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
     "start": "npm run build && node -r dotenv/config dist/index.js"
-  },
-  "eslintConfig": {
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-      "project": "./tsconfig.json"
-    },
-    "plugins": [
-      "@typescript-eslint"
-    ],
-    "extends": [
-      "eslint:recommended",
-      "plugin:@typescript-eslint/recommended",
-      "@hazmi35/eslint-config/typescript"
-    ],
-    "rules": {
-      "@typescript-eslint/explicit-function-return-type": "off",
-      "class-methods-use-this": "off",
-      "@typescript-eslint/restrict-template-expressions": "off",
-      "@typescript-eslint/naming-convention": "off"
-    }
   },
   "dependencies": {
     "@discordjs/collection": "^2.0.0",
@@ -67,8 +47,6 @@
     "@types/dockerode": "^3.3.23",
     "@types/gradient-string": "^1.1.5",
     "@types/node": "^20.11.17",
-    "@typescript-eslint/eslint-plugin": "^6.18.1",
-    "@typescript-eslint/parser": "^6.18.1",
     "@vladfrangu/async_event_emitter": "^2.2.4",
     "eslint": "^8.56.0",
     "rimraf": "^5.0.5",

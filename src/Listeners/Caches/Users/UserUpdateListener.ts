@@ -1,8 +1,11 @@
-import { Listener, ListenerContext } from "../../../Stores/Listener.js";
-import { GatewayDispatchEvents, GatewayUserUpdateDispatch } from "discord-api-types/v10";
+import { Buffer } from "node:buffer";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
-import { GenKey } from "../../../Utilities/GenKey.js";
 import { RoutingKey } from "@nezuchan/utilities";
+import type { GatewayUserUpdateDispatch } from "discord-api-types/v10";
+import { GatewayDispatchEvents } from "discord-api-types/v10";
+import type { ListenerContext } from "../../../Stores/Listener.js";
+import { Listener } from "../../../Stores/Listener.js";
+import { GenKey } from "../../../Utilities/GenKey.js";
 import { clientId } from "../../../config.js";
 
 export class UserUpdateListener extends Listener {
@@ -12,13 +15,13 @@ export class UserUpdateListener extends Listener {
         });
     }
 
-    public async run(payload: { data: GatewayUserUpdateDispatch; shardId: number }): Promise<void> {
+    public async run(payload: { data: GatewayUserUpdateDispatch; shardId: number; }): Promise<void> {
         const old = await this.store.redis.get(GenKey(RedisKey.BOT_USER_KEY));
         await this.store.redis.set(GenKey(RedisKey.BOT_USER_KEY), JSON.stringify(payload.data.d));
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
             ...payload.data,
-            old: old ? JSON.parse(old) : null
+            old: old === null ? null : JSON.parse(old)
         })));
     }
 }

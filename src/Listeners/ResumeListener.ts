@@ -1,5 +1,6 @@
 import { WebSocketShardEvents } from "@discordjs/ws";
-import { Listener, ListenerContext } from "../Stores/Listener.js";
+import type { ListenerContext } from "../Stores/Listener.js";
+import { Listener } from "../Stores/Listener.js";
 
 export class ReadyListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -8,7 +9,7 @@ export class ReadyListener extends Listener {
         });
     }
 
-    public run(payload: { shardId: number }): unknown {
-        return this.logger.info(`Shard ${payload.shardId} has resumed`);
+    public run(payload: { shardId: number; }): unknown {
+        this.logger.info(`Shard ${payload.shardId} has resumed`);
     }
 }

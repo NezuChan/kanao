@@ -1,6 +1,9 @@
-import { resolve } from "path";
-import { pino, Logger } from "pino";
+import { resolve } from "node:path";
+import process from "node:process";
+import type { URL } from "node:url";
 import { Util } from "@nezuchan/utilities";
+import type { Logger } from "pino";
+import { pino } from "pino";
 import { production } from "../config.js";
 
 export function createLogger(name: string, clientId: string, storeLogs: boolean, lokiHost?: URL): Logger {

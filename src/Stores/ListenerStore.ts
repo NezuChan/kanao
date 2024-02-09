@@ -1,11 +1,11 @@
-import { Store } from "@sapphire/pieces";
-import { Listener } from "./Listener.js";
-import { Logger } from "pino";
+import type EventEmitter from "node:events";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import EventEmitter from "node:events";
-import { default as IORedis } from "ioredis";
-import { ChannelWrapper } from "amqp-connection-manager";
+import { Store } from "@sapphire/pieces";
+import type { ChannelWrapper } from "amqp-connection-manager";
+import type { default as IORedis } from "ioredis";
+import type { Logger } from "pino";
+import { Listener } from "./Listener.js";
 
 export class ListenerStore extends Store<Listener> {
     public readonly redis: IORedis.Cluster | IORedis.Redis;
@@ -16,7 +16,7 @@ export class ListenerStore extends Store<Listener> {
     public constructor(
         options: ListenerStoreOptions
     ) {
-        super(Listener, { name: "listeners" });
+        super(Listener, { name: "listeners" as never });
         this.redis = options.redis;
         this.logger = options.logger;
         this.emitter = options.emitter;
@@ -25,9 +25,9 @@ export class ListenerStore extends Store<Listener> {
     }
 }
 
-interface ListenerStoreOptions {
+type ListenerStoreOptions = {
     logger: Logger;
     emitter: EventEmitter;
     redis: IORedis.Cluster | IORedis.Redis;
     amqp: ChannelWrapper;
-}
+};
