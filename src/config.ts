@@ -6,14 +6,14 @@ import { chunk, range } from "@sapphire/utilities";
 import { Result } from "@sapphire/result";
 
 export const getShardCount = async () => {
-    const replicaCount = process.env.GATEWAY_REPLICA_COUNT ? Number(process.env.GATEWAY_REPLICA_COUNT!) : null;
+    const replicaCount = process.env.GATEWAY_REPLICA_COUNT ? Number(process.env.GATEWAY_REPLICA_COUNT) : null;
     if (replicaCount && replicaCount > 1) {
         const result = await Result.fromAsync(async () => {
             const docker = new Dockerode();
             const container = docker.getContainer(process.env.HOSTNAME!);
             const inspect = await container.inspect();
-            const gatewayShardCount = process.env.GATEWAY_SHARD_COUNT ? Number(process.env.GATEWAY_SHARD_COUNT!) : null;
-            const gatewayShardCountPerReplica = process.env.GATEWAY_SHARD_COUNT_PER_REPLICA ? Number(process.env.GATEWAY_SHARD_COUNT_PER_REPLICA!) : null;
+            const gatewayShardCount = process.env.GATEWAY_SHARD_COUNT ? Number(process.env.GATEWAY_SHARD_COUNT) : null;
+            const gatewayShardCountPerReplica = process.env.GATEWAY_SHARD_COUNT_PER_REPLICA ? Number(process.env.GATEWAY_SHARD_COUNT_PER_REPLICA) : null;
             if (gatewayShardCount && gatewayShardCountPerReplica) {
                 const shards = gatewayShardCount >= 2 ? range(0, gatewayShardCount, 1) : [0];
                 const chunks = chunk(shards, gatewayShardCountPerReplica);
@@ -69,11 +69,11 @@ export const gatewayPresenceName = process.env.GATEWAY_PRESENCE_NAME;
 export const gatewayPresenceStatus = process.env.GATEWAY_PRESENCE_STATUS as PresenceUpdateStatus | undefined ?? PresenceUpdateStatus.Online;
 export const gatewayIntents = Number(process.env.GATEWAY_INTENTS ?? 0);
 export const gatewayShardsPerWorkers = Number(process.env.GATEWAY_SHARDS_PER_WORKERS ?? 10);
-export const gatewayHelloTimeout = process.env.GATEWAY_HELLO_TIMEOUT ? Number(process.env.GATEWAY_HELLO_TIMEOUT!) : null;
-export const gatewayReadyTimeout = process.env.GATEWAY_READY_TIMEOUT ? Number(process.env.GATEWAY_READY_TIMEOUT!) : null;
-export const gatewayHandShakeTimeout = process.env.GATEWAY_HANDSHAKE_TIMEOUT ? Number(process.env.GATEWAY_HANDSHAKE_TIMEOUT!) : null;
+export const gatewayHelloTimeout = process.env.GATEWAY_HELLO_TIMEOUT ? Number(process.env.GATEWAY_HELLO_TIMEOUT) : null;
+export const gatewayReadyTimeout = process.env.GATEWAY_READY_TIMEOUT ? Number(process.env.GATEWAY_READY_TIMEOUT) : null;
+export const gatewayHandShakeTimeout = process.env.GATEWAY_HANDSHAKE_TIMEOUT ? Number(process.env.GATEWAY_HANDSHAKE_TIMEOUT) : null;
 export const gatewayLargeThreshold = Number(process.env.GATEWAY_LARGE_THRESHOLD ?? 250);
-export const gatewayShardCount = process.env.GATEWAY_SHARD_COUNT ? Number(process.env.GATEWAY_SHARD_COUNT!) : null;
+export const gatewayShardCount = process.env.GATEWAY_SHARD_COUNT ? Number(process.env.GATEWAY_SHARD_COUNT) : null;
 
 export const production = process.env.NODE_ENV === "production";
 
