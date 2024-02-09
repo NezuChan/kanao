@@ -3,8 +3,6 @@
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable consistent-return */
 
-/* eslint-disable no-await-in-loop */
-
 /* eslint-disable @typescript-eslint/no-confusing-void-expression */
 
 import { Buffer } from "node:buffer";
@@ -15,28 +13,21 @@ import { Collection } from "@discordjs/collection";
 import type { BootstrapOptions, WorkerReceivePayload, WorkerSendPayload, WorkerData, WebSocketShardDestroyOptions } from "@discordjs/ws";
 import { WebSocketShardEvents, WebSocketShard, WorkerReceivePayloadOp, WorkerSendPayloadOp } from "@discordjs/ws";
 import { RabbitMQ, ShardOp } from "@nezuchan/constants";
-import { createAmqpChannel, createRedis, RoutingKey, RoutingKeyToId } from "@nezuchan/utilities";
+import { createAmqpChannel, RoutingKey, RoutingKeyToId } from "@nezuchan/utilities";
 import { StoreRegistry } from "@sapphire/pieces";
 import type { Channel, ConsumeMessage } from "amqplib";
 import type { GatewaySendPayload } from "discord-api-types/v10";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import * as schema from "../../Schema/index.js";
 import type { Listener } from "../../Stores/Listener.js";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
-import { discordToken, storeLogs, lokiHost, redisPassword, redisUsername, redisClusters, redisClusterScaleReads, redisDb, redisHost, redisNatMap, redisPort, amqp, clientId, redisDisablePipelining } from "../../config.js";
+import { discordToken, storeLogs, lokiHost, amqp, clientId, databaseUrl } from "../../config.js";
 import { createLogger } from "../Logger.js";
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 
 export class ProcessBootstrapper {
-    public redis = createRedis({
-        redisUsername,
-        redisPassword,
-        redisHost,
-        redisPort,
-        redisDb,
-        redisClusterScaleReads,
-        redisClusters,
-        redisNatMap,
-        enableAutoPipelining: !redisDisablePipelining
-    });
+    public drizzle = drizzle(postgres(databaseUrl), { schema });
 
     /**
      * The data passed to the child process
@@ -58,8 +49,6 @@ export class ProcessBootstrapper {
      */
     public async bootstrap(options: Readonly<BootstrapOptions> = {}): Promise<void> {
         this.setupAmqp(); await this.stores.load();
-
-        this.redis.on("error", (err: Error) => this.logger.error(err, "Redis Error"));
 
         // Start by initializing the shards
         for (const shardId of this.data.shardIds) {
@@ -115,7 +104,7 @@ export class ProcessBootstrapper {
             new ListenerStore({
                 logger: this.logger,
                 emitter: new EventEmitter(),
-                redis: this.redis,
+                drizzle: this.drizzle,
                 amqp: amqpChannel
             })
         );

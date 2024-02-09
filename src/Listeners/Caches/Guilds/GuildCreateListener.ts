@@ -1,14 +1,12 @@
-/* eslint-disable no-await-in-loop */
-/* eslint-disable @typescript-eslint/no-shadow */
 import { Buffer } from "node:buffer";
-import { RabbitMQ, RedisKey } from "@nezuchan/constants";
+import { RabbitMQ } from "@nezuchan/constants";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
+import { channels, guilds, guildsChannels, memberRoles, members, roles, users, voiceStates } from "../../../Schema/index.js";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
-import { GenKey } from "../../../Utilities/GenKey.js";
-import { clientId, stateChannels, stateEmojis, stateMembers, stateRoles, stateUsers, stateVoices, statePresences } from "../../../config.js";
+import { clientId, stateChannels, stateMembers, stateRoles, stateUsers, stateVoices } from "../../../config.js";
 
 export class GuildCreateListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -20,71 +18,90 @@ export class GuildCreateListener extends Listener {
     public async run(payload: { data: GatewayGuildCreateDispatch; shardId: number; }): Promise<void> {
         if (payload.data.d.unavailable !== undefined && payload.data.d.unavailable) return;
 
-        let alreadyExists = 0;
-        if (stateMembers || stateUsers) {
-            for (const member of payload.data.d.members) {
-                if (stateUsers) {
-                    const key = GenKey(RedisKey.USER_KEY, member.user!.id);
+        await this.store.drizzle.insert(guilds).values({
+            id: payload.data.d.id
+        }).onConflictDoNothing({ target: guilds.id });
 
-                    // Redis Exists return 1 if the key exists, 0 if it does not
-                    alreadyExists += await this.store.redis.exists(key);
-                    await this.store.redis.set(key, JSON.stringify(member.user));
-                }
+        if (stateRoles) {
+            for (const role of payload.data.d.roles) {
+                await this.store.drizzle.insert(roles).values({
+                    id: role.id,
+                    name: role.name,
+                    permissions: role.permissions,
+                    position: role.position,
+                    color: role.color
+                });
+            }
+        }
 
-                if (stateMembers) {
-                    await this.store.redis.set(GenKey(RedisKey.MEMBER_KEY, member.user!.id, payload.data.d.id), JSON.stringify(member));
+        for (const member of payload.data.d.members) {
+            if (stateUsers) {
+                await this.store.drizzle.insert(users).values({
+                    id: member.user!.id,
+                    username: member.user!.username,
+                    discriminator: member.user?.discriminator ?? null,
+                    globalName: member.user?.global_name ?? null,
+                    avatar: member.user?.avatar ?? null,
+                    bot: member.user?.bot ?? false,
+                    flags: member.user?.flags
+                }).onConflictDoNothing({ target: users.id });
+            }
+
+            if (stateMembers) {
+                await this.store.drizzle.insert(members).values({
+                    id: member.user!.id,
+                    avatar: member.avatar,
+                    flags: member.flags
+                }).onConflictDoNothing({ target: members.id });
+
+                for (const role of member.roles) {
+                    await this.store.drizzle.insert(memberRoles).values({
+                        id: member.user!.id,
+                        roleId: role
+                    }).onConflictDoNothing({ target: memberRoles.id });
                 }
             }
-            await this.store.redis.incrby(GenKey(RedisKey.USER_KEY, RedisKey.COUNT), payload.data.d.members.length - alreadyExists);
         }
 
         if (stateChannels) {
             for (const channel of payload.data.d.channels) {
-                await this.store.redis.set(GenKey(RedisKey.CHANNEL_KEY, channel.id, payload.data.d.id), JSON.stringify(channel));
-            }
-        }
+                await this.store.drizzle.insert(channels).values({
+                    id: channel.id
+                }).onConflictDoNothing({ target: members.id });
 
-        if (stateRoles) {
-            for (const role of payload.data.d.roles) {
-                await this.store.redis.set(GenKey(RedisKey.ROLE_KEY, role.id, payload.data.d.id), JSON.stringify(role));
+                await this.store.drizzle.insert(guildsChannels).values({
+                    id: channel.id,
+                    guildId: payload.data.d.id
+                });
             }
         }
 
         if (stateVoices) {
             for (const voice of payload.data.d.voice_states) {
-                await this.store.redis.set(GenKey(RedisKey.VOICE_KEY, voice.user_id, payload.data.d.id), JSON.stringify(voice));
-            }
-        }
-
-        if (stateEmojis) {
-            for (const emoji of payload.data.d.emojis) {
-                if (emoji.id !== null) {
-                    await this.store.redis.set(GenKey(RedisKey.EMOJI_KEY, emoji.id, payload.data.d.id), JSON.stringify(emoji));
+                if (voice.channel_id !== null) {
+                    await this.store.drizzle.insert(voiceStates).values({
+                        id: voice.channel_id,
+                        guildId: payload.data.d.id
+                    }).onConflictDoNothing({ target: voiceStates.id });
                 }
             }
         }
 
-        if (statePresences) {
-            for (const presence of payload.data.d.presences) {
-                await this.store.redis.set(GenKey(RedisKey.PRESENCE_KEY, presence.user.id, payload.data.d.id), JSON.stringify(presence));
-            }
-        }
+        // Does even someone used them?
 
-        const key = GenKey(RedisKey.GUILD_KEY, payload.data.d.id);
-        const exists = await this.store.redis.exists(key);
-        await this.store.redis.set(key, JSON.stringify({
-            ...payload.data.d,
-            members: [],
-            voice_states: [],
-            emojis: [],
-            presences: [],
-            channels: [],
-            stickers: [],
-            soundboard_sounds: [],
-            threads: []
-        }));
+        // if (stateEmojis) {
+        //     for (const emoji of payload.data.d.emojis) {
+        //         if (emoji.id !== null) {
+        //             await this.store.redis.set(GenKey(RedisKey.EMOJI_KEY, emoji.id, payload.data.d.id), JSON.stringify(emoji));
+        //         }
+        //     }
+        // }
 
-        if (exists === 0) await this.store.redis.incr(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT));
+        // if (statePresences) {
+        //     for (const presence of payload.data.d.presences) {
+        //         await this.store.redis.set(GenKey(RedisKey.PRESENCE_KEY, presence.user.id, payload.data.d.id), JSON.stringify(presence));
+        //     }
+        // }
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }

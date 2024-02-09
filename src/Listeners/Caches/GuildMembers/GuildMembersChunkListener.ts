@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 import { Buffer } from "node:buffer";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
 import { RoutingKey } from "@nezuchan/utilities";
