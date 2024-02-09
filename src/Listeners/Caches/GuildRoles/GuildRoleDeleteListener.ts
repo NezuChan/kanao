@@ -1,9 +1,12 @@
-import { Listener, ListenerContext } from "../../../Stores/Listener.js";
-import { GatewayDispatchEvents, GatewayGuildRoleDeleteDispatch } from "discord-api-types/v10";
-import { clientId, stateRoles } from "../../../config.js";
+import { Buffer } from "node:buffer";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
-import { GenKey } from "../../../Utilities/GenKey.js";
 import { RoutingKey } from "@nezuchan/utilities";
+import type { GatewayGuildRoleDeleteDispatch } from "discord-api-types/v10";
+import { GatewayDispatchEvents } from "discord-api-types/v10";
+import type { ListenerContext } from "../../../Stores/Listener.js";
+import { Listener } from "../../../Stores/Listener.js";
+import { GenKey } from "../../../Utilities/GenKey.js";
+import { clientId, stateRoles } from "../../../config.js";
 
 export class GuildRoleDeleteListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -12,7 +15,7 @@ export class GuildRoleDeleteListener extends Listener {
         });
     }
 
-    public async run(payload: { data: GatewayGuildRoleDeleteDispatch; shardId: number }): Promise<void> {
+    public async run(payload: { data: GatewayGuildRoleDeleteDispatch; shardId: number; }): Promise<void> {
         const old = await this.store.redis.get(GenKey(RedisKey.ROLE_KEY, payload.data.d.role_id, payload.data.d.guild_id));
 
         if (stateRoles) {
@@ -21,7 +24,7 @@ export class GuildRoleDeleteListener extends Listener {
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
             ...payload.data,
-            old: old ? JSON.parse(old) : null
+            old: old === null ? null : JSON.parse(old)
         })));
     }
 }

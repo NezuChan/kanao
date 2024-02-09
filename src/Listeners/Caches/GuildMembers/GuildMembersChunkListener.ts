@@ -1,9 +1,13 @@
-import { Listener, ListenerContext } from "../../../Stores/Listener.js";
-import { GatewayDispatchEvents, GatewayGuildMembersChunkDispatch } from "discord-api-types/v10";
-import { clientId, stateMembers, stateUsers } from "../../../config.js";
+/* eslint-disable no-await-in-loop */
+import { Buffer } from "node:buffer";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
-import { GenKey } from "../../../Utilities/GenKey.js";
 import { RoutingKey } from "@nezuchan/utilities";
+import type { GatewayGuildMembersChunkDispatch } from "discord-api-types/v10";
+import { GatewayDispatchEvents } from "discord-api-types/v10";
+import type { ListenerContext } from "../../../Stores/Listener.js";
+import { Listener } from "../../../Stores/Listener.js";
+import { GenKey } from "../../../Utilities/GenKey.js";
+import { clientId, stateMembers, stateUsers } from "../../../config.js";
 
 export class GuildMembersChunkListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -12,12 +16,13 @@ export class GuildMembersChunkListener extends Listener {
         });
     }
 
-    public async run(payload: { data: GatewayGuildMembersChunkDispatch; shardId: number }): Promise<void> {
+    public async run(payload: { data: GatewayGuildMembersChunkDispatch; shardId: number; }): Promise<void> {
         let alreadyExists = 0;
         if (stateMembers || stateUsers) {
             for (const member of payload.data.d.members) {
                 if (stateUsers) {
                     const key = GenKey(RedisKey.USER_KEY, member.user!.id);
+
                     // Redis Exists return 1 if the key exists, 0 if it does not
                     alreadyExists += await this.store.redis.exists(key);
                     await this.store.redis.set(key, JSON.stringify(member.user));

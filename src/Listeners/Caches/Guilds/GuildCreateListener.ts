@@ -1,9 +1,14 @@
-import { Listener, ListenerContext } from "../../../Stores/Listener.js";
-import { GatewayDispatchEvents, GatewayGuildCreateDispatch } from "discord-api-types/v10";
-import { clientId, stateChannels, stateEmojis, stateMembers, stateRoles, stateUsers, stateVoices, statePresences } from "../../../config.js";
+/* eslint-disable no-await-in-loop */
+/* eslint-disable @typescript-eslint/no-shadow */
+import { Buffer } from "node:buffer";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
-import { GenKey } from "../../../Utilities/GenKey.js";
 import { RoutingKey } from "@nezuchan/utilities";
+import type { GatewayGuildCreateDispatch } from "discord-api-types/v10";
+import { GatewayDispatchEvents } from "discord-api-types/v10";
+import type { ListenerContext } from "../../../Stores/Listener.js";
+import { Listener } from "../../../Stores/Listener.js";
+import { GenKey } from "../../../Utilities/GenKey.js";
+import { clientId, stateChannels, stateEmojis, stateMembers, stateRoles, stateUsers, stateVoices, statePresences } from "../../../config.js";
 
 export class GuildCreateListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -12,14 +17,15 @@ export class GuildCreateListener extends Listener {
         });
     }
 
-    public async run(payload: { data: GatewayGuildCreateDispatch; shardId: number }): Promise<void> {
-        if (payload.data.d.unavailable) return;
+    public async run(payload: { data: GatewayGuildCreateDispatch; shardId: number; }): Promise<void> {
+        if (payload.data.d.unavailable !== undefined && payload.data.d.unavailable) return;
 
         let alreadyExists = 0;
         if (stateMembers || stateUsers) {
             for (const member of payload.data.d.members) {
                 if (stateUsers) {
                     const key = GenKey(RedisKey.USER_KEY, member.user!.id);
+
                     // Redis Exists return 1 if the key exists, 0 if it does not
                     alreadyExists += await this.store.redis.exists(key);
                     await this.store.redis.set(key, JSON.stringify(member.user));
@@ -52,7 +58,7 @@ export class GuildCreateListener extends Listener {
 
         if (stateEmojis) {
             for (const emoji of payload.data.d.emojis) {
-                if (emoji.id) {
+                if (emoji.id !== null) {
                     await this.store.redis.set(GenKey(RedisKey.EMOJI_KEY, emoji.id, payload.data.d.id), JSON.stringify(emoji));
                 }
             }

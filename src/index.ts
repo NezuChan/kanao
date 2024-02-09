@@ -1,22 +1,24 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import "dotenv/config";
 
-import gradient from "gradient-string";
-import { createBanner } from "@skyra/start-banner";
-import { Util } from "@nezuchan/utilities";
 import { join } from "node:path";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { Util } from "@nezuchan/utilities";
+import { range } from "@sapphire/utilities";
+import { createBanner } from "@skyra/start-banner";
+import gradient from "gradient-string";
 import { NezuGateway } from "./Structures/NezuGateway.js";
 import { getShardCount, replicaCount, replicaId } from "./config.js";
-import { range } from "@sapphire/utilities";
 
 const gateway = new NezuGateway();
-const packageJson = Util.loadJSON<{ version: string }>(`file://${join(fileURLToPath(import.meta.url), "../../package.json")}`);
+const packageJson = Util.loadJSON<{ version: string; }>(`file://${join(fileURLToPath(import.meta.url), "../../package.json")}`);
 const shardIds = await getShardCount();
 
 try {
     await gateway.connect();
-} catch (e) {
-    gateway.logger.error(e, "An error occurred while connecting to Discord");
+} catch (error) {
+    gateway.logger.error(error, "An error occurred while connecting to Discord");
     process.exit(1);
 }
 
@@ -44,7 +46,7 @@ console.log(
                 ` Nezu Gateway: v${packageJson.version}`,
                 ` ├ ReplicaId: ${replicaId}`,
                 ` ├ ReplicaCount: ${replicaCount}`,
-                ` ├ Shards: ${shardIds ? range(shardIds.start, shardIds.end, 1) : range(0, (gateway.ws.options.shardCount ?? 1) - 1, 1)}`,
+                ` ├ Shards: ${shardIds ? range(shardIds.start, shardIds.end!, 1).toString() : range(0, (gateway.ws.options.shardCount ?? 1) - 1, 1).toString()}`,
                 ` └ ShardCount: ${gateway.ws.options.shardCount ?? 1} shards`
             ]
         })
@@ -55,7 +57,7 @@ process.on("unhandledRejection", e => {
     if (e instanceof Error) {
         gateway.logger.error(e);
     } else {
-        gateway.logger.error(Error(`PromiseError: ${e}`));
+        gateway.logger.error(new Error(`PromiseError: ${e}`));
     }
 });
 process.on("uncaughtException", e => {

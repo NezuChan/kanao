@@ -1,9 +1,12 @@
-import { Listener, ListenerContext } from "../../../Stores/Listener.js";
-import { GatewayDispatchEvents, GatewayMessageCreateDispatch } from "discord-api-types/v10";
-import { clientId, stateMembers, stateMessages, stateUsers } from "../../../config.js";
+import { Buffer } from "node:buffer";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
-import { GenKey } from "../../../Utilities/GenKey.js";
 import { RoutingKey } from "@nezuchan/utilities";
+import type { GatewayMessageCreateDispatch } from "discord-api-types/v10";
+import { GatewayDispatchEvents } from "discord-api-types/v10";
+import type { ListenerContext } from "../../../Stores/Listener.js";
+import { Listener } from "../../../Stores/Listener.js";
+import { GenKey } from "../../../Utilities/GenKey.js";
+import { clientId, stateMembers, stateMessages, stateUsers } from "../../../config.js";
 
 export class MessageCreateListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -12,7 +15,7 @@ export class MessageCreateListener extends Listener {
         });
     }
 
-    public async run(payload: { data: GatewayMessageCreateDispatch; shardId: number }): Promise<void> {
+    public async run(payload: { data: GatewayMessageCreateDispatch; shardId: number; }): Promise<void> {
         if (stateMembers) {
             await this.store.redis.set(GenKey(RedisKey.MEMBER_KEY, payload.data.d.author.id, payload.data.d.guild_id), JSON.stringify(payload.data.d.member));
         }

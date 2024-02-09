@@ -1,21 +1,25 @@
+/* eslint-disable no-promise-executor-return */
+import process from "node:process";
+import { setTimeout } from "node:timers";
 import { Collection } from "@discordjs/collection";
-import { SessionInfo, WorkerReceivePayload, WorkerSendPayload, WorkerReceivePayloadOp, WorkerSendPayloadOp, FetchingStrategyOptions, IContextFetchingStrategy } from "@discordjs/ws";
+import type { SessionInfo, WorkerReceivePayload, WorkerSendPayload, FetchingStrategyOptions, IContextFetchingStrategy } from "@discordjs/ws";
+import { WorkerReceivePayloadOp, WorkerSendPayloadOp } from "@discordjs/ws";
 import { Result } from "@sapphire/result";
 
-interface PolyFillAbortSignal {
+type PolyFillAbortSignal = {
     readonly aborted: boolean;
-    addEventListener: (type: "abort", listener: () => void) => void;
-    removeEventListener: (type: "abort", listener: () => void) => void;
-}
+    addEventListener(type: "abort", listener: () => void): void;
+    removeEventListener(type: "abort", listener: () => void): void;
+};
 
 export class ProcessContextFetchingStrategy implements IContextFetchingStrategy {
     private readonly sessionPromises = new Collection<number, (session: SessionInfo | null) => void>();
 
-    private readonly waitForIdentifyPromises = new Collection<number, { reject: () => void; resolve: () => void }>();
+    private readonly waitForIdentifyPromises = new Collection<number, { reject(): void; resolve(): void; }>();
 
     public constructor(public readonly options: FetchingStrategyOptions) {}
 
-    public messageCallback(payload: WorkerSendPayload) {
+    public messageCallback(payload: WorkerSendPayload): void {
         if (payload.op === WorkerSendPayloadOp.SessionInfoResponse) {
             this.sessionPromises.get(payload.nonce)?.(payload.session);
             this.sessionPromises.delete(payload.nonce);
@@ -40,19 +44,17 @@ export class ProcessContextFetchingStrategy implements IContextFetchingStrategy 
             shardId,
             nonce
         } satisfies WorkerReceivePayload;
-        // eslint-disable-next-line no-promise-executor-return
         const promise = new Promise<SessionInfo | null>(resolve => this.sessionPromises.set(nonce, resolve));
 
         try {
             process.send!(payload);
         } catch {
-            setTimeout(() => Result.fromAsync(() => process.send!(payload)), 2000);
+            setTimeout(async () => Result.fromAsync(() => process.send!(payload)), 2_000);
         }
         return promise;
     }
 
-    // eslint-disable-next-line class-methods-use-this
-    public updateSessionInfo(shardId: number, sessionInfo: SessionInfo | null) {
+    public updateSessionInfo(shardId: number, sessionInfo: SessionInfo | null): void {
         const payload = {
             op: WorkerReceivePayloadOp.UpdateSessionInfo,
             shardId,
@@ -61,7 +63,7 @@ export class ProcessContextFetchingStrategy implements IContextFetchingStrategy 
         try {
             process.send!(payload);
         } catch {
-            setTimeout(() => Result.fromAsync(() => process.send!(payload)), 2000);
+            setTimeout(async () => Result.fromAsync(() => process.send!(payload)), 2_000);
         }
     }
 
@@ -79,10 +81,10 @@ export class ProcessContextFetchingStrategy implements IContextFetchingStrategy 
         try {
             process.send!(payload);
         } catch {
-            setTimeout(() => Result.fromAsync(() => process.send!(payload)), 2000);
+            setTimeout(async () => Result.fromAsync(() => process.send!(payload)), 2_000);
         }
 
-        const listener = () => {
+        const listener = (): void => {
             process.send!({
                 op: WorkerReceivePayloadOp.CancelIdentify,
                 nonce
