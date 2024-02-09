@@ -15,8 +15,10 @@
         "importHelpers": true,
         "resolveJsonModule": true,
         "strictNullChecks": true,
-        "typeRoots": ["node_modules/@types", "src/typings"]
+        "noEmit": true,
+        "typeRoots": ["node_modules/@types", "src/typings"],
+        "allowImportingTsExtensions": true
     },
     "exclude": ["node_modules", "node_modules/**/**.d.ts"],
-    "include": ["src/**/**.ts", "src/**/**.json", "tsup.config.ts"],
+    "include": ["src/**/**.ts", "src/**/**.json", "drizzle.config.ts"],
 }

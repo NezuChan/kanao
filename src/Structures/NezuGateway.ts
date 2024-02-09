@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 
-/* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
 import { Buffer } from "node:buffer";
 import EventEmitter from "node:events";
