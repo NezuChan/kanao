@@ -28,7 +28,7 @@
     "bufferutil": "^4.0.8",
     "discord-api-types": "^0.37.69",
     "dockerode": "^4.0.2",
-    "dotenv": "^16.4.1",
+    "dotenv": "^16.4.2",
     "gradient-string": "^2.0.2",
     "ioredis": "^5.3.2",
     "kearsarge": "^1.0.3",
