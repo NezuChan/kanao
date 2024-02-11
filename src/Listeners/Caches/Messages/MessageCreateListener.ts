@@ -26,7 +26,7 @@ export class MessageCreateListener extends Listener {
 
         if (stateUsers) {
             await this.store.drizzle.insert(users).values({
-                id: payload.data.d.id,
+                id: payload.data.d.author.id,
                 username: payload.data.d.author.username,
                 discriminator: payload.data.d.author.discriminator ?? null,
                 globalName: payload.data.d.author.global_name ?? null,

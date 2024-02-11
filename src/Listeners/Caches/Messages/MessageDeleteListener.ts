@@ -19,8 +19,6 @@ export class MessageDeleteListener extends Listener {
     public async run(payload: { data: GatewayMessageDeleteDispatch; shardId: number; }): Promise<void> {
         await this.store.drizzle.delete(messages).where(eq(messages.id, payload.data.d.id));
 
-        await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
-            ...payload.data
-        })));
+        await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }
 }

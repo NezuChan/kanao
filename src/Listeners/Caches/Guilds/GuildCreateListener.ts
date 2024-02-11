@@ -3,7 +3,7 @@ import { RabbitMQ } from "@nezuchan/constants";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { channels, guilds, guildsChannels, memberRoles, members, roles, users, voiceStates } from "../../../Schema/index.js";
+import { channels, guilds, guildsChannels, guildsRoles, memberRoles, members, roles, users, voiceStates } from "../../../Schema/index.js";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateChannels, stateMembers, stateRoles, stateUsers, stateVoices } from "../../../config.js";
@@ -24,7 +24,35 @@ export class GuildCreateListener extends Listener {
             name: payload.data.d.name,
             banner: payload.data.d.banner,
             owner: payload.data.d.owner,
-            ownerId: payload.data.d.owner_id
+            ownerId: payload.data.d.owner_id,
+            afkChannelId: payload.data.d.afk_channel_id,
+            afkTimeout: payload.data.d.afk_timeout,
+            defaultMessageNotifications: payload.data.d.default_message_notifications,
+            explicitContentFilter: payload.data.d.explicit_content_filter,
+            icon: payload.data.d.icon,
+            mfaLevel: payload.data.d.mfa_level,
+            region: payload.data.d.region,
+            systemChannelId: payload.data.d.system_channel_id,
+            verificationLevel: payload.data.d.verification_level,
+            widgetChannelId: payload.data.d.widget_channel_id,
+            widgetEnabled: payload.data.d.widget_enabled,
+            approximateMemberCount: payload.data.d.approximate_member_count,
+            approximatePresenceCount: payload.data.d.approximate_presence_count,
+            description: payload.data.d.description,
+            discoverySplash: payload.data.d.discovery_splash,
+            iconHash: payload.data.d.icon_hash,
+            maxMembers: payload.data.d.max_members,
+            maxPresences: payload.data.d.max_presences,
+            premiumSubscriptionCount: payload.data.d.premium_subscription_count,
+            premiumTier: payload.data.d.premium_tier,
+            vanityUrlCode: payload.data.d.vanity_url_code,
+            nsfwLevel: payload.data.d.nsfw_level,
+            rulesChannelId: payload.data.d.rules_channel_id,
+            publicUpdatesChannelId: payload.data.d.public_updates_channel_id,
+            preferredLocale: payload.data.d.preferred_locale,
+            maxVideoChannelUsers: payload.data.d.max_video_channel_users,
+            permissions: payload.data.d.permissions,
+            
         }).onConflictDoUpdate({
             target: guilds.id,
             set: {
@@ -53,14 +81,19 @@ export class GuildCreateListener extends Listener {
                         color: role.color
                     }
                 });
+
+                await this.store.drizzle.insert(guildsRoles).values({
+                    roleId: role.id,
+                    id: payload.data.d.id
+                }).onConflictDoNothing({ target: guildsRoles.id });
             }
         }
 
         for (const member of payload.data.d.members) {
-            if (stateUsers) {
+            if (stateUsers && member.user !== undefined) {
                 await this.store.drizzle.insert(users).values({
-                    id: member.user!.id,
-                    username: member.user!.username,
+                    id: member.user.id,
+                    username: member.user.username,
                     discriminator: member.user?.discriminator ?? null,
                     globalName: member.user?.global_name ?? null,
                     avatar: member.user?.avatar ?? null,
@@ -69,7 +102,7 @@ export class GuildCreateListener extends Listener {
                 }).onConflictDoUpdate({
                     target: users.id,
                     set: {
-                        username: member.user!.username,
+                        username: member.user.username,
                         discriminator: member.user?.discriminator ?? null,
                         globalName: member.user?.global_name ?? null,
                         avatar: member.user?.avatar ?? null,
@@ -79,9 +112,9 @@ export class GuildCreateListener extends Listener {
                 });
             }
 
-            if (stateMembers) {
+            if (stateMembers && member.user !== undefined) {
                 await this.store.drizzle.insert(members).values({
-                    id: member.user!.id,
+                    id: member.user.id,
                     avatar: member.avatar,
                     flags: member.flags
                 }).onConflictDoUpdate({
@@ -94,7 +127,7 @@ export class GuildCreateListener extends Listener {
 
                 for (const role of member.roles) {
                     await this.store.drizzle.insert(memberRoles).values({
-                        id: member.user!.id,
+                        id: member.user.id,
                         roleId: role
                     }).onConflictDoNothing({ target: memberRoles.id });
                 }
@@ -104,8 +137,9 @@ export class GuildCreateListener extends Listener {
         if (stateChannels) {
             for (const channel of payload.data.d.channels) {
                 await this.store.drizzle.insert(channels).values({
-                    id: channel.id
-                }).onConflictDoNothing({ target: members.id });
+                    id: channel.id,
+                    name: channel.name
+                }).onConflictDoNothing({ target: channels.id });
 
                 await this.store.drizzle.insert(guildsChannels).values({
                     id: channel.id,
