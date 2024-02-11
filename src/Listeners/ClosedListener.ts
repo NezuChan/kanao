@@ -9,7 +9,7 @@ export class ClosedListener extends Listener {
         });
     }
 
-    public run(payload: { data: { code: number; }; shardId: number; }): unknown {
+    public run(payload: { data: { code: number; }; shardId: number; }): void {
         this.logger.info(`Shard ${payload.shardId} has been closed, close code ${payload.data.code}`);
     }
 }

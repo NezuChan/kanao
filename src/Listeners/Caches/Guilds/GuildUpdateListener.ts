@@ -18,7 +18,10 @@ export class GuildCreateListener extends Listener {
 
     public async run(payload: { data: GatewayGuildUpdateDispatch; shardId: number; }): Promise<void> {
         await this.store.drizzle.update(guilds).set({
-            name: payload.data.d.name
+            name: payload.data.d.name,
+            banner: payload.data.d.banner,
+            owner: payload.data.d.owner,
+            ownerId: payload.data.d.owner_id
         }).where(eq(guilds.id, payload.data.d.id));
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({

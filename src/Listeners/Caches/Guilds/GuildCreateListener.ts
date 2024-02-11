@@ -19,8 +19,22 @@ export class GuildCreateListener extends Listener {
         if (payload.data.d.unavailable !== undefined && payload.data.d.unavailable) return;
 
         await this.store.drizzle.insert(guilds).values({
-            id: payload.data.d.id
-        }).onConflictDoNothing({ target: guilds.id });
+            id: payload.data.d.id,
+            unavailable: payload.data.d.unavailable,
+            name: payload.data.d.name,
+            banner: payload.data.d.banner,
+            owner: payload.data.d.owner,
+            ownerId: payload.data.d.owner_id
+        }).onConflictDoUpdate({
+            target: guilds.id,
+            set: {
+                unavailable: payload.data.d.unavailable,
+                name: payload.data.d.name,
+                banner: payload.data.d.banner,
+                owner: payload.data.d.owner,
+                ownerId: payload.data.d.owner_id
+            }
+        });
 
         if (stateRoles) {
             for (const role of payload.data.d.roles) {
@@ -30,6 +44,14 @@ export class GuildCreateListener extends Listener {
                     permissions: role.permissions,
                     position: role.position,
                     color: role.color
+                }).onConflictDoUpdate({
+                    target: roles.id,
+                    set: {
+                        name: role.name,
+                        permissions: role.permissions,
+                        position: role.position,
+                        color: role.color
+                    }
                 });
             }
         }
@@ -44,7 +66,17 @@ export class GuildCreateListener extends Listener {
                     avatar: member.user?.avatar ?? null,
                     bot: member.user?.bot ?? false,
                     flags: member.user?.flags
-                }).onConflictDoNothing({ target: users.id });
+                }).onConflictDoUpdate({
+                    target: users.id,
+                    set: {
+                        username: member.user!.username,
+                        discriminator: member.user?.discriminator ?? null,
+                        globalName: member.user?.global_name ?? null,
+                        avatar: member.user?.avatar ?? null,
+                        bot: member.user?.bot ?? false,
+                        flags: member.user?.flags
+                    }
+                });
             }
 
             if (stateMembers) {
@@ -52,7 +84,13 @@ export class GuildCreateListener extends Listener {
                     id: member.user!.id,
                     avatar: member.avatar,
                     flags: member.flags
-                }).onConflictDoNothing({ target: members.id });
+                }).onConflictDoUpdate({
+                    target: members.id,
+                    set: {
+                        avatar: member.avatar,
+                        flags: member.flags
+                    }
+                });
 
                 for (const role of member.roles) {
                     await this.store.drizzle.insert(memberRoles).values({
@@ -72,7 +110,7 @@ export class GuildCreateListener extends Listener {
                 await this.store.drizzle.insert(guildsChannels).values({
                     id: channel.id,
                     guildId: payload.data.d.id
-                });
+                }).onConflictDoNothing({ target: guildsChannels.id });
             }
         }
 
@@ -80,9 +118,11 @@ export class GuildCreateListener extends Listener {
             for (const voice of payload.data.d.voice_states) {
                 if (voice.channel_id !== null) {
                     await this.store.drizzle.insert(voiceStates).values({
-                        id: voice.channel_id,
-                        guildId: payload.data.d.id
-                    }).onConflictDoNothing({ target: voiceStates.id });
+                        channelId: voice.channel_id,
+                        guildId: payload.data.d.id,
+                        sessionId: voice.session_id,
+                        memberId: voice.user_id
+                    }).onConflictDoUpdate({ target: voiceStates.channelId, set: { sessionId: voice.session_id } });
                 }
             }
         }

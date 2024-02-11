@@ -19,7 +19,8 @@ export class MessageCreateListener extends Listener {
         if (stateMessages) {
             await this.store.drizzle.insert(messages).values({
                 id: payload.data.d.id,
-                channelId: payload.data.d.channel_id
+                channelId: payload.data.d.channel_id,
+                content: payload.data.d.content
             });
         }
 
@@ -44,7 +45,7 @@ export class MessageCreateListener extends Listener {
 
             for (const role of payload.data.d.member.roles) {
                 await this.store.drizzle.insert(memberRoles).values({
-                    id: payload.data.d.member.user!.id,
+                    id: payload.data.d.author.id,
                     roleId: role
                 }).onConflictDoNothing({ target: memberRoles.id });
             }
