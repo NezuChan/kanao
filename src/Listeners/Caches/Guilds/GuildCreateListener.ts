@@ -52,7 +52,7 @@ export class GuildCreateListener extends Listener {
             preferredLocale: payload.data.d.preferred_locale,
             maxVideoChannelUsers: payload.data.d.max_video_channel_users,
             permissions: payload.data.d.permissions,
-            premiumBoostingBarEnabled: payload.data.d.premium_progress_bar_enabled,
+            premiumProgressBarEnabled: payload.data.d.premium_progress_bar_enabled,
             safetyAlertChannelId: payload.data.d.safety_alerts_channel_id,
             splash: payload.data.d.splash,
             systemChannelFlags: payload.data.d.system_channel_flags
@@ -91,7 +91,7 @@ export class GuildCreateListener extends Listener {
                 preferredLocale: payload.data.d.preferred_locale,
                 maxVideoChannelUsers: payload.data.d.max_video_channel_users,
                 permissions: payload.data.d.permissions,
-                premiumBoostingBarEnabled: payload.data.d.premium_progress_bar_enabled,
+                premiumProgressBarEnabled: payload.data.d.premium_progress_bar_enabled,
                 safetyAlertChannelId: payload.data.d.safety_alerts_channel_id,
                 splash: payload.data.d.splash,
                 systemChannelFlags: payload.data.d.system_channel_flags
