@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { boolean, integer, pgTable, text } from "drizzle-orm/pg-core";
-import { guilds } from "./guild.ts";
-import { members } from "./member.ts";
+import { guilds } from "./guild.js";
+import { members } from "./member.js";
 
 export const roles = pgTable("roles", {
     id: text("id").primaryKey(),
@@ -31,7 +31,7 @@ export const memberRolesRelations = relations(memberRoles, ({ one }) => ({
 
 export const guildsRoles = pgTable("guild_roles", {
     id: text("id").primaryKey(),
-    roleId: text("role_id").primaryKey()
+    roleId: text("role_id")
 });
 
 export const guildsRolesRelations = relations(guildsRoles, ({ one }) => ({

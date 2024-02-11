@@ -1,6 +1,6 @@
 import { pgTable, text } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm/relations";
-import { voiceStates } from "./voice.ts";
+import { voiceStates } from "./voice.js";
 
 export const channels = pgTable("channels", {
     id: text("id").primaryKey()

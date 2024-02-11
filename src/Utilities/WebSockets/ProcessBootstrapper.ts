@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-array-for-each */
 /* eslint-disable promise/param-names */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-promise-executor-return */
@@ -211,8 +212,8 @@ export class ProcessBootstrapper {
                 }
 
                 case WorkerSendPayloadOp.SessionInfoResponse: case WorkerSendPayloadOp.ShardIdentifyResponse: {
-                    // @ts-expect-error Expected.
-                    for (const shard of this.shards) (shard.strategy as ProcessContextFetchingStrategy).messageCallback(payload);
+                    // @ts-expect-error Shard#strategy is private.
+                    this.shards.forEach(shard => (shard.strategy as ProcessContextFetchingStrategy).messageCallback(payload));
                     break;
                 }
 
