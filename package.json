@@ -1,6 +1,6 @@
 {
   "name": "@nezuchan/nezu-gateway",
-  "version": "3.4.1",
+  "version": "4.0.0",
   "description": "A standalone service for connecting to the Discord gateway.",
   "license": "GPL-3.0",
   "author": "KagChi",
@@ -52,6 +52,7 @@
     "@vladfrangu/async_event_emitter": "^2.2.4",
     "drizzle-kit": "^0.20.14",
     "eslint": "^8.56.0",
+    "pg": "^8.11.3",
     "rimraf": "^5.0.5",
     "typescript": "^5.3.3"
   },

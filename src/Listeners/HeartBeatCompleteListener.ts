@@ -1,5 +1,6 @@
 import type { WebSocketShard } from "@discordjs/ws";
 import { WebSocketShardEvents } from "@discordjs/ws";
+import { status } from "../Schema/collections/status.js";
 import type { ListenerContext } from "../Stores/Listener.js";
 import { Listener } from "../Stores/Listener.js";
 
@@ -10,7 +11,20 @@ export class ReadyListener extends Listener {
         });
     }
 
-    public run(payload: { shard: WebSocketShard; shardId: number; data: { latency: number; }; }): void {
+    public async run(payload: { shard: WebSocketShard; shardId: number; data: { latency: number; }; }): Promise<void> {
+        await this.store.drizzle.insert(status).values({
+            shardId: payload.shardId,
+            latency: payload.data.latency,
+            lastAck: Date.now().toString(),
+            status: payload.shard.status
+        }).onConflictDoUpdate({
+            target: status.shardId,
+            set: {
+                latency: payload.data.latency,
+                lastAck: Date.now().toString(),
+                status: payload.shard.status
+            }
+        });
         this.store.logger.debug(payload.data, `Shard ${payload.shardId} heartbeat complete`);
     }
 }

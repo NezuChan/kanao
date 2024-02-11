@@ -6,3 +6,4 @@ export * from "./collections/channel.js";
 export * from "./collections/voice.js";
 export * from "./collections/message.js";
 export * from "./collections/session.js";
+export * from "./collections/status.js";
