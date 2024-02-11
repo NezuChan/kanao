@@ -41,7 +41,7 @@ export const guilds = pgTable("guilds", {
     approximateMemberCount: integer("approximate_member_count"),
     approximatePresenceCount: integer("approximate_presence_count"),
     nsfwLevel: integer("nsfw_level"),
-    premiumBoostingBarEnabled: boolean("premium_boosting_bar_enabled"),
+    premiumProgressBarEnabled: boolean("premium_progress_bar_enabled"),
     safetyAlertChannelId: text("safety_alert_channel_id")
 });
 
