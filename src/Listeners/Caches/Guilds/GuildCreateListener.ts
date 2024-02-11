@@ -52,6 +52,8 @@ export class GuildCreateListener extends Listener {
             preferredLocale: payload.data.d.preferred_locale,
             maxVideoChannelUsers: payload.data.d.max_video_channel_users,
             permissions: payload.data.d.permissions,
+            premiumBoostingBarEnabled: payload.data.d.premium_boosting_bar_enabled,
+            safetyAlertChannelId: payload.data.d.safety_alert_channel_id,
             
         }).onConflictDoUpdate({
             target: guilds.id,
