@@ -25,7 +25,14 @@ export class VoiceStateUpdateListener extends Listener {
                 globalName: payload.data.d.member.user.global_name ?? null,
                 avatar: payload.data.d.member.user.avatar ?? null,
                 bot: payload.data.d.member.user.bot ?? false,
-                flags: payload.data.d.member.user.flags
+                flags: payload.data.d.member.user.flags,
+                accentColor: payload.data.d.member.user.accent_color,
+                avatarDecoration: payload.data.d.member.user.avatar_decoration,
+                banner: payload.data.d.member.user.banner,
+                locale: payload.data.d.member.user.locale,
+                mfaEnabled: payload.data.d.member.user.mfa_enabled,
+                premiumType: payload.data.d.member.user.premium_type,
+                publicFlags: payload.data.d.member.user.public_flags
             }).onConflictDoNothing({ target: users.id });
         }
 
@@ -33,7 +40,14 @@ export class VoiceStateUpdateListener extends Listener {
             await this.store.drizzle.insert(members).values({
                 id: payload.data.d.user_id,
                 avatar: payload.data.d.member.avatar,
-                flags: payload.data.d.member.flags
+                flags: payload.data.d.member.flags,
+                communicationDisabledUntil: payload.data.d.member.premium_since,
+                deaf: payload.data.d.member.deaf,
+                joinedAt: payload.data.d.member.joined_at,
+                mute: payload.data.d.member.mute,
+                nick: payload.data.d.member.nick,
+                pending: payload.data.d.member.pending,
+                premiumSince: payload.data.d.member.premium_since
             }).onConflictDoNothing({ target: members.id });
 
             for (const role of payload.data.d.member.roles) {
@@ -50,11 +64,30 @@ export class VoiceStateUpdateListener extends Listener {
                 : this.store.drizzle.insert(voiceStates).values({
                     memberId: payload.data.d.user_id,
                     guildId: payload.data.d.guild_id,
-                    channelId: payload.data.d.channel_id
+                    channelId: payload.data.d.channel_id,
+                    sessionId: payload.data.d.session_id,
+                    deaf: payload.data.d.deaf,
+                    mute: payload.data.d.mute,
+                    requestToSpeakTimestamp: payload.data.d.request_to_speak_timestamp,
+                    selfDeaf: payload.data.d.self_deaf,
+                    selfMute: payload.data.d.self_mute,
+                    selfStream: payload.data.d.self_stream,
+                    selfVideo: payload.data.d.self_video,
+                    suppress: payload.data.d.suppress
                 }).onConflictDoUpdate({
                     target: voiceStates.memberId,
                     set: {
-                        channelId: payload.data.d.channel_id
+                        guildId: payload.data.d.guild_id,
+                        channelId: payload.data.d.channel_id,
+                        sessionId: payload.data.d.session_id,
+                        deaf: payload.data.d.deaf,
+                        mute: payload.data.d.mute,
+                        requestToSpeakTimestamp: payload.data.d.request_to_speak_timestamp,
+                        selfDeaf: payload.data.d.self_deaf,
+                        selfMute: payload.data.d.self_mute,
+                        selfStream: payload.data.d.self_stream,
+                        selfVideo: payload.data.d.self_video,
+                        suppress: payload.data.d.suppress
                     }
                 }));
         }

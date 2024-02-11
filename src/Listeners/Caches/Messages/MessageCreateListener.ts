@@ -20,7 +20,19 @@ export class MessageCreateListener extends Listener {
             await this.store.drizzle.insert(messages).values({
                 id: payload.data.d.id,
                 channelId: payload.data.d.channel_id,
-                content: payload.data.d.content
+                content: payload.data.d.content,
+                applicationId: payload.data.d.application_id,
+                authorId: payload.data.d.author.id,
+                editedTimestamp: payload.data.d.edited_timestamp,
+                flags: payload.data.d.flags,
+                type: payload.data.d.type,
+                mentionEveryone: payload.data.d.mention_everyone,
+                pinned: payload.data.d.pinned,
+                position: payload.data.d.position,
+                timestamp: payload.data.d.timestamp,
+                tts: payload.data.d.tts,
+                webhookId: payload.data.d.webhook_id,
+                nonce: payload.data.d.nonce?.toString()
             });
         }
 
@@ -32,7 +44,14 @@ export class MessageCreateListener extends Listener {
                 globalName: payload.data.d.author.global_name ?? null,
                 avatar: payload.data.d.author.avatar ?? null,
                 bot: payload.data.d.author.bot ?? false,
-                flags: payload.data.d.flags
+                flags: payload.data.d.flags,
+                accentColor: payload.data.d.author.accent_color,
+                avatarDecoration: payload.data.d.author.avatar_decoration,
+                banner: payload.data.d.author.banner,
+                locale: payload.data.d.author.locale,
+                mfaEnabled: payload.data.d.author.mfa_enabled,
+                premiumType: payload.data.d.author.premium_type,
+                publicFlags: payload.data.d.author.public_flags
             }).onConflictDoNothing({ target: users.id });
         }
 
@@ -40,7 +59,14 @@ export class MessageCreateListener extends Listener {
             await this.store.drizzle.insert(members).values({
                 id: payload.data.d.id,
                 avatar: payload.data.d.member.avatar,
-                flags: payload.data.d.member.flags
+                flags: payload.data.d.member.flags,
+                joinedAt: payload.data.d.member.joined_at,
+                nick: payload.data.d.member.nick,
+                communicationDisabledUntil: payload.data.d.member.communication_disabled_until,
+                deaf: payload.data.d.member.deaf,
+                mute: payload.data.d.member.mute,
+                pending: payload.data.d.member.pending,
+                premiumSince: payload.data.d.member.premium_since
             }).onConflictDoNothing({ target: members.id });
 
             for (const role of payload.data.d.member.roles) {

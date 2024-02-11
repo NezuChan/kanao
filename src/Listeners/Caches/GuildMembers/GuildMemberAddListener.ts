@@ -24,7 +24,14 @@ export class GuildMemberAddListener extends Listener {
                 globalName: payload.data.d.user?.global_name ?? null,
                 avatar: payload.data.d.user?.avatar ?? null,
                 bot: payload.data.d.user?.bot ?? false,
-                flags: payload.data.d.user?.flags
+                flags: payload.data.d.user?.flags,
+                accentColor: payload.data.d.user?.accent_color,
+                avatarDecoration: payload.data.d.user?.avatar_decoration,
+                banner: payload.data.d.user?.banner,
+                locale: payload.data.d.user?.locale,
+                mfaEnabled: payload.data.d.user?.mfa_enabled,
+                premiumType: payload.data.d.user?.premium_type,
+                publicFlags: payload.data.d.user?.public_flags
             }).onConflictDoNothing({ target: users.id });
         }
 
@@ -36,7 +43,14 @@ export class GuildMemberAddListener extends Listener {
         }) ?? await this.store.drizzle.insert(members).values({
             id: payload.data.d.user!.id,
             avatar: payload.data.d.avatar,
-            flags: payload.data.d.flags
+            flags: payload.data.d.flags,
+            communicationDisabledUntil: payload.data.d.premium_since,
+            deaf: payload.data.d.deaf,
+            joinedAt: payload.data.d.joined_at,
+            mute: payload.data.d.mute,
+            nick: payload.data.d.nick,
+            pending: payload.data.d.pending,
+            premiumSince: payload.data.d.premium_since
         }).onConflictDoNothing({ target: members.id })
             .returning({ id: members.id })
             .then(x => x[0]);
