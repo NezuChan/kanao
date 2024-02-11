@@ -1,6 +1,5 @@
 import { pgTable, text, integer, boolean } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm/relations";
-import { guilds } from "./guild.js";
 import { voiceStates } from "./voice.js";
 
 export const channelsOverwrite = pgTable("channels_overwrite", {
@@ -40,11 +39,7 @@ export const channelsOverwriteRelation = relations(channelsOverwrite, ({ one }) 
     })
 }));
 
-export const channelsRelation = relations(channels, ({ one, many }) => ({
-    guild: one(guilds, {
-        fields: [channels.id],
-        references: [guilds.id]
-    }),
+export const channelsRelation = relations(channels, ({ many }) => ({
     permission_overwrites: many(channelsOverwrite)
 }));
 
