@@ -3,7 +3,7 @@ import { RabbitMQ } from "@nezuchan/constants";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayChannelCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { channels } from "../../../Schema/index.ts";
+import { channels } from "../../../Schema/index.js";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateChannels } from "../../../config.js";

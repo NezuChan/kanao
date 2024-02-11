@@ -4,7 +4,7 @@ import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayMessageDeleteBulkDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import { inArray } from "drizzle-orm";
-import { messages } from "../../../Schema/index.ts";
+import { messages } from "../../../Schema/index.js";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId } from "../../../config.js";

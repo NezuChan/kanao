@@ -4,7 +4,7 @@ import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildRoleUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import { eq } from "drizzle-orm";
-import { roles } from "../../../Schema/index.ts";
+import { roles } from "../../../Schema/index.js";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateRoles } from "../../../config.js";

@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { pgTable, integer, text } from "drizzle-orm/pg-core";
-import { memberRoles } from "./roles.ts";
-import { users } from "./user.ts";
+import { memberRoles } from "./roles.js";
+import { users } from "./user.js";
 
 export const members = pgTable("members", {
     id: text("id").primaryKey(),

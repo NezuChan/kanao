@@ -16,8 +16,7 @@
         "resolveJsonModule": true,
         "strictNullChecks": true,
         "noEmit": true,
-        "typeRoots": ["node_modules/@types", "src/typings"],
-        "allowImportingTsExtensions": true
+        "typeRoots": ["node_modules/@types", "src/typings"]
     },
     "exclude": ["node_modules", "node_modules/**/**.d.ts"],
     "include": ["src/**/**.ts", "src/**/**.json", "drizzle.config.ts"],

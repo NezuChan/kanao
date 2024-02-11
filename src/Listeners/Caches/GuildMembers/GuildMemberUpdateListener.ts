@@ -1,11 +1,12 @@
 import { Buffer } from "node:buffer";
-import { RabbitMQ, RedisKey } from "@nezuchan/constants";
+import { RabbitMQ } from "@nezuchan/constants";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildMemberUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
+import { eq } from "drizzle-orm";
+import { members, users } from "../../../Schema/index.js";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
-import { GenKey } from "../../../Utilities/GenKey.js";
 import { clientId, stateMembers, stateUsers } from "../../../config.js";
 
 export class GuildMemberUpdateListener extends Listener {
@@ -17,11 +18,15 @@ export class GuildMemberUpdateListener extends Listener {
 
     public async run(payload: { data: GatewayGuildMemberUpdateDispatch; shardId: number; }): Promise<void> {
         if (stateUsers) {
-            await this.store.redis.set(GenKey(RedisKey.USER_KEY, payload.data.d.user.id), JSON.stringify(payload.data.d.user));
+            await this.store.drizzle.update(users).set({
+                username: payload.data.d.user.username
+            }).where(eq(users.id, payload.data.d.user.id));
         }
 
         if (stateMembers) {
-            await this.store.redis.set(GenKey(RedisKey.MEMBER_KEY, payload.data.d.user.id, payload.data.d.guild_id), JSON.stringify(payload.data.d));
+            await this.store.drizzle.update(members).set({
+                avatar: payload.data.d.avatar
+            }).where(eq(members.id, payload.data.d.user.id));
         }
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
