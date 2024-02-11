@@ -55,8 +55,8 @@ export class NezuGateway extends EventEmitter {
             afk: false
         },
         updateSessionInfo: async (shardId: number, sessionInfo: SessionInfo | null) => {
-            if (gatewayResume && sessionInfo !== null) {
-                await this.drizzle.insert(schema.sessions).values({
+            await (gatewayResume && sessionInfo !== null
+                ? this.drizzle.insert(schema.sessions).values({
                     id: shardId,
                     resumeURL: sessionInfo.resumeURL,
                     sequence: sessionInfo.sequence,
@@ -71,8 +71,8 @@ export class NezuGateway extends EventEmitter {
                         shardCount: sessionInfo.shardCount
                     },
                     where: eq(schema.sessions.id, shardId)
-                });
-            }
+                })
+                : this.drizzle.delete(schema.sessions).where(eq(schema.sessions.id, shardId)));
         },
         retrieveSessionInfo: async (shardId: number) => {
             if (gatewayResume) {
@@ -80,7 +80,7 @@ export class NezuGateway extends EventEmitter {
                     where: () => eq(schema.sessions.id, shardId)
                 });
 
-                if (session) {
+                if (session !== undefined) {
                     return {
                         resumeURL: session.resumeURL,
                         sequence: session.sequence,
