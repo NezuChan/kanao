@@ -42,7 +42,8 @@ export class MessageUpdateListener extends Listener {
                 // if (message.tts) message.tts = payload.data.d.tts ?? false;
 
                 await this.store.drizzle.update(messages).set({
-                    channelId: payload.data.d.channel_id
+                    channelId: payload.data.d.channel_id,
+                    content: payload.data.d.content
                 }).where(eq(messages.id, payload.data.d.id));
             }
         }

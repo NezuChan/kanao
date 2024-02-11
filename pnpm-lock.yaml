@@ -86,14 +86,14 @@ dependencies:
   yaml:
     specifier: ^2.3.4
     version: 2.3.4
+  zlib-sync:
+    specifier: ^0.1.9
+    version: 0.1.9
 
 optionalDependencies:
   pino-loki:
     specifier: ^2.2.1
     version: 2.2.1
-  zlib-sync:
-    specifier: ^0.1.9
-    version: 0.1.9
 
 devDependencies:
   '@hazmi35/eslint-config':
@@ -3774,7 +3774,6 @@ packages:
     resolution: {integrity: sha512-W7tfG7vMOGtD30sHoZSSc/JVYiyDPEyQVso/Zz+/uQd0B0L46gtC+pHha5FFMRpil6fm/AoEcRWyOVi4+E/f8w==}
     requiresBuild: true
     dev: false
-    optional: true
 
   /natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
@@ -5164,7 +5163,6 @@ packages:
     dependencies:
       nan: 2.18.0
     dev: false
-    optional: true
 
   /zod@3.22.4:
     resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
