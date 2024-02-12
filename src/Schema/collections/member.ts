@@ -14,13 +14,10 @@ export const members = pgTable("members", {
     mute: boolean("mute"),
     pending: boolean("pending"),
     permissions: integer("permissions"),
-    communicationDisabledUntil: text("communication_disabled_until")
+    communicationDisabledUntil: text("communication_disabled_until"),
+    userId: text("user_id").references(() => users.id, { onDelete: "cascade" })
 });
 
-export const membersRelations = relations(members, ({ many, one }) => ({
-    roles: many(memberRoles),
-    user: one(users, {
-        fields: [members.id],
-        references: [users.id]
-    })
+export const membersRelations = relations(members, ({ many }) => ({
+    roles: many(memberRoles)
 }));
