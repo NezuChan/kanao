@@ -8,7 +8,6 @@ import { Result } from "@sapphire/result";
 import { chunk, range } from "@sapphire/utilities";
 import { PresenceUpdateStatus } from "discord-api-types/v10";
 import Dockerode from "dockerode";
-import type { default as IORedis, NatMap } from "ioredis";
 
 export const getShardCount = async (): Promise<{ end: number | undefined; start: number; } | null | undefined> => {
     const replicaCount = process.env.GATEWAY_REPLICA_COUNT === undefined ? null : Number(process.env.GATEWAY_REPLICA_COUNT);
@@ -41,17 +40,6 @@ export const getShardCount = async (): Promise<{ end: number | undefined; start:
         }
         : null;
 };
-
-export const redisUsername = process.env.REDIS_USERNAME;
-export const redisPassword = process.env.REDIS_PASSWORD;
-export const redisHost = process.env.REDIS_HOST;
-export const redisPort = Number(process.env.REDIS_PORT);
-export const redisDb = Number(process.env.REDIS_DB ?? 0);
-export const redisNatMap = JSON.parse(process.env.REDIS_NAT_MAP ?? "{}") as NatMap;
-export const redisClusters = JSON.parse(process.env.REDIS_CLUSTERS ?? "[]") as IORedis.ClusterNode[];
-export const redisClusterScaleReads = process.env.REDIS_CLUSTER_SCALE_READS as IORedis.NodeRole | undefined ?? process.env.REDIS_SCALE_READS as IORedis.NodeRole | undefined ?? "all" as IORedis.NodeRole;
-export const redisScanCount = Number(process.env.REDIS_SCAN_COUNT ?? 1_000);
-export const redisDisablePipelining = process.env.REDIS_DISABLE_PIPELINING === "true";
 
 export const storeLogs = process.env.STORE_LOGS === "true";
 export const lokiHost = process.env.LOKI_HOST === undefined ? undefined : new URL(process.env.LOKI_HOST);
