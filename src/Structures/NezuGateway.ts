@@ -1,27 +1,21 @@
-/* eslint-disable @typescript-eslint/no-shadow */
-
-/* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
-import { Buffer } from "node:buffer";
 import EventEmitter from "node:events";
 import { join } from "node:path";
-import process from "node:process";
-import { setInterval } from "node:timers";
 import { fileURLToPath } from "node:url";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, WebSocketManager, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
 import type { SessionInfo, ShardRange } from "@discordjs/ws";
-import { RabbitMQ, RedisKey } from "@nezuchan/constants";
-import { Util, createAmqpChannel, createRedis, RoutingKey, redisScan } from "@nezuchan/utilities";
-import { Result } from "@sapphire/result";
-import { Time } from "@sapphire/time-utilities";
-import { sleep } from "@sapphire/utilities";
+import { RabbitMQ } from "@nezuchan/constants";
+import { Util, createAmqpChannel, RoutingKey } from "@nezuchan/utilities";
 import type { Channel } from "amqplib";
+import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import APM from "prometheus-middleware";
-import { GenKey } from "../Utilities/GenKey.js";
+import * as schema from "../Schema/index.js";
 import { createLogger } from "../Utilities/Logger.js";
 import { ProcessShardingStrategy } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
-import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, redisClusterScaleReads, redisClusters, redisDb, redisDisablePipelining, redisHost, redisNatMap, redisPassword, redisPort, redisScanCount, redisUsername, replicaId, storeLogs } from "../config.js";
+import { amqp, clientId, databaseUrl, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, replicaId, storeLogs } from "../config.js";
 
 const packageJson = Util.loadJSON<{ version: string; }>(`file://${join(fileURLToPath(import.meta.url), "../../../package.json")}`);
 const shardIds = await getShardCount();
@@ -30,17 +24,7 @@ export class NezuGateway extends EventEmitter {
     public rest = new REST({ api: proxy, rejectOnRateLimit: proxy === "https://discord.com/api" ? null : () => false });
     public logger = createLogger("nezu-gateway", clientId, storeLogs, lokiHost);
 
-    public redis = createRedis({
-        redisUsername,
-        redisPassword,
-        redisHost,
-        redisPort,
-        redisDb,
-        redisClusterScaleReads,
-        redisClusters,
-        redisNatMap,
-        enableAutoPipelining: !redisDisablePipelining
-    });
+    public drizzle = drizzle(postgres(databaseUrl), { schema });
 
     public prometheus = new APM({
         PORT: prometheusPort,
@@ -70,17 +54,41 @@ export class NezuGateway extends EventEmitter {
             status: gatewayPresenceStatus,
             afk: false
         },
-        updateSessionInfo: async (shardId: number, sessionInfo: SessionInfo) => {
-            const result = await Result.fromAsync(async () => this.redis.set(GenKey(RedisKey.SESSIONS_KEY, String(shardId)), JSON.stringify(sessionInfo)));
-            if (result.isOk()) return;
-            this.logger.error(result.unwrapErr(), "Failed to update session info");
+        updateSessionInfo: async (shardId: number, sessionInfo: SessionInfo | null) => {
+            await (gatewayResume && sessionInfo !== null
+                ? this.drizzle.insert(schema.sessions).values({
+                    id: shardId,
+                    resumeURL: sessionInfo.resumeURL,
+                    sequence: sessionInfo.sequence,
+                    sessionId: sessionInfo.sessionId,
+                    shardCount: sessionInfo.shardCount
+                }).onConflictDoUpdate({
+                    target: schema.sessions.id,
+                    set: {
+                        resumeURL: sessionInfo.resumeURL,
+                        sequence: sessionInfo.sequence,
+                        sessionId: sessionInfo.sessionId,
+                        shardCount: sessionInfo.shardCount
+                    },
+                    where: eq(schema.sessions.id, shardId)
+                })
+                : this.drizzle.delete(schema.sessions).where(eq(schema.sessions.id, shardId)));
         },
         retrieveSessionInfo: async (shardId: number) => {
             if (gatewayResume) {
-                const result = await Result.fromAsync(async () => this.redis.get(GenKey(RedisKey.SESSIONS_KEY, String(shardId))));
-                const sessionInfo = result.isOk() ? result.unwrap() : null;
-                if (sessionInfo !== null) return JSON.parse(sessionInfo) as SessionInfo;
-                if (result.isErr()) this.logger.error(result.unwrapErr(), "Failed to retrieve session info");
+                const session = await this.drizzle.query.sessions.findFirst({
+                    where: () => eq(schema.sessions.id, shardId)
+                });
+
+                if (session !== undefined) {
+                    return {
+                        resumeURL: session.resumeURL,
+                        sequence: session.sequence,
+                        sessionId: session.sessionId,
+                        shardCount: session.shardCount,
+                        shardId: session.id
+                    };
+                }
             }
             return null;
         },
@@ -112,47 +120,19 @@ export class NezuGateway extends EventEmitter {
         const shardEnd = shardIds?.end ?? shardCount;
 
         for (let i = shardStart; i < shardEnd; i++) {
-            await this.redis.set(GenKey(RedisKey.STATUSES_KEY, i.toString()), JSON.stringify({ latency: -1, status: WebSocketShardStatus.Connecting, startAt: Date.now() }));
-        }
-
-        // Check if this is the first replica
-        if (shardStart === 0) {
-            const getStatus = async (): Promise<WebSocketShardStatus[]> => {
-                const status: WebSocketShardStatus[] = [];
-
-                // Do a loop from 0 to shardCount times
-                for (let i = 0; i < shardCount; i++) {
-                    const s = await this.redis.get(GenKey(RedisKey.STATUSES_KEY, i.toString()));
-                    if (s !== null) {
-                        const stat = JSON.parse(s) as { status: WebSocketShardStatus; };
-                        status.push(stat.status);
-                    }
+            await this.drizzle.insert(schema.status).values({
+                shardId: i,
+                latency: -1,
+                lastAck: Date.now().toString(),
+                status: WebSocketShardStatus.Connecting
+            }).onConflictDoUpdate({
+                target: schema.status.shardId,
+                set: {
+                    latency: -1,
+                    lastAck: Date.now().toString(),
+                    status: WebSocketShardStatus.Connecting
                 }
-                return status;
-            };
-
-            let status = await getStatus();
-
-            // Wait until all shards are ready
-            while (status.some(s => s !== WebSocketShardStatus.Ready)) {
-                // Sleep for 30 seconds
-                await sleep(Time.Second * 30);
-                status = await getStatus();
-            }
-
-            // Update counter
-            this.logger.info("All shards are ready, updating counter");
-
-            const guild = await redisScan(this.redis, GenKey(RedisKey.GUILD_KEY), redisScanCount);
-            await this.redis.set(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT), guild.length);
-
-            const channel = await redisScan(this.redis, GenKey(RedisKey.CHANNEL_KEY), redisScanCount);
-            await this.redis.set(GenKey(RedisKey.CHANNEL_KEY, RedisKey.COUNT), channel.length);
-
-            const user = await redisScan(this.redis, GenKey(RedisKey.USER_KEY), redisScanCount);
-            await this.redis.set(GenKey(RedisKey.USER_KEY, RedisKey.COUNT), user.length);
-
-            await this.redis.set(GenKey(RedisKey.SHARDS_KEY), shardCount);
+            });
         }
     }
 
@@ -167,33 +147,33 @@ export class NezuGateway extends EventEmitter {
                     await channel.bindQueue(queue, RabbitMQ.GATEWAY_QUEUE_STATS, route);
                 }
 
-                await channel.consume(queue, async message => {
-                    if (!message) return;
-                    const content = JSON.parse(message.content.toString()) as { route: string; };
-                    const stats = [];
-                    for (const [shardId, status] of await this.ws.fetchStatus()) {
-                        const raw_value = await this.redis.get(GenKey(RedisKey.STATUSES_KEY, shardId.toString()));
-                        const shard_status = raw_value === null ? { latency: -1 } : JSON.parse(raw_value) as { latency: number; };
-                        stats.push({ shardId, status, latency: shard_status.latency });
-                    }
-                    const guildCount = await this.redis.get(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT))
-                        .then(c => (c === null ? 0 : Number(c)));
-                    channel.ack(message);
-                    await amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, content.route, Buffer.from(
-                        JSON.stringify({
-                            shards: stats,
-                            replicaId,
-                            clientId,
-                            memoryUsage: process.memoryUsage(),
-                            cpuUsage: process.cpuUsage(),
-                            uptime: process.uptime(),
-                            shardCount: stats.length,
-                            guildCount
-                        })
-                    ), {
-                        correlationId: message.properties.correlationId as string
-                    });
-                });
+                // await channel.consume(queue, async message => {
+                //     if (!message) return;
+                //     const content = JSON.parse(message.content.toString()) as { route: string; };
+                //     const stats = [];
+                //     for (const [shardId, status] of await this.ws.fetchStatus()) {
+                //         const raw_value = await this.redis.get(GenKey(RedisKey.STATUSES_KEY, shardId.toString()));
+                //         const shard_status = raw_value === null ? { latency: -1 } : JSON.parse(raw_value) as { latency: number; };
+                //         stats.push({ shardId, status, latency: shard_status.latency });
+                //     }
+                //     const guildCount = await this.redis.get(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT))
+                //         .then(c => (c === null ? 0 : Number(c)));
+                //     channel.ack(message);
+                //     await amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, content.route, Buffer.from(
+                //         JSON.stringify({
+                //             shards: stats,
+                //             replicaId,
+                //             clientId,
+                //             memoryUsage: process.memoryUsage(),
+                //             cpuUsage: process.cpuUsage(),
+                //             uptime: process.uptime(),
+                //             shardCount: stats.length,
+                //             guildCount
+                //         })
+                //     ), {
+                //         correlationId: message.properties.correlationId as string
+                //     });
+                // });
             }
         });
 
@@ -207,62 +187,5 @@ export class NezuGateway extends EventEmitter {
         this.prometheus.client.register.setDefaultLabels({ replicaId, clientId });
 
         this.logger.info("Prometheus initialized");
-
-        const guildCounter = new this.prometheus.client.Counter({
-            name: "guild_count",
-            help: "Guild count"
-        });
-
-        const channelCounter = new this.prometheus.client.Counter({
-            name: "channel_count",
-            help: "Channel count"
-        });
-
-        const socketCounter = new this.prometheus.client.Gauge({
-            name: "ws_ping",
-            help: "Websocket ping",
-            labelNames: ["shardId"]
-        });
-
-        const sockerStatusCounter = new this.prometheus.client.Gauge({
-            name: "ws_status",
-            help: "Websocket status",
-            labelNames: ["shardId"]
-        });
-
-        const userCounter = new this.prometheus.client.Counter({
-            name: "user_count",
-            help: "User count"
-        });
-
-        setInterval(async () => {
-            guildCounter.reset();
-            const guild = await this.redis.get(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT))
-                .then(c => (c === null ? 0 : Number(c)));
-            guildCounter.inc(guild);
-
-            channelCounter.reset();
-            const channel = await this.redis.get(GenKey(RedisKey.CHANNEL_KEY, RedisKey.COUNT))
-                .then(c => (c === null ? 0 : Number(c)));
-            channelCounter.inc(channel);
-
-            userCounter.reset();
-            const user = await this.redis.get(GenKey(RedisKey.USER_KEY, RedisKey.COUNT))
-                .then(c => (c === null ? 0 : Number(c)));
-            userCounter.inc(user);
-
-            const shards_statuses = await this.ws.fetchStatus();
-
-            for (const [shardId, socket] of shards_statuses) {
-                sockerStatusCounter.set({ shardId }, socket);
-                const status = await this.redis.get(GenKey(RedisKey.STATUSES_KEY, shardId.toString()));
-                if (status !== null) {
-                    const { latency } = JSON.parse(status) as { latency: number; };
-                    socketCounter.set({ shardId }, latency);
-                }
-            }
-
-            this.logger.debug(`Updated prometheus metrics for ${shards_statuses.size} shards in replica ${replicaId}`);
-        }, Time.Minute * 3);
     }
 }

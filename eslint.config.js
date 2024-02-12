@@ -13,6 +13,10 @@ export default [
         {
             rule: "new-cap",
             option: ["off"]
+        },
+        {
+            rule: "no-await-in-loop",
+            option: ["off"]
         }
     ]),
     ...modules,

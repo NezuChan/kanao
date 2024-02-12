@@ -1,11 +1,12 @@
 import { Buffer } from "node:buffer";
-import { RabbitMQ, RedisKey } from "@nezuchan/constants";
+import { RabbitMQ } from "@nezuchan/constants";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayChannelUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
+import { eq } from "drizzle-orm";
+import { channels, channelsOverwrite, guildsChannels } from "../../../Schema/index.js";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
-import { GenKey } from "../../../Utilities/GenKey.js";
 import { clientId, stateChannels } from "../../../config.js";
 
 export class ChannelUpdateListener extends Listener {
@@ -17,13 +18,47 @@ export class ChannelUpdateListener extends Listener {
     }
 
     public async run(payload: { data: GatewayChannelUpdateDispatch; shardId: number; }): Promise<void> {
-        const channel = await this.store.redis.get(GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id, "guild_id" in payload.data.d && payload.data.d.guild_id !== undefined ? payload.data.d.guild_id : undefined));
+        await this.store.drizzle.insert(channels).values({
+            id: payload.data.d.id,
+            name: payload.data.d.name,
+            type: payload.data.d.type,
+            position: "position" in payload.data.d ? payload.data.d.position : null,
+            topic: "topic" in payload.data.d ? payload.data.d.topic : null,
+            nsfw: "nsfw" in payload.data.d ? payload.data.d.nsfw : null,
+            lastMessageId: "last_message_id" in payload.data.d ? payload.data.d.last_message_id : undefined
+        }).onConflictDoUpdate({
+            target: channels.id,
+            set: {
+                name: payload.data.d.name,
+                type: payload.data.d.type,
+                position: "position" in payload.data.d ? payload.data.d.position : null,
+                topic: "topic" in payload.data.d ? payload.data.d.topic : null,
+                nsfw: "nsfw" in payload.data.d ? payload.data.d.nsfw : null,
+                lastMessageId: "last_message_id" in payload.data.d ? payload.data.d.last_message_id : undefined
+            }
+        });
 
-        await ("guild_id" in payload.data.d && payload.data.d.guild_id !== undefined ? this.store.redis.set(GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id, payload.data.d.guild_id), JSON.stringify(payload.data.d)) : this.store.redis.set(GenKey(RedisKey.CHANNEL_KEY, payload.data.d.id), JSON.stringify(payload.data.d)));
+        if ("permission_overwrites" in payload.data.d && payload.data.d.permission_overwrites !== undefined) {
+            await this.store.drizzle.delete(channelsOverwrite).where(eq(channelsOverwrite.id, payload.data.d.id));
+            for (const overwrite of payload.data.d.permission_overwrites) {
+                await this.store.drizzle.insert(channelsOverwrite).values({
+                    id: payload.data.d.id,
+                    type: overwrite.type,
+                    allow: overwrite.allow,
+                    deny: overwrite.deny
+                }).onConflictDoNothing({
+                    target: channelsOverwrite.id
+                });
+            }
+        }
 
-        await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
-            ...payload.data,
-            old: channel === null ? null : JSON.parse(channel)
-        })));
+        if ("guild_id" in payload.data.d) {
+            await this.store.drizzle.insert(guildsChannels).values({
+                id: payload.data.d.id,
+                guildId: payload.data.d.guild_id
+            }).onConflictDoNothing({ target: guildsChannels.id });
+        }
+
+        await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }
 }

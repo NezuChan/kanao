@@ -1,11 +1,12 @@
 import { Buffer } from "node:buffer";
-import { RabbitMQ, RedisKey } from "@nezuchan/constants";
+import { RabbitMQ } from "@nezuchan/constants";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildMemberUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
+import { eq } from "drizzle-orm";
+import { memberRoles, members, users } from "../../../Schema/index.js";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
-import { GenKey } from "../../../Utilities/GenKey.js";
 import { clientId, stateMembers, stateUsers } from "../../../config.js";
 
 export class GuildMemberUpdateListener extends Listener {
@@ -17,11 +18,76 @@ export class GuildMemberUpdateListener extends Listener {
 
     public async run(payload: { data: GatewayGuildMemberUpdateDispatch; shardId: number; }): Promise<void> {
         if (stateUsers) {
-            await this.store.redis.set(GenKey(RedisKey.USER_KEY, payload.data.d.user.id), JSON.stringify(payload.data.d.user));
+            await this.store.drizzle.insert(users).values({
+                id: payload.data.d.user.id,
+                username: payload.data.d.user.username,
+                accentColor: payload.data.d.user.accent_color,
+                avatar: payload.data.d.user.avatar,
+                avatarDecoration: payload.data.d.user.avatar_decoration,
+                banner: payload.data.d.user.banner,
+                bot: payload.data.d.user.bot,
+                discriminator: payload.data.d.user.discriminator,
+                flags: payload.data.d.user.flags,
+                globalName: payload.data.d.user.global_name,
+                locale: payload.data.d.user.locale,
+                mfaEnabled: payload.data.d.user.mfa_enabled,
+                premiumType: payload.data.d.user.premium_type,
+                publicFlags: payload.data.d.user.public_flags
+            }).onConflictDoUpdate({
+                target: users.id,
+                set: {
+                    username: payload.data.d.user.username,
+                    accentColor: payload.data.d.user.accent_color,
+                    avatar: payload.data.d.user.avatar,
+                    avatarDecoration: payload.data.d.user.avatar_decoration,
+                    banner: payload.data.d.user.banner,
+                    bot: payload.data.d.user.bot,
+                    discriminator: payload.data.d.user.discriminator,
+                    flags: payload.data.d.user.flags,
+                    globalName: payload.data.d.user.global_name,
+                    locale: payload.data.d.user.locale,
+                    mfaEnabled: payload.data.d.user.mfa_enabled,
+                    premiumType: payload.data.d.user.premium_type,
+                    publicFlags: payload.data.d.user.public_flags
+                }
+            });
         }
 
         if (stateMembers) {
-            await this.store.redis.set(GenKey(RedisKey.MEMBER_KEY, payload.data.d.user.id, payload.data.d.guild_id), JSON.stringify(payload.data.d));
+            await this.store.drizzle.insert(members).values({
+                id: payload.data.d.user.id,
+                avatar: payload.data.d.avatar,
+                communicationDisabledUntil: payload.data.d.premium_since,
+                deaf: payload.data.d.deaf,
+                flags: payload.data.d.flags,
+                joinedAt: payload.data.d.joined_at,
+                mute: payload.data.d.mute,
+                nick: payload.data.d.nick,
+                pending: payload.data.d.pending,
+                premiumSince: payload.data.d.premium_since
+            }).onConflictDoUpdate({
+                target: members.id,
+                set: {
+                    avatar: payload.data.d.avatar,
+                    communicationDisabledUntil: payload.data.d.premium_since,
+                    deaf: payload.data.d.deaf,
+                    flags: payload.data.d.flags,
+                    joinedAt: payload.data.d.joined_at,
+                    mute: payload.data.d.mute,
+                    nick: payload.data.d.nick,
+                    pending: payload.data.d.pending,
+                    premiumSince: payload.data.d.premium_since
+                }
+            });
+
+            await this.store.drizzle.delete(memberRoles).where(eq(memberRoles.id, payload.data.d.user.id));
+
+            for (const role of payload.data.d.roles) {
+                await this.store.drizzle.insert(memberRoles).values({
+                    id: payload.data.d.user.id,
+                    roleId: role
+                }).onConflictDoNothing({ target: memberRoles.id });
+            }
         }
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));

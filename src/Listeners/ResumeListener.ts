@@ -9,7 +9,7 @@ export class ReadyListener extends Listener {
         });
     }
 
-    public run(payload: { shardId: number; }): unknown {
+    public run(payload: { shardId: number; }): void {
         this.logger.info(`Shard ${payload.shardId} has resumed`);
     }
 }

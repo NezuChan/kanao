@@ -5,7 +5,7 @@
 /* eslint-disable promise/prefer-await-to-then */
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable no-await-in-loop */
+
 import type { ChildProcess } from "node:child_process";
 import { fork } from "node:child_process";
 import { once } from "node:events";
@@ -229,7 +229,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
     private resolveWorkerPath(): string {
         const path = this.options.workerPath;
 
-        if (path === null) {
+        if (path === undefined) {
             return join(__dirname, "ShardProcess.js");
         }
 
@@ -242,9 +242,9 @@ export class ProcessShardingStrategy implements IShardingStrategy {
         }
 
         try {
-            return require.resolve(path!);
+            return require.resolve(path);
         } catch {
-            return resolve(path!);
+            return resolve(path);
         }
     }
 

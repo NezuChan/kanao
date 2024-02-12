@@ -18,12 +18,10 @@ export class ReadyListener extends Listener {
     public async run(payload: { shardId: number; data: { data: GatewayDispatchPayload; }; }): Promise<void> {
         switch (payload.data.data.t) {
             case GatewayDispatchEvents.ChannelCreate:
-            case GatewayDispatchEvents.ChannelPinsUpdate:
             case GatewayDispatchEvents.ChannelDelete:
             case GatewayDispatchEvents.ChannelUpdate:
             case GatewayDispatchEvents.GuildCreate:
             case GatewayDispatchEvents.GuildDelete:
-            case GatewayDispatchEvents.GuildEmojisUpdate:
             case GatewayDispatchEvents.GuildMemberRemove:
             case GatewayDispatchEvents.GuildMemberUpdate:
             case GatewayDispatchEvents.GuildUpdate:
@@ -31,15 +29,13 @@ export class ReadyListener extends Listener {
             case GatewayDispatchEvents.MessageDelete:
             case GatewayDispatchEvents.MessageUpdate:
             case GatewayDispatchEvents.VoiceStateUpdate:
-            case GatewayDispatchEvents.Ready:
             case GatewayDispatchEvents.GuildMemberAdd:
             case GatewayDispatchEvents.GuildMembersChunk:
             case GatewayDispatchEvents.GuildRoleCreate:
             case GatewayDispatchEvents.MessageCreate:
             case GatewayDispatchEvents.GuildRoleUpdate:
             case GatewayDispatchEvents.GuildRoleDelete:
-            case GatewayDispatchEvents.PresenceUpdate:
-            case GatewayDispatchEvents.VoiceServerUpdate:
+            case GatewayDispatchEvents.Ready:
                 this.store.emitter.emit(payload.data.data.t, { shardId: payload.shardId, data: payload.data.data });
                 break;
             default:
