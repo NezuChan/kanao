@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import { pgTable, text, boolean, integer } from "drizzle-orm/pg-core";
 import { channels } from "./channel.js";
 import { users } from "./user.js";
@@ -19,4 +20,15 @@ export const messages = pgTable("messages", {
     flags: integer("flags"),
     position: integer("position")
 });
+
+export const messagesRelation = relations(messages, ({ one }) => ({
+    channel: one(channels, {
+        fields: [messages.channelId],
+        references: [channels.id]
+    }),
+    author: one(users, {
+        fields: [messages.authorId],
+        references: [users.id]
+    })
+}));
 

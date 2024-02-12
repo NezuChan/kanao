@@ -17,6 +17,10 @@ export const members = pgTable("members", {
     communicationDisabledUntil: text("communication_disabled_until")
 });
 
-export const membersRelations = relations(members, ({ many }) => ({
-    roles: many(memberRoles)
+export const membersRelations = relations(members, ({ many, one }) => ({
+    roles: many(memberRoles),
+    user: one(users, {
+        fields: [members.id],
+        references: [users.id]
+    })
 }));

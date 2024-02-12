@@ -42,6 +42,21 @@ export const channelsRelation = relations(channels, ({ many }) => ({
     permission_overwrites: many(channelsOverwrite)
 }));
 
-export const guildChannelsRelations = relations(guildsChannels, ({ many }) => ({
-    states: many(voiceStates)
+export const guildChannelsRelations = relations(guildsChannels, ({ many, one }) => ({
+    states: many(voiceStates),
+    channel: one(channels, {
+        fields: [guildsChannels.id],
+        references: [channels.id]
+    }),
+    guild: one(guilds, {
+        fields: [guildsChannels.id],
+        references: [guilds.id]
+    })
+}));
+
+export const channelsOverwriteRelation = relations(channelsOverwrite, ({ one }) => ({
+    channel: one(channels, {
+        fields: [channelsOverwrite.id],
+        references: [channels.id]
+    })
 }));
