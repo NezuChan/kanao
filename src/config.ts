@@ -43,7 +43,6 @@ export const getShardCount = async (): Promise<{ end: number | undefined; start:
 
 export const storeLogs = process.env.STORE_LOGS === "true";
 export const lokiHost = process.env.LOKI_HOST === undefined ? undefined : new URL(process.env.LOKI_HOST);
-export const useRouting = process.env.USE_ROUTING === "true";
 export const discordToken = process.env.DISCORD_TOKEN!;
 export const proxy = process.env.NIRN_PROXY ?? process.env.HTTP_PROXY ?? "https://discord.com/api";
 export const amqp = process.env.AMQP_HOST ?? process.env.AMQP_URL ?? "amqp://localhost";
@@ -71,11 +70,9 @@ export const production = process.env.NODE_ENV === "production";
 
 export const stateMembers = process.env.STATE_MEMBER === "true";
 export const stateUsers = process.env.STATE_USER === "true";
-export const statePresences = process.env.STATE_PRESENCE === "true";
 export const stateVoices = process.env.STATE_VOICE === "true";
 export const stateRoles = process.env.STATE_ROLE === "true";
 export const stateChannels = process.env.STATE_CHANNEL === "true";
-export const stateEmojis = process.env.STATE_EMOJI === "true";
 export const stateMessages = process.env.STATE_MESSAGE === "true";
 
 export const replicaId = hostname();
