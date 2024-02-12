@@ -2,7 +2,6 @@ import { relations } from "drizzle-orm";
 import { pgTable, text, boolean, integer } from "drizzle-orm/pg-core";
 import { attachment } from "./attachment.js";
 import { channels } from "./channel.js";
-import { embed } from "./embed.js";
 import { reaction } from "./reaction.js";
 import { roles } from "./roles.js";
 import { users } from "./user.js";
@@ -38,6 +37,5 @@ export const messageRelations = relations(messages, ({ one, many }) => ({
     mentionRoles: many(roles),
     mentionChannels: many(channels),
     attachments: many(attachment),
-    embeds: many(embed),
     reactions: many(reaction)
 }));
