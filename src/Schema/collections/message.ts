@@ -5,8 +5,8 @@ import { users } from "./user.js";
 
 export const messages = pgTable("messages", {
     id: text("id").primaryKey(),
-    channelId: text("channel_id"),
-    authorId: text("author_id"),
+    channelId: text("channel_id").references(() => channels.id, { onDelete: "cascade" }),
+    authorId: text("author_id").references(() => users.id, { onDelete: "set null" }),
     content: text("content"),
     timestamp: text("timestamp"),
     editedTimestamp: text("edited_timestamp"),
@@ -21,7 +21,7 @@ export const messages = pgTable("messages", {
     position: integer("position")
 });
 
-export const messageRelations = relations(messages, ({ one }) => ({
+export const messagesRelation = relations(messages, ({ one }) => ({
     channel: one(channels, {
         fields: [messages.channelId],
         references: [channels.id]
@@ -31,3 +31,4 @@ export const messageRelations = relations(messages, ({ one }) => ({
         references: [users.id]
     })
 }));
+

@@ -1,6 +1,5 @@
 import { relations } from "drizzle-orm";
 import { pgTable, text, boolean, integer } from "drizzle-orm/pg-core";
-import { emojis } from "./emoji.js";
 import { guildsRoles } from "./roles.js";
 import { voiceStates } from "./voice.js";
 
@@ -46,6 +45,5 @@ export const guilds = pgTable("guilds", {
 
 export const guildsRelations = relations(guilds, ({ many }) => ({
     roles: many(guildsRoles),
-    voiceStates: many(voiceStates),
-    emojis: many(emojis)
+    voiceStates: many(voiceStates)
 }));

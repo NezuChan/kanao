@@ -13,12 +13,17 @@ export const roles = pgTable("roles", {
 });
 
 export const memberRoles = pgTable("member_roles", {
-    id: text("id").primaryKey(),
+    id: text("id").primaryKey().references(() => members.id, { onDelete: "cascade" }),
 
-    roleId: text("role_id")
+    roleId: text("role_id").references(() => roles.id, { onDelete: "cascade" })
 });
 
-export const memberRolesRelations = relations(memberRoles, ({ one }) => ({
+export const guildsRoles = pgTable("guild_roles", {
+    id: text("id").primaryKey().references(() => guilds.id, { onDelete: "cascade" }),
+    roleId: text("role_id").references(() => roles.id, { onDelete: "cascade" })
+});
+
+export const memberRolesRelation = relations(memberRoles, ({ one }) => ({
     role: one(roles, {
         fields: [memberRoles.roleId],
         references: [roles.id]
@@ -29,12 +34,7 @@ export const memberRolesRelations = relations(memberRoles, ({ one }) => ({
     })
 }));
 
-export const guildsRoles = pgTable("guild_roles", {
-    id: text("id").primaryKey(),
-    roleId: text("role_id")
-});
-
-export const guildsRolesRelations = relations(guildsRoles, ({ one }) => ({
+export const guildsRolesRelation = relations(guildsRoles, ({ one }) => ({
     role: one(roles, {
         fields: [guildsRoles.roleId],
         references: [roles.id]
@@ -44,3 +44,4 @@ export const guildsRolesRelations = relations(guildsRoles, ({ one }) => ({
         references: [guilds.id]
     })
 }));
+

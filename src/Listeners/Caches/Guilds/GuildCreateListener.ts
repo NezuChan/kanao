@@ -202,7 +202,7 @@ export class GuildCreateListener extends Listener {
                     await this.store.drizzle.delete(channelsOverwrite).where(eq(channelsOverwrite.id, channel.id));
                     for (const overwrite of channel.permission_overwrites) {
                         await this.store.drizzle.insert(channelsOverwrite).values({
-                            id: payload.data.d.id,
+                            id: channel.id,
                             type: overwrite.type,
                             allow: overwrite.allow,
                             deny: overwrite.deny
