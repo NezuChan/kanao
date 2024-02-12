@@ -3,7 +3,8 @@ import { RabbitMQ } from "@nezuchan/constants";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { channels, guilds, guildsChannels, guildsRoles, memberRoles, members, roles, users, voiceStates } from "../../../Schema/index.js";
+import { eq } from "drizzle-orm";
+import { channels, channelsOverwrite, guilds, guildsChannels, guildsRoles, memberRoles, members, roles, users, voiceStates } from "../../../Schema/index.js";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateChannels, stateMembers, stateRoles, stateUsers, stateVoices } from "../../../config.js";
@@ -197,6 +198,20 @@ export class GuildCreateListener extends Listener {
                     flags: channel.flags
                 }).onConflictDoNothing({ target: channels.id });
 
+                if ("permission_overwrites" in channel && channel.permission_overwrites !== undefined) {
+                    await this.store.drizzle.delete(channelsOverwrite).where(eq(channelsOverwrite.id, channel.id));
+                    for (const overwrite of channel.permission_overwrites) {
+                        await this.store.drizzle.insert(channelsOverwrite).values({
+                            id: payload.data.d.id,
+                            type: overwrite.type,
+                            allow: overwrite.allow,
+                            deny: overwrite.deny
+                        }).onConflictDoNothing({
+                            target: channelsOverwrite.id
+                        });
+                    }
+                }
+
                 await this.store.drizzle.insert(guildsChannels).values({
                     id: channel.id,
                     guildId: payload.data.d.id
@@ -224,22 +239,6 @@ export class GuildCreateListener extends Listener {
                 }
             }
         }
-
-        // Does even someone used them?
-
-        // if (stateEmojis) {
-        //     for (const emoji of payload.data.d.emojis) {
-        //         if (emoji.id !== null) {
-        //             await this.store.redis.set(GenKey(RedisKey.EMOJI_KEY, emoji.id, payload.data.d.id), JSON.stringify(emoji));
-        //         }
-        //     }
-        // }
-
-        // if (statePresences) {
-        //     for (const presence of payload.data.d.presences) {
-        //         await this.store.redis.set(GenKey(RedisKey.PRESENCE_KEY, presence.user.id, payload.data.d.id), JSON.stringify(presence));
-        //     }
-        // }
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }

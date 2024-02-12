@@ -35,12 +35,7 @@ export class GuildMemberAddListener extends Listener {
             }).onConflictDoNothing({ target: users.id });
         }
 
-        const member = await this.store.drizzle.query.members.findFirst({
-            where: (m, { eq }) => eq(m.id, payload.data.d.user!.id),
-            columns: {
-                id: true
-            }
-        }) ?? await this.store.drizzle.insert(members).values({
+        await this.store.drizzle.insert(members).values({
             id: payload.data.d.user!.id,
             avatar: payload.data.d.avatar,
             flags: payload.data.d.flags,
@@ -51,13 +46,24 @@ export class GuildMemberAddListener extends Listener {
             nick: payload.data.d.nick,
             pending: payload.data.d.pending,
             premiumSince: payload.data.d.premium_since
-        }).onConflictDoNothing({ target: members.id })
-            .returning({ id: members.id })
-            .then(x => x[0]);
+        }).onConflictDoUpdate({
+            target: members.id,
+            set: {
+                avatar: payload.data.d.avatar,
+                flags: payload.data.d.flags,
+                communicationDisabledUntil: payload.data.d.premium_since,
+                deaf: payload.data.d.deaf,
+                joinedAt: payload.data.d.joined_at,
+                mute: payload.data.d.mute,
+                nick: payload.data.d.nick,
+                pending: payload.data.d.pending,
+                premiumSince: payload.data.d.premium_since
+            }
+        });
 
         for (const role of payload.data.d.roles) {
             await this.store.drizzle.insert(memberRoles).values({
-                id: member!.id,
+                id: payload.data.d.user!.id,
                 roleId: role
             }).onConflictDoNothing({ target: memberRoles.id });
         }

@@ -34,8 +34,6 @@ export class UserUpdateListener extends Listener {
             publicFlags: payload.data.d.public_flags
         }).where(eq(users.id, payload.data.d.id));
 
-        await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
-            ...payload.data
-        })));
+        await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }
 }

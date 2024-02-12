@@ -20,8 +20,6 @@ export class ChannelPintsUpdateListener extends Listener {
     public async run(payload: { data: GatewayChannelDeleteDispatch; shardId: number; }): Promise<void> {
         await this.store.drizzle.delete(channels).where(eq(channels.id, payload.data.d.id));
 
-        await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
-            ...payload.data
-        })));
+        await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }
 }

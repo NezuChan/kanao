@@ -49,7 +49,7 @@ export class GuildMembersChunkListener extends Listener {
                         nick: member.nick,
                         pending: member.pending,
                         premiumSince: member.premium_since
-                    }).onConflictDoNothing({ target: users.id });
+                    }).onConflictDoNothing({ target: members.id });
                 }
             }
         }

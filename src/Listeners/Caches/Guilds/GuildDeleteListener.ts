@@ -18,8 +18,6 @@ export class GuildDeleteListener extends Listener {
 
     public async run(payload: { data: GatewayGuildDeleteDispatch; shardId: number; }): Promise<void> {
         await this.store.drizzle.delete(guilds).where(eq(guilds.id, payload.data.d.id));
-        await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
-            ...payload.data
-        })));
+        await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }
 }

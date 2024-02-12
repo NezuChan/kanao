@@ -24,6 +24,15 @@ export class GuildRoleCreateListener extends Listener {
                 position: payload.data.d.role.position,
                 color: payload.data.d.role.color,
                 hoist: payload.data.d.role.hoist
+            }).onConflictDoUpdate({
+                target: roles.id,
+                set: {
+                    name: payload.data.d.role.name,
+                    permissions: payload.data.d.role.permissions,
+                    position: payload.data.d.role.position,
+                    color: payload.data.d.role.color,
+                    hoist: payload.data.d.role.hoist
+                }
             });
         }
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));

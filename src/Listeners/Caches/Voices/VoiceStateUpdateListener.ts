@@ -50,6 +50,8 @@ export class VoiceStateUpdateListener extends Listener {
                 premiumSince: payload.data.d.member.premium_since
             }).onConflictDoNothing({ target: members.id });
 
+            await this.store.drizzle.delete(memberRoles).where(eq(memberRoles.id, payload.data.d.user_id));
+
             for (const role of payload.data.d.member.roles) {
                 await this.store.drizzle.insert(memberRoles).values({
                     id: payload.data.d.user_id,

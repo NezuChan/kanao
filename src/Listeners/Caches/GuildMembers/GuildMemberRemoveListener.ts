@@ -18,9 +18,6 @@ export class GuildMemberRemoveListener extends Listener {
 
     public async run(payload: { data: GatewayGuildMemberRemoveDispatch; shardId: number; }): Promise<void> {
         await this.store.drizzle.delete(members).where(eq(members.id, payload.data.d.user.id));
-
-        await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
-            ...payload.data
-        })));
+        await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }
 }

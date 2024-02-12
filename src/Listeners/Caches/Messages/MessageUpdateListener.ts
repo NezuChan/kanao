@@ -1,10 +1,8 @@
-/* eslint-disable unicorn/prefer-ternary */
 import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayMessageUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { eq } from "drizzle-orm";
 import { messages } from "../../../Schema/index.js";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
@@ -19,62 +17,44 @@ export class MessageUpdateListener extends Listener {
     }
 
     public async run(payload: { data: GatewayMessageUpdateDispatch; shardId: number; }): Promise<void> {
-        const message = await this.store.drizzle.query.messages.findFirst({
-            where: () => eq(messages.id, payload.data.d.id)
-        });
-
         if (stateMessages) {
-            if (message === null) {
-                await this.store.drizzle.insert(messages).values({
-                    id: payload.data.d.id,
+            await this.store.drizzle.insert(messages).values({
+                id: payload.data.d.id,
+                channelId: payload.data.d.channel_id,
+                content: payload.data.d.content,
+                applicationId: payload.data.d.application_id,
+                authorId: payload.data.d.author?.id,
+                editedTimestamp: payload.data.d.edited_timestamp,
+                flags: payload.data.d.flags,
+                type: payload.data.d.type,
+                mentionEveryone: payload.data.d.mention_everyone,
+                pinned: payload.data.d.pinned,
+                position: payload.data.d.position,
+                timestamp: payload.data.d.timestamp,
+                tts: payload.data.d.tts,
+                webhookId: payload.data.d.webhook_id,
+                nonce: payload.data.d.nonce?.toString()
+            }).onConflictDoUpdate({
+                target: messages.id,
+                set: {
                     channelId: payload.data.d.channel_id,
+                    content: payload.data.d.content,
                     applicationId: payload.data.d.application_id,
                     authorId: payload.data.d.author?.id,
-                    content: payload.data.d.content,
                     editedTimestamp: payload.data.d.edited_timestamp,
                     flags: payload.data.d.flags,
+                    type: payload.data.d.type,
                     mentionEveryone: payload.data.d.mention_everyone,
-                    nonce: payload.data.d.nonce?.toString(),
                     pinned: payload.data.d.pinned,
+                    position: payload.data.d.position,
                     timestamp: payload.data.d.timestamp,
                     tts: payload.data.d.tts,
-                    position: payload.data.d.position,
-                    type: payload.data.d.type,
-                    webhookId: payload.data.d.webhook_id
-                });
-            } else {
-                // if (message.attachments.length > 0) message.attachments = payload.data.d.attachments ?? [];
-                // if (message.content) message.content = payload.data.d.content ?? "";
-                // if (message.embeds.length > 0) message.embeds = payload.data.d.embeds ?? [];
-                // if (message.flags !== undefined) message.flags = payload.data.d.flags;
-                // if (message.mentions.length > 0) message.mentions = payload.data.d.mentions;
-                // if (message.mention_everyone) message.mention_everyone = payload.data.d.mention_everyone ?? false;
-                // if (message.mention_roles.length > 0) message.mention_roles = payload.data.d.mention_roles ?? [];
-                // if (message.pinned) message.pinned = payload.data.d.pinned ?? false;
-                // if (message.timestamp) message.timestamp = payload.data.d.timestamp ?? new Date().toString();
-                // if (message.tts) message.tts = payload.data.d.tts ?? false;
-
-                await this.store.drizzle.update(messages).set({
-                    channelId: payload.data.d.channel_id,
-                    applicationId: payload.data.d.application_id,
-                    authorId: payload.data.d.author?.id,
-                    content: payload.data.d.content,
-                    editedTimestamp: payload.data.d.edited_timestamp,
-                    flags: payload.data.d.flags,
-                    mentionEveryone: payload.data.d.mention_everyone,
-                    nonce: payload.data.d.nonce?.toString(),
-                    pinned: payload.data.d.pinned,
-                    timestamp: payload.data.d.timestamp,
-                    tts: payload.data.d.tts,
-                    position: payload.data.d.position,
-                    type: payload.data.d.type,
-                    webhookId: payload.data.d.webhook_id
-                }).where(eq(messages.id, payload.data.d.id));
-            }
+                    webhookId: payload.data.d.webhook_id,
+                    nonce: payload.data.d.nonce?.toString()
+                }
+            });
         }
 
-        await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({
-            ...payload.data
-        })));
+        await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }
 }
