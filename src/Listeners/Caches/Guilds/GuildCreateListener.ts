@@ -4,7 +4,7 @@ import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import { eq } from "drizzle-orm";
-import { channels, channelsOverwrite, guilds, guildsChannels, guildsRoles, memberRoles, members, roles, users, voiceStates } from "../../../Schema/index.js";
+import { channels, channelsOverwrite, guilds, guildsRoles, memberRoles, members, roles, users, voiceStates } from "../../../Schema/index.js";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateChannels, stateMembers, stateRoles, stateUsers, stateVoices } from "../../../config.js";
@@ -193,6 +193,7 @@ export class GuildCreateListener extends Listener {
             for (const channel of payload.data.d.channels) {
                 await this.store.drizzle.insert(channels).values({
                     id: channel.id,
+                    guildId: payload.data.d.id,
                     name: channel.name,
                     type: channel.type,
                     flags: channel.flags
@@ -211,11 +212,6 @@ export class GuildCreateListener extends Listener {
                         });
                     }
                 }
-
-                await this.store.drizzle.insert(guildsChannels).values({
-                    id: channel.id,
-                    guildId: payload.data.d.id
-                }).onConflictDoNothing({ target: guildsChannels.id });
             }
         }
 

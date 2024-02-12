@@ -4,7 +4,7 @@ import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayChannelUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import { eq } from "drizzle-orm";
-import { channels, channelsOverwrite, guildsChannels } from "../../../Schema/index.js";
+import { channels, channelsOverwrite } from "../../../Schema/index.js";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateChannels } from "../../../config.js";
@@ -20,6 +20,7 @@ export class ChannelUpdateListener extends Listener {
     public async run(payload: { data: GatewayChannelUpdateDispatch; shardId: number; }): Promise<void> {
         await this.store.drizzle.insert(channels).values({
             id: payload.data.d.id,
+            guildId: "guild_id" in payload.data.d ? payload.data.d.guild_id : null,
             name: payload.data.d.name,
             type: payload.data.d.type,
             position: "position" in payload.data.d ? payload.data.d.position : null,
@@ -50,13 +51,6 @@ export class ChannelUpdateListener extends Listener {
                     target: channelsOverwrite.id
                 });
             }
-        }
-
-        if ("guild_id" in payload.data.d) {
-            await this.store.drizzle.insert(guildsChannels).values({
-                id: payload.data.d.id,
-                guildId: payload.data.d.guild_id
-            }).onConflictDoNothing({ target: guildsChannels.id });
         }
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
