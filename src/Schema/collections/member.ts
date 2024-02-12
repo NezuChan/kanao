@@ -1,10 +1,11 @@
-import { relations } from "drizzle-orm";
 import { pgTable, integer, text, boolean } from "drizzle-orm/pg-core";
-import { memberRoles } from "./roles.js";
 import { users } from "./user.js";
+import { guilds } from "./guild.js";
 
 export const members = pgTable("members", {
     id: text("id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+    guildId: text("guild_id").references(() => guilds.id, { onDelete: "cascade" }),
+
     nick: text("nick"),
     avatar: text("avatar"),
     flags: integer("flags"),
@@ -16,11 +17,3 @@ export const members = pgTable("members", {
     permissions: integer("permissions"),
     communicationDisabledUntil: text("communication_disabled_until")
 });
-
-export const membersRelations = relations(members, ({ many, one }) => ({
-    roles: many(memberRoles),
-    user: one(users, {
-        fields: [members.id],
-        references: [users.id]
-    })
-}));

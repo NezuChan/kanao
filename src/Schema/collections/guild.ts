@@ -1,7 +1,4 @@
-import { relations } from "drizzle-orm";
 import { pgTable, text, boolean, integer } from "drizzle-orm/pg-core";
-import { guildsRoles } from "./roles.js";
-import { voiceStates } from "./voice.js";
 
 export const guilds = pgTable("guilds", {
     id: text("id").primaryKey(),
@@ -42,8 +39,3 @@ export const guilds = pgTable("guilds", {
     premiumProgressBarEnabled: boolean("premium_progress_bar_enabled"),
     safetyAlertChannelId: text("safety_alert_channel_id")
 });
-
-export const guildsRelations = relations(guilds, ({ many }) => ({
-    roles: many(guildsRoles),
-    voiceStates: many(voiceStates)
-}));

@@ -1,14 +1,15 @@
-import { relations } from "drizzle-orm";
-import { pgTable, text, boolean } from "drizzle-orm/pg-core";
-import { guildsChannels } from "./channel.js";
+import { pgTable, text, boolean, integer } from "drizzle-orm/pg-core";
 import { guilds } from "./guild.js";
 import { members } from "./member.js";
+import { channels } from "./channel.js";
+import { sessions } from "./session.js";
 
 export const voiceStates = pgTable("voice_states", {
-    channelId: text("channel_id").references(() => guildsChannels.id, { onDelete: "cascade" }),
-    guildId: text("guild_id").references(() => guilds.id, { onDelete: "cascade" }),
     memberId: text("member_id").primaryKey().references(() => members.id, { onDelete: "cascade" }),
-    sessionId: text("session_id"),
+    guildId: text("guild_id").references(() => guilds.id, { onDelete: "cascade" }),
+    channelId: text("channel_id").references(() => channels.id, { onDelete: "cascade" }),
+    sessionId: text("session_id").references(() => sessions.sessionId, { onDelete: "cascade" }),
+
     deaf: boolean("deaf"),
     mute: boolean("mute"),
     selfDeaf: boolean("self_deaf"),
@@ -18,19 +19,3 @@ export const voiceStates = pgTable("voice_states", {
     suppress: boolean("suppress"),
     requestToSpeakTimestamp: text("request_to_speak_timestamp")
 });
-
-export const voiceStatesRelation = relations(voiceStates, ({ one }) => ({
-    channel: one(guildsChannels, {
-        fields: [voiceStates.channelId],
-        references: [guildsChannels.id]
-    }),
-    guild: one(guilds, {
-        fields: [voiceStates.guildId],
-        references: [guilds.id]
-    }),
-    member: one(members, {
-        fields: [voiceStates.memberId],
-        references: [members.id]
-    })
-}));
-

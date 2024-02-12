@@ -1,7 +1,5 @@
 import { pgTable, text, integer, boolean } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm/relations";
 import { guilds } from "./guild.js";
-import { voiceStates } from "./voice.js";
 
 export const channels = pgTable("channels", {
     id: text("id").primaryKey(),
@@ -23,40 +21,15 @@ export const channels = pgTable("channels", {
     messageCount: integer("message_count"),
     defaultAutoArchiveDuration: integer("default_auto_archive_duration"),
     permissions: text("permissions"),
-    flags: integer("flags")
-});
+    flags: integer("flags"),
 
-export const guildsChannels = pgTable("guild_channels", {
-    id: text("id").primaryKey().references(() => channels.id, { onDelete: "cascade" }),
-    guildId: text("guild_id").references(() => guilds.id, { onDelete: "cascade" })
+    guildId: text("guild_id").references(() => guilds.id, { onDelete: "cascade" }),
 });
 
 export const channelsOverwrite = pgTable("channels_overwrite", {
     id: text("id").primaryKey().references(() => channels.id, { onDelete: "cascade" }),
+
     type: integer("type"),
     allow: text("allow"),
     deny: text("deny")
 });
-
-export const channelsRelation = relations(channels, ({ many }) => ({
-    permission_overwrites: many(channelsOverwrite)
-}));
-
-export const guildChannelsRelations = relations(guildsChannels, ({ many, one }) => ({
-    states: many(voiceStates),
-    channel: one(channels, {
-        fields: [guildsChannels.id],
-        references: [channels.id]
-    }),
-    guild: one(guilds, {
-        fields: [guildsChannels.id],
-        references: [guilds.id]
-    })
-}));
-
-export const channelsOverwriteRelation = relations(channelsOverwrite, ({ one }) => ({
-    channel: one(channels, {
-        fields: [channelsOverwrite.id],
-        references: [channels.id]
-    })
-}));
