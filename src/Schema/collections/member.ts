@@ -4,7 +4,7 @@ import { memberRoles } from "./roles.js";
 import { users } from "./user.js";
 
 export const members = pgTable("members", {
-    id: text("id").primaryKey(),
+    id: text("id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
     nick: text("nick"),
     avatar: text("avatar"),
     flags: integer("flags"),
@@ -14,8 +14,7 @@ export const members = pgTable("members", {
     mute: boolean("mute"),
     pending: boolean("pending"),
     permissions: integer("permissions"),
-    communicationDisabledUntil: text("communication_disabled_until"),
-    userId: text("user_id").references(() => users.id, { onDelete: "cascade" })
+    communicationDisabledUntil: text("communication_disabled_until")
 });
 
 export const membersRelations = relations(members, ({ many }) => ({
