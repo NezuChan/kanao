@@ -26,13 +26,29 @@ export class GuildMembersChunkListener extends Listener {
                         globalName: member.user?.global_name ?? null,
                         avatar: member.user?.avatar ?? null,
                         bot: member.user?.bot ?? false,
-                        flags: member.user?.flags
+                        flags: member.user?.flags,
+                        accentColor: member.user?.accent_color,
+                        avatarDecoration: member.user?.avatar_decoration,
+                        banner: member.user?.banner,
+                        locale: member.user?.locale,
+                        mfaEnabled: member.user?.mfa_enabled,
+                        premiumType: member.user?.premium_type,
+                        publicFlags: member.user?.public_flags
                     }).onConflictDoNothing({ target: users.id });
                 }
 
                 if (stateMembers) {
                     await this.store.drizzle.insert(members).values({
-                        id: member.user!.id
+                        id: member.user!.id,
+                        avatar: member.avatar,
+                        communicationDisabledUntil: member.premium_since,
+                        deaf: member.deaf,
+                        flags: member.flags,
+                        joinedAt: member.joined_at,
+                        mute: member.mute,
+                        nick: member.nick,
+                        pending: member.pending,
+                        premiumSince: member.premium_since
                     }).onConflictDoNothing({ target: users.id });
                 }
             }

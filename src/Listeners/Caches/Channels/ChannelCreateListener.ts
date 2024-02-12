@@ -19,7 +19,7 @@ export class ChannelCreateListener extends Listener {
         if (stateChannels) {
             await this.store.drizzle.insert(channels).values({
                 id: payload.data.d.id,
-                name: payload.data.d.name,
+                name: payload.data.d.name
             }).onConflictDoUpdate({
                 target: channels.id,
                 set: {

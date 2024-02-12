@@ -52,7 +52,7 @@ export class GuildCreateListener extends Listener {
             preferredLocale: payload.data.d.preferred_locale,
             maxVideoChannelUsers: payload.data.d.max_video_channel_users,
             permissions: payload.data.d.permissions,
-            premiumBoostingBarEnabled: payload.data.d.premium_progress_bar_enabled,
+            premiumProgressBarEnabled: payload.data.d.premium_progress_bar_enabled,
             safetyAlertChannelId: payload.data.d.safety_alerts_channel_id,
             splash: payload.data.d.splash,
             systemChannelFlags: payload.data.d.system_channel_flags
@@ -91,7 +91,7 @@ export class GuildCreateListener extends Listener {
                 preferredLocale: payload.data.d.preferred_locale,
                 maxVideoChannelUsers: payload.data.d.max_video_channel_users,
                 permissions: payload.data.d.permissions,
-                premiumBoostingBarEnabled: payload.data.d.premium_progress_bar_enabled,
+                premiumProgressBarEnabled: payload.data.d.premium_progress_bar_enabled,
                 safetyAlertChannelId: payload.data.d.safety_alerts_channel_id,
                 splash: payload.data.d.splash,
                 systemChannelFlags: payload.data.d.system_channel_flags
@@ -105,14 +105,16 @@ export class GuildCreateListener extends Listener {
                     name: role.name,
                     permissions: role.permissions,
                     position: role.position,
-                    color: role.color
+                    color: role.color,
+                    hoist: role.hoist
                 }).onConflictDoUpdate({
                     target: roles.id,
                     set: {
                         name: role.name,
                         permissions: role.permissions,
                         position: role.position,
-                        color: role.color
+                        color: role.color,
+                        hoist: role.hoist
                     }
                 });
 
@@ -132,7 +134,9 @@ export class GuildCreateListener extends Listener {
                     globalName: member.user?.global_name ?? null,
                     avatar: member.user?.avatar ?? null,
                     bot: member.user?.bot ?? false,
-                    flags: member.user?.flags
+                    flags: member.user?.flags,
+                    premiumType: member.user?.premium_type,
+                    publicFlags: member.user?.public_flags
                 }).onConflictDoUpdate({
                     target: users.id,
                     set: {
@@ -141,7 +145,9 @@ export class GuildCreateListener extends Listener {
                         globalName: member.user?.global_name ?? null,
                         avatar: member.user?.avatar ?? null,
                         bot: member.user?.bot ?? false,
-                        flags: member.user?.flags
+                        flags: member.user?.flags,
+                        premiumType: member.user?.premium_type,
+                        publicFlags: member.user?.public_flags
                     }
                 });
             }
@@ -150,12 +156,26 @@ export class GuildCreateListener extends Listener {
                 await this.store.drizzle.insert(members).values({
                     id: member.user.id,
                     avatar: member.avatar,
-                    flags: member.flags
+                    flags: member.flags,
+                    communicationDisabledUntil: member.communication_disabled_until,
+                    deaf: member.deaf,
+                    joinedAt: member.joined_at,
+                    mute: member.mute,
+                    nick: member.nick,
+                    pending: member.pending,
+                    premiumSince: member.premium_since
                 }).onConflictDoUpdate({
                     target: members.id,
                     set: {
                         avatar: member.avatar,
-                        flags: member.flags
+                        flags: member.flags,
+                        communicationDisabledUntil: member.communication_disabled_until,
+                        deaf: member.deaf,
+                        joinedAt: member.joined_at,
+                        mute: member.mute,
+                        nick: member.nick,
+                        pending: member.pending,
+                        premiumSince: member.premium_since
                     }
                 });
 
@@ -172,7 +192,9 @@ export class GuildCreateListener extends Listener {
             for (const channel of payload.data.d.channels) {
                 await this.store.drizzle.insert(channels).values({
                     id: channel.id,
-                    name: channel.name
+                    name: channel.name,
+                    type: channel.type,
+                    flags: channel.flags
                 }).onConflictDoNothing({ target: channels.id });
 
                 await this.store.drizzle.insert(guildsChannels).values({
@@ -189,7 +211,15 @@ export class GuildCreateListener extends Listener {
                         channelId: voice.channel_id,
                         guildId: payload.data.d.id,
                         sessionId: voice.session_id,
-                        memberId: voice.user_id
+                        memberId: voice.user_id,
+                        deaf: voice.deaf,
+                        mute: voice.mute,
+                        requestToSpeakTimestamp: voice.request_to_speak_timestamp,
+                        selfDeaf: voice.self_deaf,
+                        selfMute: voice.self_mute,
+                        selfStream: voice.self_stream,
+                        selfVideo: voice.self_video,
+                        suppress: voice.suppress
                     }).onConflictDoUpdate({ target: voiceStates.channelId, set: { sessionId: voice.session_id } });
                 }
             }

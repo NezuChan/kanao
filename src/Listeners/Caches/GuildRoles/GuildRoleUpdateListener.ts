@@ -19,7 +19,11 @@ export class GuildRoleUpdateListener extends Listener {
     public async run(payload: { data: GatewayGuildRoleUpdateDispatch; shardId: number; }): Promise<void> {
         if (stateRoles) {
             await this.store.drizzle.update(roles).set({
-                name: payload.data.d.role.name
+                name: payload.data.d.role.name,
+                permissions: payload.data.d.role.permissions,
+                position: payload.data.d.role.position,
+                color: payload.data.d.role.color,
+                hoist: payload.data.d.role.hoist
             }).where(eq(roles.id, payload.data.d.role.id));
         }
 

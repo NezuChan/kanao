@@ -18,7 +18,20 @@ export class UserUpdateListener extends Listener {
 
     public async run(payload: { data: GatewayUserUpdateDispatch; shardId: number; }): Promise<void> {
         await this.store.drizzle.update(users).set({
-            username: payload.data.d.username
+            username: payload.data.d.username,
+            discriminator: payload.data.d.discriminator,
+            globalName: payload.data.d.global_name,
+            accentColor: payload.data.d.accent_color,
+            avatar: payload.data.d.avatar,
+            avatarDecoration: payload.data.d.avatar_decoration,
+            banner: payload.data.d.banner,
+            bot: payload.data.d.bot,
+            flags: payload.data.d.flags,
+            id: payload.data.d.id,
+            locale: payload.data.d.locale,
+            mfaEnabled: payload.data.d.mfa_enabled,
+            premiumType: payload.data.d.premium_type,
+            publicFlags: payload.data.d.public_flags
         }).where(eq(users.id, payload.data.d.id));
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify({

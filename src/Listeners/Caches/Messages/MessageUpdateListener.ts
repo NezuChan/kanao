@@ -27,7 +27,20 @@ export class MessageUpdateListener extends Listener {
             if (message === null) {
                 await this.store.drizzle.insert(messages).values({
                     id: payload.data.d.id,
-                    channelId: payload.data.d.channel_id
+                    channelId: payload.data.d.channel_id,
+                    applicationId: payload.data.d.application_id,
+                    authorId: payload.data.d.author?.id,
+                    content: payload.data.d.content,
+                    editedTimestamp: payload.data.d.edited_timestamp,
+                    flags: payload.data.d.flags,
+                    mentionEveryone: payload.data.d.mention_everyone,
+                    nonce: payload.data.d.nonce?.toString(),
+                    pinned: payload.data.d.pinned,
+                    timestamp: payload.data.d.timestamp,
+                    tts: payload.data.d.tts,
+                    position: payload.data.d.position,
+                    type: payload.data.d.type,
+                    webhookId: payload.data.d.webhook_id
                 });
             } else {
                 // if (message.attachments.length > 0) message.attachments = payload.data.d.attachments ?? [];
@@ -43,7 +56,19 @@ export class MessageUpdateListener extends Listener {
 
                 await this.store.drizzle.update(messages).set({
                     channelId: payload.data.d.channel_id,
-                    content: payload.data.d.content
+                    applicationId: payload.data.d.application_id,
+                    authorId: payload.data.d.author?.id,
+                    content: payload.data.d.content,
+                    editedTimestamp: payload.data.d.edited_timestamp,
+                    flags: payload.data.d.flags,
+                    mentionEveryone: payload.data.d.mention_everyone,
+                    nonce: payload.data.d.nonce?.toString(),
+                    pinned: payload.data.d.pinned,
+                    timestamp: payload.data.d.timestamp,
+                    tts: payload.data.d.tts,
+                    position: payload.data.d.position,
+                    type: payload.data.d.type,
+                    webhookId: payload.data.d.webhook_id
                 }).where(eq(messages.id, payload.data.d.id));
             }
         }
