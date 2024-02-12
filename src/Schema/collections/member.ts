@@ -1,6 +1,6 @@
 import { pgTable, integer, text, boolean } from "drizzle-orm/pg-core";
-import { users } from "./user.js";
 import { guilds } from "./guild.js";
+import { users } from "./user.js";
 
 export const members = pgTable("members", {
     id: text("id").primaryKey().references(() => users.id, { onDelete: "cascade" }),

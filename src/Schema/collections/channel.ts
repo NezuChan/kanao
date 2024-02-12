@@ -23,7 +23,7 @@ export const channels = pgTable("channels", {
     permissions: text("permissions"),
     flags: integer("flags"),
 
-    guildId: text("guild_id").references(() => guilds.id, { onDelete: "cascade" }),
+    guildId: text("guild_id").references(() => guilds.id, { onDelete: "cascade" })
 });
 
 export const channelsOverwrite = pgTable("channels_overwrite", {

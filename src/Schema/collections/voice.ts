@@ -1,7 +1,7 @@
-import { pgTable, text, boolean, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, boolean } from "drizzle-orm/pg-core";
+import { channels } from "./channel.js";
 import { guilds } from "./guild.js";
 import { members } from "./member.js";
-import { channels } from "./channel.js";
 import { sessions } from "./session.js";
 
 export const voiceStates = pgTable("voice_states", {

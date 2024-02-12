@@ -21,5 +21,3 @@ export const messages = pgTable("messages", {
     flags: integer("flags"),
     position: integer("position")
 });
-
-
