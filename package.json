@@ -1,5 +1,5 @@
 {
-  "name": "@nezuchan/nezu-gateway",
+  "name": "@nezuchan/kanao",
   "version": "4.0.0",
   "description": "A standalone service for connecting to the Discord gateway.",
   "license": "GPL-3.0",
