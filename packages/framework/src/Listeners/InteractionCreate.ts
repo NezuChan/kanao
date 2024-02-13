@@ -1,10 +1,10 @@
-import { PieceContext } from "@sapphire/pieces";
+import type { BaseInteraction } from "@nezuchan/core";
+import type { LoaderPieceContext } from "@sapphire/pieces";
 import { Listener } from "../Stores/Listener.js";
 import { Events } from "../Utilities/EventEnums.js";
-import { BaseInteraction } from "@nezuchan/core";
 
 export class InteractionCreate extends Listener {
-    public constructor(context: PieceContext) {
+    public constructor(context: LoaderPieceContext) {
         super(context, {
             name: Events.InteractionCreate
         });

@@ -1,7 +1,7 @@
 import { ApplicationCommandType } from "discord-api-types/v10";
 import { BaseInteraction } from "./BaseInteraction.js";
-import { MessageContextMenuInteraction } from "./MessageContextMenuInteraction.js";
-import { UserContextMenuInteraction } from "./UserContextMenuInteraction.js";
+import type { MessageContextMenuInteraction } from "./MessageContextMenuInteraction.js";
+import type { UserContextMenuInteraction } from "./UserContextMenuInteraction.js";
 
 export class BaseContextMenuInteraction extends BaseInteraction {
     public get commandName(): string | null {

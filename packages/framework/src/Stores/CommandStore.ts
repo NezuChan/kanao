@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { AliasStore } from "@sapphire/pieces";
-import { Command } from "./Command.js";
-import { RESTPostAPIApplicationCommandsJSONBody, Routes } from "discord-api-types/v10";
+import type { RESTPostAPIApplicationCommandsJSONBody } from "discord-api-types/v10";
+import { Routes } from "discord-api-types/v10";
 import { Events } from "../Utilities/EventEnums.js";
+import { Command } from "./Command.js";
 
 export class CommandStore extends AliasStore<Command> {
     public constructor() {

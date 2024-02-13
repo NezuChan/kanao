@@ -1,33 +1,37 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable max-len */
+/* eslint-disable promise/prefer-await-to-then */
+/* eslint-disable stylistic/max-len */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable no-negated-condition */
+
+import { Buffer } from "node:buffer";
 import EventEmitter from "node:events";
+import process from "node:process";
+import { URLSearchParams } from "node:url";
 import { REST } from "@discordjs/rest";
-import { Cluster, Redis } from "ioredis";
-import { Message } from "./Message.js";
-import { APIChannel, APIGuild, APIGuildMember, APIMessage, APIUser, ChannelType, GatewayGuildMemberRemoveDispatchData, GatewayVoiceState, RESTPostAPIChannelMessageJSONBody, Routes } from "discord-api-types/v10";
-import { GenKey, RoutingKey, createAmqpChannel, createRedis } from "@nezuchan/utilities";
-import { ChannelWrapper } from "amqp-connection-manager";
-import { ClientOptions } from "../Typings/index.js";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
-import { Events } from "../Enums/Events.js";
-import { GuildMember } from "./GuildMember.js";
+import { GenKey, RoutingKey, createAmqpChannel, createRedis } from "@nezuchan/utilities";
 import { Result } from "@sapphire/result";
-import { User } from "./User.js";
-import { VoiceChannel } from "./Channels/VoiceChannel.js";
+import type { ChannelWrapper } from "amqp-connection-manager";
+import type { Channel } from "amqplib";
+import type { APIChannel, APIGuild, APIGuildMember, APIMessage, APIUser, GatewayGuildMemberRemoveDispatchData, GatewayVoiceState, RESTPostAPIChannelMessageJSONBody } from "discord-api-types/v10";
+import { ChannelType, Routes } from "discord-api-types/v10";
+import type { Cluster, Redis } from "ioredis";
+import { Events } from "../Enums/Events.js";
+import type { ClientOptions } from "../Typings/index.js";
+import type { BaseChannel } from "./Channels/BaseChannel.js";
 import { TextChannel } from "./Channels/TextChannel.js";
+import { VoiceChannel } from "./Channels/VoiceChannel.js";
 import { Guild } from "./Guild.js";
-import { BaseChannel } from "./Channels/BaseChannel.js";
+import { GuildMember } from "./GuildMember.js";
+import { Message } from "./Message.js";
 import { Role } from "./Role.js";
+import { User } from "./User.js";
 import { VoiceState } from "./VoiceState.js";
-import { Channel } from "amqplib";
 
 export class Client extends EventEmitter {
     public clientId: string;
     public rest = new REST({
         api: process.env.HTTP_PROXY ?? process.env.PROXY ?? process.env.NIRN_PROXY ?? "https://discord.com/api",
-        rejectOnRateLimit: (process.env.PROXY ?? process.env.NIRN_PROXY) !== undefined ? () => false : null
+        rejectOnRateLimit: (process.env.PROXY ?? process.env.NIRN_PROXY) === undefined ? null : () => false
     });
 
     public redis: Cluster | Redis;
@@ -70,9 +74,9 @@ export class Client extends EventEmitter {
         });
     }
 
-    public async resolveMember({ force = false, fetch = true, cache, id, guildId }: { force?: boolean | undefined; fetch?: boolean; cache?: boolean | undefined; id: string; guildId: string }): Promise<GuildMember | undefined> {
+    public async resolveMember({ force = false, fetch = true, cache, id, guildId }: { force?: boolean | undefined; fetch?: boolean; cache?: boolean | undefined; id: string; guildId: string; }): Promise<GuildMember | undefined> {
         if (force) {
-            const member = await Result.fromAsync(() => this.rest.get(Routes.guildMember(guildId, id)));
+            const member = await Result.fromAsync(async () => this.rest.get(Routes.guildMember(guildId, id)));
             if (member.isOk()) {
                 if (cache) await this.redis.set(GenKey(this.clientId, RedisKey.MEMBER_KEY, id, guildId), JSON.stringify(member));
                 return new GuildMember({ ...member.unwrap() as APIGuildMember | GatewayGuildMemberRemoveDispatchData, id, guild_id: guildId }, this);
@@ -87,11 +91,13 @@ export class Client extends EventEmitter {
         if (fetch) {
             return this.resolveMember({ id, guildId, force: true, cache: true });
         }
+
+        return undefined;
     }
 
-    public async resolveUser({ force = false, fetch = true, cache, id }: { force?: boolean | undefined; fetch?: boolean; cache?: boolean | undefined; id: string }): Promise<User | undefined> {
+    public async resolveUser({ force = false, fetch = true, cache, id }: { force?: boolean | undefined; fetch?: boolean; cache?: boolean | undefined; id: string; }): Promise<User | undefined> {
         if (force) {
-            const user = await Result.fromAsync(() => this.rest.get(Routes.user(id)));
+            const user = await Result.fromAsync(async () => this.rest.get(Routes.user(id)));
             if (user.isOk()) {
                 const user_value = user.unwrap() as APIUser;
                 if (cache) await this.redis.set(GenKey(this.clientId, RedisKey.USER_KEY, id), JSON.stringify(user_value));
@@ -107,12 +113,14 @@ export class Client extends EventEmitter {
         if (fetch) {
             return this.resolveUser({ id, force: true, cache: true });
         }
+
+        return undefined;
     }
 
-    public async resolveGuild({ force = false, fetch = true, withCounts = false, cache, id }: { force?: boolean | undefined; fetch?: boolean; cache?: boolean | undefined; id: string; withCounts?: boolean }): Promise<Guild | undefined> {
+    public async resolveGuild({ force = false, fetch = true, withCounts = false, cache, id }: { force?: boolean | undefined; fetch?: boolean; cache?: boolean | undefined; id: string; withCounts?: boolean; }): Promise<Guild | undefined> {
         if (force) {
             const guild = await Result.fromAsync(
-                () => this.rest.get(
+                async () => this.rest.get(
                     Routes.guild(id),
                     withCounts ? { query: new URLSearchParams({ with_counts: "true" }) } : {}
                 )
@@ -132,25 +140,31 @@ export class Client extends EventEmitter {
         if (fetch) {
             return this.resolveGuild({ id, force: true, cache: true });
         }
+
+        return undefined;
     }
 
-    public async resolveRole({ id, guildId }: { id: string; guildId: string }): Promise<Role | undefined> {
+    public async resolveRole({ id, guildId }: { id: string; guildId: string; }): Promise<Role | undefined> {
         const cached_role = await this.redis.get(GenKey(this.clientId, RedisKey.ROLE_KEY, id, guildId));
         if (cached_role) {
             return new Role({ ...JSON.parse(cached_role), id, guild_id: guildId }, this);
         }
+
+        return undefined;
     }
 
-    public async resolveVoiceState({ id, guildId }: { id: string; guildId: string }): Promise<VoiceState | undefined> {
+    public async resolveVoiceState({ id, guildId }: { id: string; guildId: string; }): Promise<VoiceState | undefined> {
         const state = await this.redis.get(GenKey(this.clientId, RedisKey.VOICE_KEY, id, guildId));
         if (state) {
             return new VoiceState({ ...JSON.parse(state) as GatewayVoiceState, id }, this);
         }
+
+        return undefined;
     }
 
-    public async resolveChannel({ force = false, fetch = true, cache, id, guildId }: { force?: boolean | undefined; fetch?: boolean; cache?: boolean | undefined; id: string; guildId: string }): Promise<BaseChannel | undefined> {
+    public async resolveChannel({ force = false, fetch = true, cache, id, guildId }: { force?: boolean | undefined; fetch?: boolean; cache?: boolean | undefined; id: string; guildId: string; }): Promise<BaseChannel | undefined> {
         if (force) {
-            const channel = await Result.fromAsync(() => this.rest.get(Routes.channel(id)));
+            const channel = await Result.fromAsync(async () => this.rest.get(Routes.channel(id)));
             if (channel.isOk()) {
                 const channel_value = channel.unwrap() as APIChannel;
                 if (cache) await this.redis.set(GenKey(this.clientId, RedisKey.CHANNEL_KEY, id, guildId), JSON.stringify(channel_value));
@@ -181,6 +195,8 @@ export class Client extends EventEmitter {
         if (fetch) {
             return this.resolveChannel({ id, guildId, force: true, cache: true });
         }
+
+        return undefined;
     }
 
     public async sendMessage(options: RESTPostAPIChannelMessageJSONBody, channelId: string): Promise<Message> {

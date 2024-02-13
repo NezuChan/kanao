@@ -1,10 +1,10 @@
-import { PieceContext } from "@sapphire/pieces";
-import { Listener } from "../../Stores/Listener.js";
-import { GatewayDispatchPayload } from "discord-api-types/v10";
 import { Events } from "@nezuchan/core";
+import type { LoaderPieceContext } from "@sapphire/pieces";
+import type { GatewayDispatchPayload } from "discord-api-types/v10";
+import { Listener } from "../../Stores/Listener.js";
 
 export class InteractionCreate extends Listener {
-    public constructor(context: PieceContext) {
+    public constructor(context: LoaderPieceContext) {
         super(context, {
             name: Events.RAW
         });

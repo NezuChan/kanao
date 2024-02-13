@@ -2,12 +2,12 @@
 import { PrefixedStrategy } from "@sapphire/lexure";
 import { Option } from "@sapphire/result";
 
-export interface FlagStrategyOptions {
+export type FlagStrategyOptions = {
     flags?: boolean | readonly string[];
     options?: boolean | readonly string[];
     prefixes?: string[];
     separators?: string[];
-}
+};
 
 const never = (): Option.None => Option.none;
 const always = (): boolean => true;

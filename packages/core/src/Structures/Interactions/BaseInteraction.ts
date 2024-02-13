@@ -1,16 +1,16 @@
-/* eslint-disable max-len */
-import { APIChannel, APIInteractionResponseCallbackData, APIMessage, ApplicationCommandType, ComponentType, GatewayInteractionCreateDispatchData, InteractionResponseType, InteractionType, MessageFlags, PermissionFlagsBits, Routes, Snowflake } from "discord-api-types/v10";
+import type { APIChannel, APIInteractionResponseCallbackData, APIMessage, GatewayInteractionCreateDispatchData, Snowflake } from "discord-api-types/v10";
+import { ApplicationCommandType, ComponentType, InteractionResponseType, InteractionType, MessageFlags, PermissionFlagsBits, Routes } from "discord-api-types/v10";
 import { Base } from "../Base.js";
-import { CommandOptionsResolver } from "./CommandOptionsResolver.js";
-import { PermissionsBitField } from "../PermissionsBitField.js";
+import type { Guild } from "../Guild.js";
 import { GuildMember } from "../GuildMember.js";
 import { Message } from "../Message.js";
-import { CommandInteraction } from "./CommandInteraction.js";
-import { BaseContextMenuInteraction } from "./BaseContextMenuInteraction.js";
-import { AutoCompleteInteraction } from "./AutoCompleteInteraction.js";
-import { MessageComponentInteraction } from "./MessageComponentInteraction.js";
-import { ModalSubmitInteraction } from "./ModalSubmitInteraction.js";
-import { Guild } from "../Guild.js";
+import { PermissionsBitField } from "../PermissionsBitField.js";
+import type { AutoCompleteInteraction } from "./AutoCompleteInteraction.js";
+import type { BaseContextMenuInteraction } from "./BaseContextMenuInteraction.js";
+import type { CommandInteraction } from "./CommandInteraction.js";
+import { CommandOptionsResolver } from "./CommandOptionsResolver.js";
+import type { MessageComponentInteraction } from "./MessageComponentInteraction.js";
+import type { ModalSubmitInteraction } from "./ModalSubmitInteraction.js";
 
 export class BaseInteraction extends Base<GatewayInteractionCreateDispatchData> {
     public deferred = false;
@@ -56,20 +56,24 @@ export class BaseInteraction extends Base<GatewayInteractionCreateDispatchData> 
         return this.data.member ? new GuildMember({ id: this.data.member.user.id, ...this.data.member }, this.client) : null;
     }
 
-    public async resolveClientMember({ force, cache }: { force?: boolean; cache: boolean } = { force: false, cache: true }): Promise<GuildMember | undefined> {
+    public async resolveClientMember({ force, cache }: { force?: boolean; cache: boolean; } = { force: false, cache: true }): Promise<GuildMember | undefined> {
         if (this.guildId) {
             return this.client.resolveMember({ id: this.client.clientId, guildId: this.guildId, force, cache });
         }
+
+        return undefined;
     }
 
-    public async resolveGuild({ force, cache }: { force?: boolean; cache: boolean } = { force: false, cache: true }): Promise<Guild | undefined> {
+    public async resolveGuild({ force, cache }: { force?: boolean; cache: boolean; } = { force: false, cache: true }): Promise<Guild | undefined> {
         if (this.guildId) {
             return this.client.resolveGuild({ id: this.guildId, force, cache });
         }
+
+        return undefined;
     }
 
     public async reply(options: APIInteractionResponseCallbackData): Promise<this> {
-        if (this.deferred || this.replied) return Promise.reject(new Error("This interaction has already been deferred or replied."));
+        if (this.deferred || this.replied) throw new Error("This interaction has already been deferred or replied.");
         await this.client.rest.post(Routes.interactionCallback(this.id, this.data.token), {
             body: {
                 type: InteractionResponseType.ChannelMessageWithSource,
@@ -82,7 +86,7 @@ export class BaseInteraction extends Base<GatewayInteractionCreateDispatchData> 
     }
 
     public async editReply(options: APIInteractionResponseCallbackData): Promise<Message> {
-        if (!this.deferred && !this.replied) return Promise.reject(new Error("This interaction is not deferred or replied yet."));
+        if (!this.deferred && !this.replied) throw new Error("This interaction is not deferred or replied yet.");
         const message = await this.client.rest.patch(Routes.webhookMessage(this.applicationId, this.data.token), {
             body: options,
             auth: false
@@ -113,7 +117,7 @@ export class BaseInteraction extends Base<GatewayInteractionCreateDispatchData> 
     }
 
     public async followUp(options: APIInteractionResponseCallbackData): Promise<Message> {
-        if (!this.deferred && !this.replied) return Promise.reject(new Error("This interaction is not deferred or replied yet."));
+        if (!this.deferred && !this.replied) throw new Error("This interaction is not deferred or replied yet.");
         const message = await this.client.rest.post(Routes.webhook(this.applicationId, this.data.token), {
             body: options,
             auth: false
@@ -122,7 +126,7 @@ export class BaseInteraction extends Base<GatewayInteractionCreateDispatchData> 
     }
 
     public async showModal(options: APIInteractionResponseCallbackData): Promise<this> {
-        if (this.deferred || this.replied) return Promise.reject(new Error("This interaction is already deferred or replied."));
+        if (this.deferred || this.replied) throw new Error("This interaction is already deferred or replied.");
         await this.client.rest.post(Routes.interactionCallback(this.id, this.data.token), {
             body: {
                 type: InteractionResponseType.Modal,

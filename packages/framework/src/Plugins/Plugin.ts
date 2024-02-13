@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-extraneous-class */
-import { ClientOptions } from "@nezuchan/core";
-import { Awaitable } from "@sapphire/utilities";
-import { FrameworkClient } from "../Lib/FrameworkClient.js";
+import type { ClientOptions } from "@nezuchan/core";
+import type { Awaitable } from "@sapphire/utilities";
+import type { FrameworkClient } from "../Lib/FrameworkClient.js";
 import { preGenericsInitialization, preInitialization, postInitialization, preLogin, postLogin, postSetupAmqp, preSetupAmqp } from "./Symbols.js";
 
 export abstract class Plugin {

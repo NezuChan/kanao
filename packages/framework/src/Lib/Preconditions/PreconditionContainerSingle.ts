@@ -1,24 +1,24 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Result, err } from "@sapphire/result";
-import { UserError } from "../../Utilities/Errors/UserError.js";
-import { IPreconditionContainer } from "./IPreconditionContainer.js";
-import { BaseContextMenuInteraction, BaseInteraction, CommandInteraction, Message } from "@nezuchan/core";
-import { Command } from "../../Stores/Command.js";
+import type { BaseContextMenuInteraction, BaseInteraction, CommandInteraction, Message } from "@nezuchan/core";
 import { container } from "@sapphire/pieces";
-import { PreconditionContext, PreconditionKeys, Preconditions, SimplePreconditionKeys } from "../../Stores/Precondition.js";
-import { CommandContext } from "../CommandContext.js";
-import { Awaitable } from "@sapphire/utilities";
+import { err } from "@sapphire/result";
+import type { Result } from "@sapphire/result";
+import type { Awaitable } from "@sapphire/utilities";
+import type { Command } from "../../Stores/Command.js";
+import type { InteractionHandler } from "../../Stores/InteractionHandler.js";
+import type { PreconditionContext, PreconditionKeys, Preconditions, SimplePreconditionKeys } from "../../Stores/Precondition.js";
 import { Identifiers } from "../../Utilities/Errors/Identifiers.js";
-import { InteractionHandler } from "../../Stores/InteractionHandler.js";
+import { UserError } from "../../Utilities/Errors/UserError.js";
+import type { CommandContext } from "../CommandContext.js";
+import type { IPreconditionContainer } from "./IPreconditionContainer.js";
 
-export interface SimplePreconditionSingleResolvableDetails {
+export type SimplePreconditionSingleResolvableDetails = {
     name: SimplePreconditionKeys;
-}
+};
 
-export interface PreconditionSingleResolvableDetails<K extends PreconditionKeys = PreconditionKeys> {
+export type PreconditionSingleResolvableDetails<K extends PreconditionKeys = PreconditionKeys> = {
     name: K;
     context: Preconditions[K];
-}
+};
 
 export type PreconditionSingleResolvable = PreconditionSingleResolvableDetails | SimplePreconditionKeys | SimplePreconditionSingleResolvableDetails;
 

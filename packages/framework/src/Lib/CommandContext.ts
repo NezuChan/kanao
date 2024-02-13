@@ -1,9 +1,11 @@
-import { BaseChannel, BaseInteraction, Guild, GuildMember, Message, User } from "@nezuchan/core";
-import { ArgumentStream } from "@sapphire/lexure";
-import { APIInteractionResponseCallbackData, RESTPostAPIChannelMessageJSONBody } from "discord-api-types/v10";
+/* eslint-disable unicorn/no-object-as-default-parameter */
+import type { BaseChannel, Guild, GuildMember, User } from "@nezuchan/core";
+import { BaseInteraction, Message } from "@nezuchan/core";
+import type { ArgumentStream } from "@sapphire/lexure";
+import type { APIInteractionResponseCallbackData, RESTPostAPIChannelMessageJSONBody } from "discord-api-types/v10";
 
 export class CommandContext {
-    public constructor(private readonly context: BaseInteraction | Message, public messageArgs: ArgumentStream) { }
+    public constructor(private readonly context: BaseInteraction | Message, public messageArgs: ArgumentStream) {}
 
     public get message(): Message {
         return this.context as Message;
@@ -21,7 +23,7 @@ export class CommandContext {
         return this.context instanceof Message;
     }
 
-    public send(options: APIInteractionResponseCallbackData | RESTPostAPIChannelMessageJSONBody): Promise<BaseInteraction> | Promise<Message> {
+    public async send(options: APIInteractionResponseCallbackData | RESTPostAPIChannelMessageJSONBody): Promise<BaseInteraction | Message> {
         if (this.isInteraction()) {
             if (this.interaction.isCommandInteraction() && (this.interaction.isContextMenuInteraction() || this.interaction.isCommandInteraction())) {
                 if (this.interaction.deferred && !this.interaction.replied) {
@@ -53,22 +55,22 @@ export class CommandContext {
         return this.message.author?.id;
     }
 
-    public async resolveMember({ force, cache }: { force?: boolean; cache: boolean } = { force: false, cache: true }): Promise<GuildMember | null | undefined> {
-        if (this.isInteraction()) return Promise.resolve(this.interaction.member);
+    public async resolveMember({ force, cache }: { force?: boolean; cache: boolean; } = { force: false, cache: true }): Promise<GuildMember | null | undefined> {
+        if (this.isInteraction()) return this.interaction.member;
         return this.message.resolveMember({ force, cache });
     }
 
-    public async resolveUser({ force, cache }: { force?: boolean; cache: boolean } = { force: false, cache: true }): Promise<User | null | undefined> {
+    public async resolveUser({ force, cache }: { force?: boolean; cache: boolean; } = { force: false, cache: true }): Promise<User | null | undefined> {
         if (this.isInteraction()) return this.interaction.member?.resolveUser({ force, cache });
-        return Promise.resolve(this.message.author);
+        return this.message.author;
     }
 
-    public async resolveGuild({ force, cache }: { force?: boolean; cache: boolean } = { force: false, cache: true }): Promise<Guild | null | undefined> {
+    public async resolveGuild({ force, cache }: { force?: boolean; cache: boolean; } = { force: false, cache: true }): Promise<Guild | null | undefined> {
         if (this.isInteraction()) return this.interaction.resolveGuild({ force, cache });
         return this.message.resolveGuild({ force, cache });
     }
 
-    public async resolveChannel({ force, cache }: { force?: boolean; cache: boolean } = { force: false, cache: true }): Promise<BaseChannel | undefined> {
+    public async resolveChannel({ force, cache }: { force?: boolean; cache: boolean; } = { force: false, cache: true }): Promise<BaseChannel | undefined> {
         return this.interaction.client.resolveChannel({ force, cache, guildId: this.guildId!, id: this.channelId! });
     }
 }

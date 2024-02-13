@@ -1,13 +1,17 @@
-/* eslint-disable class-methods-use-this */
-
-import { AutoCompleteInteraction, BaseContextMenuInteraction, CommandInteraction, Message, PermissionsBitField } from "@nezuchan/core";
-import { AliasPiece, AliasPieceOptions, PieceContext } from "@sapphire/pieces";
-import { Awaitable } from "@sapphire/utilities";
-import { Lexer, IUnorderedStrategy, PrefixedStrategy } from "@sapphire/lexure";
-import { FlagStrategyOptions } from "../Lib/FlagUnorderedStrategy.js";
-import { CommandContext } from "../Lib/CommandContext.js";
-import { PreconditionContainerArray, PreconditionEntryResolvable } from "../Lib/Preconditions/PreconditionContainerArray.js";
-import { PermissionFlagsBits, RESTPostAPIApplicationCommandsJSONBody } from "discord-api-types/v10";
+/* eslint-disable tsdoc/syntax */
+import type { AutoCompleteInteraction, BaseContextMenuInteraction, CommandInteraction, Message } from "@nezuchan/core";
+import { PermissionsBitField } from "@nezuchan/core";
+import type { IUnorderedStrategy } from "@sapphire/lexure";
+import { Lexer, PrefixedStrategy } from "@sapphire/lexure";
+import type { AliasPieceOptions, LoaderPieceContext } from "@sapphire/pieces";
+import { AliasPiece } from "@sapphire/pieces";
+import type { Awaitable } from "@sapphire/utilities";
+import type { RESTPostAPIApplicationCommandsJSONBody } from "discord-api-types/v10";
+import { PermissionFlagsBits } from "discord-api-types/v10";
+import type { CommandContext } from "../Lib/CommandContext.js";
+import type { FlagStrategyOptions } from "../Lib/FlagUnorderedStrategy.js";
+import type { PreconditionEntryResolvable } from "../Lib/Preconditions/PreconditionContainerArray.js";
+import { PreconditionContainerArray } from "../Lib/Preconditions/PreconditionContainerArray.js";
 
 export class Command extends AliasPiece<CommandOptions> {
     public lexer: Lexer;
@@ -25,10 +29,10 @@ export class Command extends AliasPiece<CommandOptions> {
     }
 
     public get parentCategory(): string | null {
-        return this.fullCategory.length > 1 ? this.fullCategory[this.fullCategory.length - 1] : null;
+        return this.fullCategory.length > 1 ? this.fullCategory.at(-1)! : null;
     }
 
-    public constructor(context: PieceContext, options: CommandOptions) {
+    public constructor(context: LoaderPieceContext, options: CommandOptions) {
         super(context, options);
 
         this.lexer = new Lexer({
@@ -86,7 +90,7 @@ export class Command extends AliasPiece<CommandOptions> {
     public contextRun?(ctx: CommandContext): Awaitable<unknown>;
 }
 
-export interface CommandOptions extends AliasPieceOptions, FlagStrategyOptions {
+export type CommandOptions = AliasPieceOptions & FlagStrategyOptions & {
     quotes?: [string, string][];
     strategy?: IUnorderedStrategy;
     preconditions?: PreconditionEntryResolvable[];
@@ -98,20 +102,23 @@ export interface CommandOptions extends AliasPieceOptions, FlagStrategyOptions {
         text?: bigint[];
     };
     userPermissions?: bigint[];
-    /**
-    * @description If chat input command is enabled on command context.
-    */
-    enableChatInputCommand?: boolean;
-    /**
-    * @description If context menu command is enabled on command context.
-    */
-    enableContextMenuCommand?: boolean;
-    /**
-    * @description If message command is enabled on command context.
-    */
-    enableMessageCommand?: boolean;
-}
 
-export interface CommandMeta {
+    /**
+     * @description If chat input command is enabled on command context.
+     */
+    enableChatInputCommand?: boolean;
+
+    /**
+     * @description If context menu command is enabled on command context.
+     */
+    enableContextMenuCommand?: boolean;
+
+    /**
+     * @description If message command is enabled on command context.
+     */
+    enableMessageCommand?: boolean;
+};
+
+export type CommandMeta = {
     description?: string;
-}
+};

@@ -1,17 +1,16 @@
-/* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-/* eslint-disable max-len */
-/* eslint-disable no-nested-ternary */
-import { Result } from "@sapphire/result";
-import { CommandContext } from "../Lib/CommandContext.js";
-import { Command } from "../Stores/Command.js";
-import { Precondition } from "../Stores/Precondition.js";
-import { UserError } from "../Utilities/Errors/UserError.js";
-import { BaseInteraction, CommandInteraction, Message, PermissionsBitField } from "@nezuchan/core";
+/* eslint-disable stylistic/max-len */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { inlineCode } from "@discordjs/builders";
-import { InteractionHandler } from "../Stores/InteractionHandler.js";
+import type { BaseInteraction, CommandInteraction, Message, PermissionsBitField } from "@nezuchan/core";
+import type { Result } from "@sapphire/result";
+import type { CommandContext } from "../Lib/CommandContext.js";
+import type { Command } from "../Stores/Command.js";
+import type { InteractionHandler } from "../Stores/InteractionHandler.js";
+import { Precondition } from "../Stores/Precondition.js";
+import type { UserError } from "../Utilities/Errors/UserError.js";
 
 export class ClientVoicePermissions extends Precondition {
-    public async contextRun(ctx: CommandContext, command: Command, context: { permissions: PermissionsBitField }): Promise<Result<unknown, UserError>> {
+    public async contextRun(ctx: CommandContext, command: Command, context: { permissions: PermissionsBitField; }): Promise<Result<unknown, UserError>> {
         const guildId = ctx.isMessage() ? ctx.message.guildId! : ctx.interaction.guildId;
         const user = ctx.isMessage() ? ctx.message.author : await ctx.interaction.member?.resolveUser({ cache: true });
         const client = await this.container.client.resolveUser({ cache: true, id: this.container.client.clientId });
@@ -19,19 +18,19 @@ export class ClientVoicePermissions extends Precondition {
         return this.parseConditions(guildId, channelId, user, client, context);
     }
 
-    public async interactionHandlerRun(interaction: BaseInteraction, handler: InteractionHandler, context: { permissions: PermissionsBitField }): Promise<Result<unknown, UserError>> {
+    public async interactionHandlerRun(interaction: BaseInteraction, handler: InteractionHandler, context: { permissions: PermissionsBitField; }): Promise<Result<unknown, UserError>> {
         return this.parseConditions(interaction.guildId, interaction.channelId, await interaction.member?.resolveUser({ cache: true }), await this.container.client.resolveUser({ cache: true, id: this.container.client.clientId }), context);
     }
 
-    public async chatInputRun(interaction: CommandInteraction, command: Command, context: { permissions: PermissionsBitField }): Promise<Result<unknown, UserError>> {
+    public async chatInputRun(interaction: CommandInteraction, command: Command, context: { permissions: PermissionsBitField; }): Promise<Result<unknown, UserError>> {
         return this.parseConditions(interaction.guildId, interaction.channelId, await interaction.member?.resolveUser({ cache: true }), await this.container.client.resolveUser({ cache: true, id: this.container.client.clientId }), context);
     }
 
-    public async messageRun(message: Message, command: Command, context: { permissions: PermissionsBitField }): Promise<Result<unknown, UserError>> {
+    public async messageRun(message: Message, command: Command, context: { permissions: PermissionsBitField; }): Promise<Result<unknown, UserError>> {
         return this.parseConditions(message.guildId, message.channelId, message.author, await this.container.client.resolveUser({ cache: true, id: this.container.client.clientId }), context);
     }
 
-    public async parseConditions(guildId: string | undefined, channelId: string | null, user: { id: string } | null | undefined, client: { id: string } | null | undefined, context: { permissions: PermissionsBitField }): Promise<Result<unknown, UserError>> {
+    public async parseConditions(guildId: string | undefined, channelId: string | null, user: { id: string; } | null | undefined, client: { id: string; } | null | undefined, context: { permissions: PermissionsBitField; }): Promise<Result<unknown, UserError>> {
         if (guildId && user?.id) {
             const voiceState = await this.container.client.resolveVoiceState({ guildId, id: user.id });
             if (client && voiceState?.channelId) {

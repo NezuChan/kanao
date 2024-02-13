@@ -1,7 +1,9 @@
-import { PieceContext } from "@sapphire/pieces";
+/* eslint-disable no-param-reassign */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import type { Message } from "@nezuchan/core";
+import type { PieceContext } from "@sapphire/pieces";
 import { Listener } from "../../Stores/Listener.js";
 import { Events } from "../../Utilities/EventEnums.js";
-import { Message } from "@nezuchan/core";
 
 export class PreMessageParsed extends Listener {
     public constructor(context: PieceContext) {
@@ -41,8 +43,8 @@ export class PreMessageParsed extends Listener {
         const me = await this.container.client.resolveUser({ cache: true, force: true, id: this.container.client.clientId });
 
         if (me) {
-            if (message.content.startsWith(`<@!${me.id}>`)) return message.content.substring(0, me.id.length + 4);
-            if (message.content.startsWith(`<@${me.id}>`)) return message.content.substring(0, me.id.length + 3);
+            if (message.content.startsWith(`<@!${me.id}>`)) return message.content.slice(0, Math.max(0, me.id.length + 4));
+            if (message.content.startsWith(`<@${me.id}>`)) return message.content.slice(0, Math.max(0, me.id.length + 3));
         }
 
         return null;

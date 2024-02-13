@@ -1,10 +1,9 @@
-/* eslint-disable class-methods-use-this */
-import { PieceContext } from "@sapphire/pieces";
+import type { Message } from "@nezuchan/core";
+import type { PieceContext } from "@sapphire/pieces";
+import { Result } from "@sapphire/result";
+import type { Command } from "../../Stores/Command.js";
 import { Listener } from "../../Stores/Listener.js";
 import { Events } from "../../Utilities/EventEnums.js";
-import { Message } from "@nezuchan/core";
-import { Command } from "../../Stores/Command.js";
-import { Result } from "@sapphire/result";
 
 export class PreMessageCommandRun extends Listener {
     public constructor(context: PieceContext) {
@@ -13,7 +12,7 @@ export class PreMessageCommandRun extends Listener {
         });
     }
 
-    public async run(payload: { command: Command; message: Message }): Promise<any> {
+    public async run(payload: { command: Command; message: Message; }): Promise<any> {
         const globalResult = await this.container.stores.get("preconditions").messageRun(payload.message, payload.command, payload);
         if (globalResult.isErr()) {
             this.container.client.emit(Events.MessageCommandDenied, globalResult.unwrapErr(), payload);

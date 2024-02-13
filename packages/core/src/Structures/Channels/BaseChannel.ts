@@ -1,11 +1,12 @@
-import { APIChannel, APIOverwrite, ChannelFlags, ChannelType, OverwriteType, PermissionFlagsBits, RESTPostAPIChannelMessageJSONBody } from "discord-api-types/v10";
+import type { APIChannel, APIOverwrite, ChannelFlags, RESTPostAPIChannelMessageJSONBody } from "discord-api-types/v10";
+import { ChannelType, OverwriteType, PermissionFlagsBits } from "discord-api-types/v10";
 import { Base } from "../Base.js";
-import { Message } from "../Message.js";
-import { TextChannel } from "./TextChannel.js";
-import { VoiceChannel } from "./VoiceChannel.js";
-import { GuildMember } from "../GuildMember.js";
+import type { Guild } from "../Guild.js";
+import type { GuildMember } from "../GuildMember.js";
+import type { Message } from "../Message.js";
 import { PermissionsBitField } from "../PermissionsBitField.js";
-import { Guild } from "../Guild.js";
+import type { TextChannel } from "./TextChannel.js";
+import type { VoiceChannel } from "./VoiceChannel.js";
 
 export class BaseChannel extends Base<APIChannel> {
     public get guildId(): string | undefined {
@@ -81,7 +82,7 @@ export class BaseChannel extends Base<APIChannel> {
                 if (overwrite.id === guild.id) {
                     overwrites.everyone.deny |= BigInt(overwrite.deny);
                     overwrites.everyone.allow |= BigInt(overwrite.allow);
-                } else if (roles.find(x => x.id === overwrite.id)) {
+                } else if (roles.some(x => x.id === overwrite.id)) {
                     overwrites.roles.deny |= BigInt(overwrite.deny);
                     overwrites.roles.allow |= BigInt(overwrite.allow);
                 }
@@ -101,10 +102,12 @@ export class BaseChannel extends Base<APIChannel> {
             .freeze();
     }
 
-    public async resolveGuild({ force, cache }: { force?: boolean; cache: boolean } = { force: false, cache: true }): Promise<Guild | undefined> {
+    public async resolveGuild({ force, cache }: { force?: boolean; cache: boolean; } = { force: false, cache: true }): Promise<Guild | undefined> {
         if (this.guildId) {
             return this.client.resolveGuild({ id: this.guildId, force, cache });
         }
+
+        return undefined;
     }
 
     public toString(): string {

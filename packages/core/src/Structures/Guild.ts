@@ -1,7 +1,8 @@
-import { APIGuild, GatewayGuildCreateDispatchData, GuildDefaultMessageNotifications, GuildExplicitContentFilter, GuildFeature, GuildMFALevel, GuildPremiumTier } from "discord-api-types/v10";
-import { Base } from "./Base.js";
-import { BaseImageURLOptions } from "@discordjs/rest";
+import type { BaseImageURLOptions } from "@discordjs/rest";
 import { DiscordSnowflake } from "@sapphire/snowflake";
+import type { APIGuild, GatewayGuildCreateDispatchData, GuildDefaultMessageNotifications, GuildExplicitContentFilter, GuildMFALevel } from "discord-api-types/v10";
+import { GuildFeature, GuildPremiumTier } from "discord-api-types/v10";
+import { Base } from "./Base.js";
 
 export class Guild extends Base<APIGuild | GatewayGuildCreateDispatchData> {
     public get name(): string {

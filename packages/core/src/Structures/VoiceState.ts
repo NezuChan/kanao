@@ -1,7 +1,6 @@
-/* eslint-disable max-len */
-import { GatewayVoiceState } from "discord-api-types/v10";
+import type { GatewayVoiceState } from "discord-api-types/v10";
 import { Base } from "./Base.js";
-import { GuildMember } from "./GuildMember.js";
+import type { GuildMember } from "./GuildMember.js";
 
 export class VoiceState extends Base<GatewayVoiceState> {
     public get guildId(): string {
@@ -40,9 +39,11 @@ export class VoiceState extends Base<GatewayVoiceState> {
         return this.data.request_to_speak_timestamp ? new Date(this.data.request_to_speak_timestamp) : null;
     }
 
-    public async resolveMember({ force = false, cache = true }: { force?: boolean; cache?: boolean }): Promise<GuildMember | undefined> {
+    public async resolveMember({ force = false, cache = true }: { force?: boolean; cache?: boolean; }): Promise<GuildMember | undefined> {
         if (this.guildId && this.userId) {
             return this.client.resolveMember({ id: this.userId, guildId: this.guildId, force, cache });
         }
+
+        return undefined;
     }
 }

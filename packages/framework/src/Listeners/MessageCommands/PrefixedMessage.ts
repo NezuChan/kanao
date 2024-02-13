@@ -1,8 +1,7 @@
-/* eslint-disable class-methods-use-this */
-import { PieceContext } from "@sapphire/pieces";
+import type { Message } from "@nezuchan/core";
+import type { PieceContext } from "@sapphire/pieces";
 import { Listener } from "../../Stores/Listener.js";
 import { Events } from "../../Utilities/EventEnums.js";
-import { Message } from "@nezuchan/core";
 
 export class PrefixedMessage extends Listener {
     public constructor(context: PieceContext) {
@@ -28,7 +27,7 @@ export class PrefixedMessage extends Listener {
             return;
         }
 
-        const parameters = spaceIndex === -1 ? "" : prefixLess.substring(spaceIndex + 1).trim();
+        const parameters = spaceIndex === -1 ? "" : prefixLess.slice(Math.max(0, spaceIndex + 1)).trim();
 
         if (command.messageRun) {
             this.container.client.emit(Events.PreMessageCommandRun, {

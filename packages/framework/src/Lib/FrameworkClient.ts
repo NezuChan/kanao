@@ -1,17 +1,20 @@
-import { Piece, Store, container } from "@sapphire/pieces";
+/* eslint-disable @typescript-eslint/consistent-type-definitions */
 import { dirname, resolve } from "node:path";
-import { Client, ClientOptions as OClientOptions } from "@nezuchan/core";
-
-import { ListenerStore } from "../Stores/ListenerStore.js";
-import { CommandStore } from "../Stores/CommandStore.js";
-import { PreconditionStore } from "../Stores/PreconditionStore.js";
-import { InteractionHandlerStore } from "../Stores/InteractionHandlerStore.js";
 import { fileURLToPath } from "node:url";
-import { PluginManager } from "../Plugins/PluginManager.js";
-import { Plugin } from "../Plugins/Plugin.js";
+import type { ClientOptions as OClientOptions } from "@nezuchan/core";
+import { Client } from "@nezuchan/core";
+import type { Piece, Store } from "@sapphire/pieces";
+import { container } from "@sapphire/pieces";
+
+import type { Channel } from "amqplib";
 import { PluginHook } from "../Plugins/Hook.js";
+import type { Plugin } from "../Plugins/Plugin.js";
+import { PluginManager } from "../Plugins/PluginManager.js";
+import { CommandStore } from "../Stores/CommandStore.js";
+import { InteractionHandlerStore } from "../Stores/InteractionHandlerStore.js";
+import { ListenerStore } from "../Stores/ListenerStore.js";
+import { PreconditionStore } from "../Stores/PreconditionStore.js";
 import { Events } from "../Utilities/EventEnums.js";
-import { Channel } from "amqplib";
 
 export class FrameworkClient extends Client {
     public stores = container.stores;
@@ -52,8 +55,8 @@ export class FrameworkClient extends Client {
         }
 
         super.connect();
-        await Promise.all([...this.stores.values()].map((store: Store<Piece>) => store.loadAll()));
-        if (this.options.registerCommands) await this.stores.get("commands").postCommands();
+        await Promise.all([...this.stores.values()].map(async (store: Store<Piece>) => store.loadAll()));
+        if (this.options.registerCommands !== undefined) await this.stores.get("commands").postCommands();
 
         for (const plugin of FrameworkClient.plugins.values(PluginHook.PostLogin)) {
             await plugin.hook.call(this, this.options);
@@ -94,12 +97,12 @@ declare module "@sapphire/pieces" {
     }
 }
 
-export interface ClientOptions extends OClientOptions {
+export type ClientOptions = OClientOptions & {
     baseUserDirectory?: string;
-    fetchPrefix?: (guildId?: string, authorId?: string, channelId?: string | null) => Promise<string[] | string>;
+    fetchPrefix?(guildId?: string, authorId?: string, channelId?: string | null): Promise<string[] | string>;
     disableMentionPrefix?: boolean;
     regexPrefix?: RegExp;
     caseInsensitivePrefixes?: boolean;
     caseInsensitiveCommands?: boolean;
     registerCommands?: boolean;
-}
+};

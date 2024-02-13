@@ -1,9 +1,10 @@
-/* eslint-disable max-len */
-import { APIAttachment, APIEmbed, APIMessage, APIMessageComponent, APIMessageReference, APIReaction, APIStickerItem, GatewayMessageCreateDispatchData, GatewayMessageDeleteDispatch, GatewayMessageUpdateDispatch, MessageType, RESTPatchAPIChannelMessageJSONBody, Routes } from "discord-api-types/v10";
+/* eslint-disable promise/prefer-await-to-then */
+import type { APIAttachment, APIEmbed, APIMessage, APIMessageComponent, APIMessageReference, APIReaction, APIStickerItem, GatewayMessageCreateDispatchData, GatewayMessageDeleteDispatch, GatewayMessageUpdateDispatch, RESTPatchAPIChannelMessageJSONBody } from "discord-api-types/v10";
+import { MessageType, Routes } from "discord-api-types/v10";
 import { Base } from "./Base.js";
-import { Guild } from "./Guild.js";
+import type { Guild } from "./Guild.js";
+import type { GuildMember } from "./GuildMember.js";
 import { User } from "./User.js";
-import { GuildMember } from "./GuildMember.js";
 
 export class Message extends Base<APIMessage | GatewayMessageCreateDispatchData | GatewayMessageDeleteDispatch | GatewayMessageUpdateDispatch> {
     public get type(): MessageType {
@@ -66,20 +67,24 @@ export class Message extends Base<APIMessage | GatewayMessageCreateDispatchData 
         return "mention_everyone" in this.data ? this.data.mention_everyone : undefined;
     }
 
-    public async resolveGuild({ force = false, cache = true }: { force?: boolean; cache?: boolean }): Promise<Guild | undefined> {
+    public async resolveGuild({ force = false, cache = true }: { force?: boolean; cache?: boolean; }): Promise<Guild | undefined> {
         if (this.guildId) {
             return this.client.resolveGuild({ id: this.guildId, force, cache });
         }
+
+        return undefined;
     }
 
     public get author(): User | null {
         return "author" in this.data ? new User(this.data.author, this.client) : null;
     }
 
-    public async resolveMember({ force = false, cache = true }: { force?: boolean; cache?: boolean }): Promise<GuildMember | undefined> {
+    public async resolveMember({ force = false, cache = true }: { force?: boolean; cache?: boolean; }): Promise<GuildMember | undefined> {
         if (this.guildId && this.author) {
             return this.client.resolveMember({ id: this.author.id, guildId: this.guildId, force, cache });
         }
+
+        return undefined;
     }
 
     public async edit(options: RESTPatchAPIChannelMessageJSONBody): Promise<Message> {

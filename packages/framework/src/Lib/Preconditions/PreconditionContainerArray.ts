@@ -1,14 +1,15 @@
-import { BaseContextMenuInteraction, BaseInteraction, CommandInteraction, Message } from "@nezuchan/core";
-import { IPreconditionContainer, PreconditionContainerReturn } from "./IPreconditionContainer.js";
-import { Command } from "../../Stores/Command.js";
 import { Collection } from "@discordjs/collection";
-import { IPreconditionCondition } from "./Conditions/IPreconditionCondition.js";
+import type { BaseContextMenuInteraction, BaseInteraction, CommandInteraction, Message } from "@nezuchan/core";
+import type { Command } from "../../Stores/Command.js";
+import type { InteractionHandler } from "../../Stores/InteractionHandler.js";
+import type { SimplePreconditionKeys, PreconditionKeys, PreconditionContext } from "../../Stores/Precondition.js";
+import type { CommandContext } from "../CommandContext.js";
+import type { IPreconditionCondition } from "./Conditions/IPreconditionCondition.js";
 import { PreconditionConditionAnd } from "./Conditions/PreconditionConditionAnd.js";
 import { PreconditionConditionOr } from "./Conditions/PreconditionConditionOr.js";
-import { SimplePreconditionKeys, PreconditionKeys, PreconditionContext } from "../../Stores/Precondition.js";
-import { PreconditionContainerSingle, PreconditionSingleResolvable, PreconditionSingleResolvableDetails, SimplePreconditionSingleResolvableDetails } from "./PreconditionContainerSingle.js";
-import { CommandContext } from "../CommandContext.js";
-import { InteractionHandler } from "../../Stores/InteractionHandler.js";
+import type { IPreconditionContainer, PreconditionContainerReturn } from "./IPreconditionContainer.js";
+import type { PreconditionSingleResolvable, PreconditionSingleResolvableDetails, SimplePreconditionSingleResolvableDetails } from "./PreconditionContainerSingle.js";
+import { PreconditionContainerSingle } from "./PreconditionContainerSingle.js";
 
 export enum PreconditionRunMode {
     Sequential = 0,
@@ -20,10 +21,10 @@ export enum PreconditionRunCondition {
     Or = 1
 }
 
-export interface PreconditionArrayResolvableDetails {
+export type PreconditionArrayResolvableDetails = {
     entries: readonly PreconditionEntryResolvable[];
     mode: PreconditionRunMode;
-}
+};
 
 export type PreconditionArrayResolvable = PreconditionArrayResolvableDetails | readonly PreconditionEntryResolvable[];
 

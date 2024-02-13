@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-/* eslint-disable no-nested-ternary */
-import { APIGuildMember, GatewayGuildMemberRemoveDispatch } from "discord-api-types/v10";
+/* eslint-disable unicorn/no-nested-ternary */
+import type { BaseImageURLOptions } from "@discordjs/rest";
+import type { APIGuildMember, GatewayGuildMemberRemoveDispatch } from "discord-api-types/v10";
 import { Base } from "./Base.js";
+import type { Role } from "./Role.js";
 import { User } from "./User.js";
-import { Role } from "./Role.js";
-import { VoiceState } from "./VoiceState.js";
-import { BaseImageURLOptions } from "@discordjs/rest";
+import type { VoiceState } from "./VoiceState.js";
 
 export class GuildMember extends Base<APIGuildMember | GatewayGuildMemberRemoveDispatch["d"]> {
     public get id(): string {
@@ -73,7 +72,7 @@ export class GuildMember extends Base<APIGuildMember | GatewayGuildMemberRemoveD
         return roles.sort((a, b) => b.position - a.position);
     }
 
-    public async resolveUser({ force = false, cache = true }: { force?: boolean; cache?: boolean }): Promise<User | undefined> {
+    public async resolveUser({ force = false, cache = true }: { force?: boolean; cache?: boolean; }): Promise<User | undefined> {
         if (this.data.user) {
             return new User(this.data.user, this.client);
         }
@@ -85,6 +84,8 @@ export class GuildMember extends Base<APIGuildMember | GatewayGuildMemberRemoveD
         if (this.guildId) {
             return this.client.resolveVoiceState({ id: this.id, guildId: this.guildId });
         }
+
+        return undefined;
     }
 
     public toString(): string {

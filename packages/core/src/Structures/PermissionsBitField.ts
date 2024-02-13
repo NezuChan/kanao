@@ -1,4 +1,5 @@
-import { BitField, BitFieldResolvable } from "@cordis/bitfield";
+import type { BitFieldResolvable } from "@cordis/bitfield";
+import { BitField } from "@cordis/bitfield";
 import { PermissionFlagsBits } from "discord-api-types/v10";
 
 export class PermissionsBitField extends BitField<string> {

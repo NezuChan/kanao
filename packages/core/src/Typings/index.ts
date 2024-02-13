@@ -1,10 +1,10 @@
-import { CreateRedisOptions } from "@nezuchan/utilities";
+import type { CreateRedisOptions } from "@nezuchan/utilities";
 
-export interface ClientOptions {
+export type ClientOptions = {
     token?: string;
     clientId?: string;
     amqpUrl: string;
     redis: CreateRedisOptions;
-    shardIds?: number[] | { start: number; end: number };
+    shardIds?: number[] | { start: number; end: number; };
     rest?: string;
-}
+};

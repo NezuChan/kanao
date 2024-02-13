@@ -1,10 +1,13 @@
-/* eslint-disable class-methods-use-this */
-import { BaseInteraction, PermissionsBitField } from "@nezuchan/core";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable unicorn/no-array-callback-reference */
+import type { BaseInteraction } from "@nezuchan/core";
+import { PermissionsBitField } from "@nezuchan/core";
 import { Piece } from "@sapphire/pieces";
 import { Option } from "@sapphire/result";
-import { Awaitable } from "@sapphire/utilities";
-import { PreconditionContainerArray, PreconditionEntryResolvable } from "../Lib/Preconditions/PreconditionContainerArray.js";
+import type { Awaitable } from "@sapphire/utilities";
 import { PermissionFlagsBits } from "discord-api-types/v10";
+import type { PreconditionEntryResolvable } from "../Lib/Preconditions/PreconditionContainerArray.js";
+import { PreconditionContainerArray } from "../Lib/Preconditions/PreconditionContainerArray.js";
 
 export abstract class InteractionHandler<O extends InteractionHandlerOptions = InteractionHandlerOptions> extends Piece<O> {
     public preconditions: PreconditionContainerArray;
@@ -46,7 +49,7 @@ export abstract class InteractionHandler<O extends InteractionHandlerOptions = I
         }
     }
 
-    public parse(_interaction: BaseInteraction): Awaitable<Option<unknown>> {
+    public parse(interaction: BaseInteraction): Awaitable<Option<unknown>> {
         return this.some();
     }
 
@@ -63,7 +66,7 @@ export abstract class InteractionHandler<O extends InteractionHandlerOptions = I
     public abstract run(interaction: BaseInteraction, parsedData?: unknown): unknown;
 }
 
-export interface InteractionHandlerOptions extends Piece.Options {
+export type InteractionHandlerOptions = Piece.Options & {
     preconditions?: PreconditionEntryResolvable[];
     clientPermissions?: {
         voice?: bigint[];
@@ -71,7 +74,7 @@ export interface InteractionHandlerOptions extends Piece.Options {
     };
     userPermissions?: bigint[];
     readonly interactionHandlerType: InteractionHandlerTypes;
-}
+};
 
 export enum InteractionHandlerTypes {
     Button = 0,

@@ -1,7 +1,7 @@
-import { APIGuildMember } from "discord-api-types/v10";
+import type { APIGuildMember } from "discord-api-types/v10";
 import { GuildMember } from "../GuildMember.js";
-import { BaseContextMenuInteraction } from "./BaseContextMenuInteraction.js";
 import { User } from "../User.js";
+import { BaseContextMenuInteraction } from "./BaseContextMenuInteraction.js";
 
 export class UserContextMenuInteraction extends BaseContextMenuInteraction {
     public get getUser(): User | null {
@@ -9,6 +9,6 @@ export class UserContextMenuInteraction extends BaseContextMenuInteraction {
     }
 
     public get getMember(): GuildMember | null {
-        return this.data.data && "target_id" in this.data.data && "members" in this.data.data.resolved && this.data.data.resolved.members ? new GuildMember(this.data.data.resolved.members[this.data.data.target_id] as unknown as APIGuildMember & { id: string }, this.client) : null;
+        return this.data.data && "target_id" in this.data.data && "members" in this.data.data.resolved && this.data.data.resolved.members ? new GuildMember(this.data.data.resolved.members[this.data.data.target_id] as unknown as APIGuildMember & { id: string; }, this.client) : null;
     }
 }

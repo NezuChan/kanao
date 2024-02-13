@@ -1,10 +1,10 @@
-import { AutoCompleteInteraction } from "@nezuchan/core";
+import type { AutoCompleteInteraction } from "@nezuchan/core";
+import type { Piece } from "@sapphire/pieces";
 import { Listener } from "../../Stores/Listener.js";
-import { Piece } from "@sapphire/pieces";
 import { Events } from "../../Utilities/EventEnums.js";
 
 export class PossibleAutoCompleteInteraction extends Listener {
-    public constructor(context: Piece.Context) {
+    public constructor(context: Piece.LoaderContext) {
         super(context, {
             name: Events.PossibleAutocompleteInteraction
         });
@@ -23,8 +23,8 @@ export class PossibleAutoCompleteInteraction extends Listener {
                     command,
                     interaction
                 });
-            } catch (err) {
-                this.container.client.emit(Events.CommandAutocompleteInteractionError, err, {
+            } catch (error) {
+                this.container.client.emit(Events.CommandAutocompleteInteractionError, error, {
                     command,
                     interaction
                 });

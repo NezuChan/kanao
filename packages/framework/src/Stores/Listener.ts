@@ -1,8 +1,8 @@
-/* eslint-disable no-nested-ternary */
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { Piece, PieceContext, PieceOptions } from "@sapphire/pieces";
+/* eslint-disable unicorn/no-nested-ternary */
+import type { EventEmitter } from "node:events";
+import type { PieceContext, PieceOptions } from "@sapphire/pieces";
+import { Piece } from "@sapphire/pieces";
 import { Result } from "@sapphire/result";
-import { EventEmitter } from "node:events";
 import { ListenerEvents } from "../Utilities/EventEnums.js";
 
 export abstract class Listener extends Piece {
@@ -15,10 +15,10 @@ export abstract class Listener extends Piece {
         super(context, options);
 
         this.emitter =
-			typeof options.emitter === "undefined"
+			options.emitter === undefined
 			    ? this.container.client
 			    : (typeof options.emitter === "string" ? (Reflect.get(this.container.client, options.emitter) as EventEmitter) : options.emitter) ??
-				  null;
+			    null;
 
         this.event = options.event ?? this.name;
         this.once = options.once ?? false;
@@ -69,8 +69,8 @@ export abstract class Listener extends Piece {
     public abstract run(...args: unknown[]): unknown;
 }
 
-export interface ListenerOptions extends PieceOptions {
+export type ListenerOptions = PieceOptions & {
     emitter?: EventEmitter | string;
     event?: string | symbol;
     once?: boolean;
-}
+};

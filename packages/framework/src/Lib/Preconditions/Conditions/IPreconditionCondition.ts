@@ -1,78 +1,78 @@
-import { BaseContextMenuInteraction, BaseInteraction, CommandInteraction, Message } from "@nezuchan/core";
-import { Command } from "../../../Stores/Command.js";
-import { CommandContext } from "../../CommandContext.js";
-import { IPreconditionContainer, PreconditionContainerReturn } from "../IPreconditionContainer.js";
-import { PreconditionContext } from "../../../Stores/Precondition.js";
-import { InteractionHandler } from "../../../Stores/InteractionHandler.js";
+import type { BaseContextMenuInteraction, BaseInteraction, CommandInteraction, Message } from "@nezuchan/core";
+import type { Command } from "../../../Stores/Command.js";
+import type { InteractionHandler } from "../../../Stores/InteractionHandler.js";
+import type { PreconditionContext } from "../../../Stores/Precondition.js";
+import type { CommandContext } from "../../CommandContext.js";
+import type { IPreconditionContainer, PreconditionContainerReturn } from "../IPreconditionContainer.js";
 
-export interface IPreconditionCondition {
-    messageSequential: (
+export type IPreconditionCondition = {
+    messageSequential(
         message: Message,
         command: Command,
         entries: readonly IPreconditionContainer[],
         context?: PreconditionContext | undefined
-    ) => PreconditionContainerReturn;
+    ): PreconditionContainerReturn;
 
-    messageParallel: (
+    messageParallel(
         message: Message,
         command: Command,
         entries: readonly IPreconditionContainer[],
         context?: PreconditionContext | undefined
-    ) => PreconditionContainerReturn;
+    ): PreconditionContainerReturn;
 
-    chatInputSequential: (
+    chatInputSequential(
         interaction: CommandInteraction,
         command: Command,
         entries: readonly IPreconditionContainer[],
         context?: PreconditionContext | undefined
-    ) => PreconditionContainerReturn;
+    ): PreconditionContainerReturn;
 
-    chatInputParallel: (
+    chatInputParallel(
         interaction: CommandInteraction,
         command: Command,
         entries: readonly IPreconditionContainer[],
         context?: PreconditionContext | undefined
-    ) => PreconditionContainerReturn;
+    ): PreconditionContainerReturn;
 
-    contextMenuSequential: (
+    contextMenuSequential(
         interaction: BaseContextMenuInteraction,
         command: Command,
         entries: readonly IPreconditionContainer[],
         context?: PreconditionContext | undefined
-    ) => PreconditionContainerReturn;
+    ): PreconditionContainerReturn;
 
-    contextMenuParallel: (
+    contextMenuParallel(
         interaction: BaseContextMenuInteraction,
         command: Command,
         entries: readonly IPreconditionContainer[],
         context?: PreconditionContext | undefined
-    ) => PreconditionContainerReturn;
+    ): PreconditionContainerReturn;
 
-    contextCommandSequential: (
+    contextCommandSequential(
         ctx: CommandContext,
         command: Command,
         entries: readonly IPreconditionContainer[],
         context?: PreconditionContext | undefined
-    ) => PreconditionContainerReturn;
+    ): PreconditionContainerReturn;
 
-    contextCommandParallel: (
+    contextCommandParallel(
         ctx: CommandContext,
         command: Command,
         entries: readonly IPreconditionContainer[],
         context?: PreconditionContext | undefined
-    ) => PreconditionContainerReturn;
+    ): PreconditionContainerReturn;
 
-    interactionHandlerSequential: (
+    interactionHandlerSequential(
         interaction: BaseInteraction,
         handler: InteractionHandler,
         entries: readonly IPreconditionContainer[],
         context?: PreconditionContext | undefined
-    ) => PreconditionContainerReturn;
+    ): PreconditionContainerReturn;
 
-    interactionHandlerParallel: (
+    interactionHandlerParallel(
         interaction: BaseInteraction,
         handler: InteractionHandler,
         entries: readonly IPreconditionContainer[],
         context?: PreconditionContext | undefined
-    ) => PreconditionContainerReturn;
-}
+    ): PreconditionContainerReturn;
+};

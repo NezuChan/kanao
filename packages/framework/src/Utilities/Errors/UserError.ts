@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-namespace */
-/* eslint-disable class-methods-use-this */
+
 export class UserError extends Error {
     public readonly identifier: string;
     public readonly context: unknown;
@@ -15,9 +15,9 @@ export class UserError extends Error {
 }
 
 export namespace UserError {
-    export interface Options {
+    export type Options = {
         identifier: string;
         message?: string;
         context?: unknown;
-    }
+    };
 }

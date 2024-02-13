@@ -1,4 +1,5 @@
-import { APIRole, PermissionFlagsBits } from "discord-api-types/v10";
+import type { APIRole } from "discord-api-types/v10";
+import { PermissionFlagsBits } from "discord-api-types/v10";
 import { Base } from "./Base.js";
 import { PermissionsBitField } from "./PermissionsBitField.js";
 

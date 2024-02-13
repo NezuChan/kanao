@@ -1,19 +1,18 @@
-/* eslint-disable class-methods-use-this */
-
-import { BaseContextMenuInteraction, BaseInteraction, CommandInteraction, Message, PermissionsBitField } from "@nezuchan/core";
-import { Piece, PieceContext, PieceOptions } from "@sapphire/pieces";
-import { Awaitable } from "@sapphire/utilities";
-import { CommandContext } from "../Lib/CommandContext.js";
-import { Command } from "./Command.js";
+import type { BaseContextMenuInteraction, BaseInteraction, CommandInteraction, Message, PermissionsBitField } from "@nezuchan/core";
+import type { LoaderPieceContext, PieceOptions } from "@sapphire/pieces";
+import { Piece } from "@sapphire/pieces";
 import { Result } from "@sapphire/result";
-import { UserError } from "../Utilities/Errors/UserError.js";
+import type { Awaitable } from "@sapphire/utilities";
+import type { CommandContext } from "../Lib/CommandContext.js";
 import { PreconditionError } from "../Utilities/Errors/PreconditionError.js";
-import { InteractionHandler } from "./InteractionHandler.js";
+import type { UserError } from "../Utilities/Errors/UserError.js";
+import type { Command } from "./Command.js";
+import type { InteractionHandler } from "./InteractionHandler.js";
 
 export class Precondition extends Piece {
     public readonly position: number | null;
 
-    public constructor(context: PieceContext, options: PreconditionOptions) {
+    public constructor(context: LoaderPieceContext, options: PreconditionOptions) {
         super(context, options);
         this.position = options.position ?? null;
     }
@@ -34,11 +33,11 @@ export class Precondition extends Piece {
     }
 }
 
-export interface PreconditionOptions extends PieceOptions {
+export type PreconditionOptions = PieceOptions & {
     position?: number;
-}
+};
 
-export interface Preconditions {
+export type Preconditions = {
     Enabled: never;
     ClientVoicePermissions: {
         permissions: PermissionsBitField;
@@ -49,11 +48,11 @@ export interface Preconditions {
     UserPermissions: {
         permissions: PermissionsBitField;
     };
-}
+};
 
-export interface PreconditionContext extends Record<PropertyKey, unknown> {
+export type PreconditionContext = Record<PropertyKey, unknown> & {
     external?: boolean;
-}
+};
 
 export type PreconditionKeys = keyof Preconditions;
 export type SimplePreconditionKeys = {

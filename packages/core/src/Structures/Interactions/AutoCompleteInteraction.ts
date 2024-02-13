@@ -8,7 +8,7 @@ export class AutoCompleteInteraction extends BaseInteraction {
         return this.data.data && "name" in this.data.data ? this.data.data.name : null;
     }
 
-    public async respond(options: { name: string; value: string }[]): Promise<void> {
+    public async respond(options: { name: string; value: string; }[]): Promise<void> {
         if (this.responded) new Error("This interaction has already been responded to.");
         await this.client.rest.post(Routes.interactionCallback(this.id, this.data.token), {
             body: {

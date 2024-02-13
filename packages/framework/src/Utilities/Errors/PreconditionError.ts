@@ -1,10 +1,11 @@
-/* eslint-disable class-methods-use-this */
+/* eslint-disable tsdoc/syntax */
 /* eslint-disable @typescript-eslint/no-namespace */
+import type { Precondition } from "../../Stores/Precondition.js";
 import { UserError } from "./UserError.js";
-import { Precondition } from "../../Stores/Precondition.js";
 
 /**
  * Errors thrown by preconditions
+ *
  * @property name This will be `'PreconditionError'` and can be used to distinguish the type of error when any error gets thrown
  */
 export class PreconditionError extends UserError {
@@ -21,8 +22,8 @@ export class PreconditionError extends UserError {
 }
 
 export namespace PreconditionError {
-    export interface Options extends Omit<UserError.Options, "identifier"> {
+    export type Options = Omit<UserError.Options, "identifier"> & {
         precondition: Precondition;
         identifier?: string;
-    }
+    };
 }

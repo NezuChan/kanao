@@ -1,7 +1,7 @@
-import { APIUser } from "discord-api-types/v10";
-import { Base } from "./Base.js";
+import type { ImageURLOptions } from "@discordjs/rest";
 import { DiscordSnowflake } from "@sapphire/snowflake";
-import { ImageURLOptions } from "@discordjs/rest";
+import type { APIUser } from "discord-api-types/v10";
+import { Base } from "./Base.js";
 
 export class User extends Base<APIUser> {
     public get username(): string {

@@ -1,12 +1,13 @@
+import type { BaseContextMenuInteraction, BaseInteraction, CommandInteraction, Message } from "@nezuchan/core";
 import { Store } from "@sapphire/pieces";
-import { Precondition, PreconditionContext } from "./Precondition.js";
-import { Identifiers } from "../Utilities/Errors/Identifiers.js";
-import { BaseContextMenuInteraction, BaseInteraction, CommandInteraction, Message } from "@nezuchan/core";
-import { Command } from "./Command.js";
 import { Result } from "@sapphire/result";
-import { UserError } from "../Utilities/Errors/UserError.js";
-import { CommandContext } from "../Lib/CommandContext.js";
-import { InteractionHandler } from "./InteractionHandler.js";
+import type { CommandContext } from "../Lib/CommandContext.js";
+import { Identifiers } from "../Utilities/Errors/Identifiers.js";
+import type { UserError } from "../Utilities/Errors/UserError.js";
+import type { Command } from "./Command.js";
+import type { InteractionHandler } from "./InteractionHandler.js";
+import { Precondition } from "./Precondition.js";
+import type { PreconditionContext } from "./Precondition.js";
 
 export class PreconditionStore extends Store<Precondition> {
     private readonly globalPreconditions: Precondition[] = [];
@@ -137,6 +138,6 @@ export class PreconditionStore extends Store<Precondition> {
 
     public override clear(): void {
         this.globalPreconditions.length = 0;
-        return super.clear();
+        super.clear();
     }
 }

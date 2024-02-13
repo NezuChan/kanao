@@ -1,10 +1,10 @@
-import { CommandInteraction } from "@nezuchan/core";
+import type { CommandInteraction } from "@nezuchan/core";
+import type { Piece } from "@sapphire/pieces";
 import { Listener } from "../../../Stores/Listener.js";
-import { Piece } from "@sapphire/pieces";
 import { Events } from "../../../Utilities/EventEnums.js";
 
 export class PossibleChatInputCommand extends Listener {
-    public constructor(context: Piece.Context) {
+    public constructor(context: Piece.LoaderContext) {
         super(context, {
             name: Events.PossibleChatInputCommand
         });
@@ -12,11 +12,11 @@ export class PossibleChatInputCommand extends Listener {
 
     public run(interaction: CommandInteraction): void {
         const commandStore = this.container.stores.get("commands");
-        if (!interaction.commandName) return;
+        if (interaction.commandName === null) return;
 
         const command = commandStore.get(interaction.commandName);
 
-        if (command?.chatInputRun) {
+        if (command?.chatInputRun !== undefined) {
             this.container.client.emit(
                 Events.PreChatInputCommandRun, {
                     command,
@@ -36,7 +36,7 @@ export class PossibleChatInputCommand extends Listener {
             return;
         }
 
-        if (command?.contextRun) {
+        if (command?.contextRun !== undefined) {
             this.container.client.emit(
                 Events.PreContextCommandRun, {
                     command,

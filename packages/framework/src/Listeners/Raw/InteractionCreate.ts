@@ -1,11 +1,13 @@
-import { PieceContext } from "@sapphire/pieces";
-import { Listener } from "../../Stores/Listener.js";
-import { ApplicationCommandType, GatewayDispatchEvents, GatewayInteractionCreateDispatch, InteractionType } from "discord-api-types/v10";
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { CommandInteraction, MessageContextMenuInteraction, UserContextMenuInteraction, AutoCompleteInteraction, MessageComponentInteraction, BaseInteraction, ModalSubmitInteraction } from "@nezuchan/core";
+import type { LoaderPieceContext } from "@sapphire/pieces";
+import type { GatewayInteractionCreateDispatch } from "discord-api-types/v10";
+import { ApplicationCommandType, GatewayDispatchEvents, InteractionType } from "discord-api-types/v10";
+import { Listener } from "../../Stores/Listener.js";
 import { Events } from "../../Utilities/EventEnums.js";
 
 export class InteractionCreate extends Listener {
-    public constructor(context: PieceContext) {
+    public constructor(context: LoaderPieceContext) {
         super(context, {
             name: GatewayDispatchEvents.InteractionCreate
         });
@@ -27,6 +29,9 @@ export class InteractionCreate extends Listener {
                         this.container.client.emit(Events.InteractionCreate, new UserContextMenuInteraction(payload, this.container.client));
                         break;
                     }
+
+                    default:
+                        break;
                 }
                 break;
             case InteractionType.ApplicationCommandAutocomplete:
