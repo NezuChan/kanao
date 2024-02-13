@@ -1,0 +1,12 @@
+name: Release services
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  docker:
+    uses: ./.github/workflows/docker.yml
+    with:
+      scope: '["kanao-gateway"]'
+    secrets: inherit

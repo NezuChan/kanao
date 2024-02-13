@@ -1,29 +1,52 @@
-FROM ghcr.io/hazmi35/node:20-dev-alpine as build-stage
+# Copyright 2023 Hazmi35 (https://github.com/Hazmi35)
+FROM ghcr.io/hazmi35/node:20-dev-alpine as dev
 
-LABEL name "NezukoChan Gateway (Docker Build)"
-LABEL maintainer "KagChi"
+# Prepare with corepack (experimental feature)
+RUN corepack enable
 
-RUN corepack enable && corepack prepare pnpm@latest
+# Prepare
+FROM dev as prepare
 
-COPY package*.json .
-COPY pnpm-lock.yaml .
+ARG SCOPE
+WORKDIR /prepare
 
+# Scoped install for monorepo
+RUN npm install --global turbo
+COPY . .
+RUN turbo prune --scope=${SCOPE} --docker
+RUN cp -r tsconfig* /prepare/out/json
+
+# Build the project
+FROM dev AS builder
+
+WORKDIR /builder
+
+# Set NPM_CONFIG_USERCONFIG build args
+ARG SCOPE
+
+# First install the dependencies (as they change less often)
+COPY --from=prepare /prepare/out/json/ .
+COPY --from=prepare /prepare/out/pnpm-lock.yaml ./pnpm-lock.yaml
+
+# Install dependencies
 RUN pnpm install --frozen-lockfile
 
-COPY . .
-
+# Build the project
+COPY --from=prepare /prepare/out/full/ .
 RUN pnpm run build
 
-RUN pnpm prune --production
+# Deploy the service
+RUN pnpm deploy -P --filter=${SCOPE} /out
 
+# Get ready for production
 FROM ghcr.io/hazmi35/node:20-alpine
 
-LABEL name "NezukoChan Gateway Production"
-LABEL maintainer "KagChi"
+LABEL name "${SCOPE}"
 
-COPY --from=build-stage /tmp/build/package.json .
-COPY --from=build-stage /tmp/build/pnpm-lock.yaml .
-COPY --from=build-stage /tmp/build/node_modules ./node_modules
-COPY --from=build-stage /tmp/build/dist ./dist
+# Copy needed files
+COPY --from=builder /out/package.json .
+COPY --from=builder /out/node_modules ./node_modules
+COPY --from=builder /out/dist ./dist
 
-CMD ["node", "dist/index.js"]
+# Start the app with node
+CMD ["npm", "start"]
