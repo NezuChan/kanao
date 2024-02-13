@@ -55,6 +55,7 @@
     "typescript": "^5.3.3"
   },
   "optionalDependencies": {
+    "ioredis": "^5.3.2",
     "pino-loki": "^2.2.1",
     "zlib-sync": "^0.1.9"
   }

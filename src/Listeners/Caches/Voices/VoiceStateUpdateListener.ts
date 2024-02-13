@@ -39,6 +39,7 @@ export class VoiceStateUpdateListener extends Listener {
         if (stateMembers && payload.data.d.member !== undefined) {
             await this.store.drizzle.insert(members).values({
                 id: payload.data.d.user_id,
+                guildId: payload.data.d.guild_id,
                 avatar: payload.data.d.member.avatar,
                 flags: payload.data.d.member.flags,
                 communicationDisabledUntil: payload.data.d.member.premium_since,

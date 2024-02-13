@@ -156,6 +156,7 @@ export class GuildCreateListener extends Listener {
             if (stateMembers && member.user !== undefined) {
                 await this.store.drizzle.insert(members).values({
                     id: member.user.id,
+                    guildId: payload.data.d.id,
                     avatar: member.avatar,
                     flags: member.flags,
                     communicationDisabledUntil: member.communication_disabled_until,

@@ -37,6 +37,7 @@ export class GuildMemberAddListener extends Listener {
 
         await this.store.drizzle.insert(members).values({
             id: payload.data.d.user!.id,
+            guildId: payload.data.d.guild_id,
             avatar: payload.data.d.avatar,
             flags: payload.data.d.flags,
             communicationDisabledUntil: payload.data.d.premium_since,

@@ -13,17 +13,16 @@ import { setTimeout } from "node:timers";
 import { Collection } from "@discordjs/collection";
 import type { BootstrapOptions, WorkerReceivePayload, WorkerSendPayload, WorkerData, WebSocketShardDestroyOptions } from "@discordjs/ws";
 import { WebSocketShardEvents, WebSocketShard, WorkerReceivePayloadOp, WorkerSendPayloadOp } from "@discordjs/ws";
-import { RabbitMQ, ShardOp } from "@nezuchan/constants";
-import { createAmqpChannel, RoutingKey, RoutingKeyToId } from "@nezuchan/utilities";
+import { RabbitMQ } from "@nezuchan/constants";
+import { createAmqpChannel } from "@nezuchan/utilities";
 import { StoreRegistry } from "@sapphire/pieces";
-import type { Channel, ConsumeMessage } from "amqplib";
-import type { GatewaySendPayload } from "discord-api-types/v10";
+import type { Channel } from "amqplib";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "../../Schema/index.js";
 import type { Listener } from "../../Stores/Listener.js";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
-import { discordToken, storeLogs, lokiHost, amqp, clientId, databaseUrl } from "../../config.js";
+import { discordToken, storeLogs, lokiHost, amqp, databaseUrl } from "../../config.js";
 import { createLogger } from "../Logger.js";
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 
@@ -85,15 +84,7 @@ export class ProcessBootstrapper {
     public setupAmqp(): void {
         const amqpChannel = createAmqpChannel(amqp, {
             setup: async (channel: Channel) => {
-                await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "direct", { durable: false });
                 await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_SEND, "direct", { durable: false });
-                const { queue } = await channel.assertQueue("", { exclusive: true });
-
-                for (const shard of this.data.shardIds) {
-                    await channel.bindQueue(queue, RabbitMQ.GATEWAY_EXCHANGE, RoutingKey(clientId, shard));
-                }
-
-                await channel.consume(queue, async m => this.onConsumeMessage(channel, m));
             }
         });
 
@@ -109,40 +100,6 @@ export class ProcessBootstrapper {
                 amqp: amqpChannel
             })
         );
-    }
-
-    public async onConsumeMessage(channel: Channel, message: ConsumeMessage | null): Promise<void> {
-        if (!message) return;
-        channel.ack(message);
-        const content = JSON.parse(message.content.toString()) as { op: ShardOp; data: unknown; };
-        const shardId = RoutingKeyToId(clientId, message.fields.routingKey);
-        switch (content.op) {
-            case ShardOp.SEND: {
-                const shard = this.shards.get(shardId);
-                this.logger.debug(content, `Received message from AMQP to send to shard ${shardId}`);
-                if (shard) {
-                    await shard.send(content.data as GatewaySendPayload);
-                }
-                break;
-            }
-            case ShardOp.CONNECT: {
-                this.logger.debug(content, `Received message from AMQP to connect shard ${shardId}`);
-                await this.connect(shardId);
-                break;
-            }
-            case ShardOp.RESTART: {
-                const shard = this.shards.get(shardId);
-                this.logger.debug(content, `Received message from AMQP to restart shard ${shardId}`);
-                if (shard) {
-                    await this.destroy(shardId, content.data as WebSocketShardDestroyOptions);
-                    await this.connect(shardId);
-                }
-                break;
-            }
-
-            default:
-                break;
-        }
     }
 
     /**

@@ -17,26 +17,6 @@ export class MessageCreateListener extends Listener {
     }
 
     public async run(payload: { data: GatewayMessageCreateDispatch; shardId: number; }): Promise<void> {
-        if (stateMessages) {
-            await this.store.drizzle.insert(messages).values({
-                id: payload.data.d.id,
-                channelId: payload.data.d.channel_id,
-                content: payload.data.d.content,
-                applicationId: payload.data.d.application_id,
-                authorId: payload.data.d.author.id,
-                editedTimestamp: payload.data.d.edited_timestamp,
-                flags: payload.data.d.flags,
-                type: payload.data.d.type,
-                mentionEveryone: payload.data.d.mention_everyone,
-                pinned: payload.data.d.pinned,
-                position: payload.data.d.position,
-                timestamp: payload.data.d.timestamp,
-                tts: payload.data.d.tts,
-                webhookId: payload.data.d.webhook_id,
-                nonce: payload.data.d.nonce?.toString()
-            }).onConflictDoNothing({ target: messages.id });
-        }
-
         if (stateUsers) {
             await this.store.drizzle.insert(users).values({
                 id: payload.data.d.author.id,
@@ -76,6 +56,7 @@ export class MessageCreateListener extends Listener {
         if (stateMembers && payload.data.d.member !== undefined) {
             await this.store.drizzle.insert(members).values({
                 id: payload.data.d.author.id,
+                guildId: payload.data.d.guild_id,
                 avatar: payload.data.d.member.avatar,
                 flags: payload.data.d.member.flags,
                 joinedAt: payload.data.d.member.joined_at,
@@ -88,7 +69,6 @@ export class MessageCreateListener extends Listener {
             }).onConflictDoUpdate({
                 target: members.id,
                 set: {
-
                     avatar: payload.data.d.member.avatar,
                     flags: payload.data.d.member.flags,
                     joinedAt: payload.data.d.member.joined_at,
@@ -100,6 +80,26 @@ export class MessageCreateListener extends Listener {
                     premiumSince: payload.data.d.member.premium_since
                 }
             });
+
+            if (stateMessages) {
+                await this.store.drizzle.insert(messages).values({
+                    id: payload.data.d.id,
+                    channelId: payload.data.d.channel_id,
+                    content: payload.data.d.content,
+                    applicationId: payload.data.d.application_id,
+                    authorId: payload.data.d.author.id,
+                    editedTimestamp: payload.data.d.edited_timestamp,
+                    flags: payload.data.d.flags,
+                    type: payload.data.d.type,
+                    mentionEveryone: payload.data.d.mention_everyone,
+                    pinned: payload.data.d.pinned,
+                    position: payload.data.d.position,
+                    timestamp: payload.data.d.timestamp,
+                    tts: payload.data.d.tts,
+                    webhookId: payload.data.d.webhook_id,
+                    nonce: payload.data.d.nonce?.toString()
+                }).onConflictDoNothing({ target: messages.id });
+            }
 
             await this.store.drizzle.delete(memberRoles).where(eq(memberRoles.id, payload.data.d.author.id));
 
