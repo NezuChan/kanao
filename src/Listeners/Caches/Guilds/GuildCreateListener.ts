@@ -232,7 +232,21 @@ export class GuildCreateListener extends Listener {
                         selfStream: voice.self_stream,
                         selfVideo: voice.self_video,
                         suppress: voice.suppress
-                    }).onConflictDoUpdate({ target: voiceStates.channelId, set: { sessionId: voice.session_id } });
+                    }).onConflictDoUpdate({
+                        target: voiceStates.memberId,
+                        set: {
+                            channelId: voice.channel_id,
+                            sessionId: voice.session_id,
+                            deaf: voice.deaf,
+                            mute: voice.mute,
+                            requestToSpeakTimestamp: voice.request_to_speak_timestamp,
+                            selfDeaf: voice.self_deaf,
+                            selfMute: voice.self_mute,
+                            selfStream: voice.self_stream,
+                            selfVideo: voice.self_video,
+                            suppress: voice.suppress
+                        }
+                    });
                 }
             }
         }
