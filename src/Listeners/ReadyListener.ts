@@ -13,9 +13,11 @@ export class ReadyListener extends Listener {
 
     public async run(payload: { data: { data: GatewayReadyDispatch["d"]; }; shardId: number; }): Promise<void> {
         this.logger.info(`Shard ${payload.shardId} is ready !`);
-        await this.store.drizzle.insert(guilds).values(payload.data.data.guilds.map(x => ({
-            id: x.id,
-            available: x.unavailable
-        }))).onConflictDoNothing({ target: guilds.id });
+        if (payload.data.data.guilds.length > 0) {
+            await this.store.drizzle.insert(guilds).values(payload.data.data.guilds.map(x => ({
+                id: x.id,
+                available: x.unavailable
+            }))).onConflictDoNothing({ target: guilds.id });
+        }
     }
 }
