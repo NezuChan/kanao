@@ -107,7 +107,7 @@ export class NezuGateway extends EventEmitter {
 
         this.ws.on(WebSocketShardEvents.Debug, ({ message }) => this.logger.debug(message));
 
-        if (gatewayGuildPerShard) {
+        if (gatewayGuildPerShard && gatewayShardCount === null) {
             const { shards } = await this.ws.fetchGatewayInformation(true);
             this.ws.options.shardCount = Number(Math.ceil((shards * (1_000 / Number(gatewayGuildPerShard))) / 1));
         }
