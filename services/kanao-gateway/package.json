@@ -18,6 +18,7 @@
     "@discordjs/rest": "^2.2.0",
     "@discordjs/ws": "^1.0.2",
     "@nezuchan/constants": "^0.8.0",
+    "@nezuchan/kanao-schema": "workspace:^",
     "@nezuchan/utilities": "^0.6.2",
     "@sapphire/pieces": "^4.2.2",
     "@sapphire/result": "^2.6.6",

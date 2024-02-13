@@ -1,6 +1,6 @@
 import { WebSocketShardEvents } from "@discordjs/ws";
+import { guilds } from "@nezuchan/kanao-schema";
 import type { GatewayReadyDispatch } from "discord-api-types/v10";
-import { guilds } from "../Schema/index.js";
 import type { ListenerContext } from "../Stores/Listener.js";
 import { Listener } from "../Stores/Listener.js";
 

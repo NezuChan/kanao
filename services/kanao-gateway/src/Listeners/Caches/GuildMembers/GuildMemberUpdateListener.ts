@@ -1,10 +1,10 @@
 import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
+import { memberRoles, members, users } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildMemberUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import { eq } from "drizzle-orm";
-import { memberRoles, members, users } from "../../../Schema/index.js";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateMembers, stateUsers } from "../../../config.js";

@@ -1,6 +1,6 @@
 import type { WebSocketShard } from "@discordjs/ws";
 import { WebSocketShardEvents } from "@discordjs/ws";
-import { status } from "../Schema/collections/status.js";
+import { status } from "@nezuchan/kanao-schema";
 import type { ListenerContext } from "../Stores/Listener.js";
 import { Listener } from "../Stores/Listener.js";
 

@@ -1,0 +1,28 @@
+{
+  "name": "@nezuchan/kanao-schema",
+  "version": "1.0.0",
+  "description": "Cache schema for Kanao Gateway",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "import": "./dist/index.js",
+    "require": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "rimraf dist && tsc",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix"
+  },
+  "keywords": [],
+  "author": "KagChi",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "drizzle-kit": "^0.20.14"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.29.3",
+    "tslib": "^2.6.2"
+  }
+}

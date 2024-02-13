@@ -1,9 +1,9 @@
 import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
+import { roles } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildRoleUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { roles } from "../../../Schema/index.js";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateRoles } from "../../../config.js";
