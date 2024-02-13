@@ -1,18 +1,87 @@
-name: Build & Push to container registry
+name: Build & Push Docker Image to container image registry
 
 on:
-  release:
-    types: [created]
-  push:
-    branches:
-      - "**"
-  pull_request:
-    branches:
-      - "**"
-    paths:
-      - "Dockerfile"
+  workflow_call:
+    inputs:
+      ADD_FLAVOR:
+        description: "Whether to add flavor (only -dev atm) to the image tag"
+        type: boolean
+        required: false
+        default: true
+      NO_CACHE:
+        description: "Whether to use build cache"
+        type: boolean
+        required: false
+        default: false
+      SCOPE:
+        description: "Scope of the image (e.g. 'bot')"
+        type: string
+        required: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  docker:
-    uses: nezuchan/workflows/.github/workflows/docker-build.yml@main
-    secrets: inherit
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        scope: ${{ fromJson(inputs.SCOPE) }}
+    steps:
+      - name: Check Out Repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 2
+
+      #- name: Set up QEMU (We don't need QEMU, because we don't build images for platforms other than linux/amd64, which is our current native arch in our infra
+      #  uses: docker/setup-qemu-action@v1.2.0
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        if: ${{ github.event_name != 'pull_request' }}
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract tag name
+        id: tags
+        if: ${{ github.event_name == 'release' }}
+        run: echo ::set-output name=name::${GITHUB_REF##*/}
+
+      - name: Extract flavor
+        id: flavor
+        if: ${{ inputs.ADD_FLAVOR == true }}
+        run: if [ "${{ github.event_name }}" = "release" ]; then echo ::set-output name=name::; else echo ::set-output name=name::-dev; fi
+
+      - name: Generate Docker image metadata
+        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
+        id: img_meta
+        with:
+          flavor: |
+            latest=auto
+            suffix=${{ steps.flavor.outputs.name }}
+          images: ghcr.io/nezuchan/${{ matrix.scope }}
+          tags: |
+            ${{ steps.tags.outputs.name }}
+            latest
+
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+        with:
+          context: ./
+          tags: ${{ steps.img_meta.outputs.tags }}
+          labels: ${{ steps.img_meta.outputs.labels }}
+          push: ${{ github.event_name != 'pull_request' }}
+          build-args: |
+            "SCOPE=@nezuchan/${{ matrix.scope }}"
+          cache-from: type=gha,mode=max
+          cache-to: type=gha,mode=max
+          no-cache: ${{ inputs.NO_CACHE == true }}

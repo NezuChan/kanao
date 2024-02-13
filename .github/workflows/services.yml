@@ -1,0 +1,45 @@
+# Copyright 2023 Hazmi35 (https://github.com/Hazmi35)
+name: Services Nightly Builds
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "Dockerfile"
+      - "services/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "Dockerfile"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      folders: ${{ steps.json.outputs.folders }}
+    steps:
+      - name: Check Out Repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          fetch-depth: 2
+      - name: List changed folders
+        id: changed
+        run: |
+          echo ::set-output name=folders::$(git diff --name-only HEAD~1 HEAD | grep -E 'services/.*' | cut -d'/' -f2 | sort | uniq | tr '\n' ',' | sed 's/,$//')
+      - name: List all folders if no changes
+        if: steps.changed.outputs.folders == ''
+        id: all
+        run: |
+          echo ::set-output name=folders::$(ls services | tr '\n' ',' | sed 's/,$//')
+      - name: Turn output into JSON array
+        id: json
+        run: |
+          echo ::set-output name=folders::[$(echo ${{ steps.changed.outputs.folders || steps.all.outputs.folders }} | sed 's/,/","/g;s/^/"/;s/$/"/')]
+  docker:
+    needs: build
+    uses: ./.github/workflows/docker.yml
+    with:
+      scope: ${{ needs.build.outputs.folders }}
+    secrets: inherit
