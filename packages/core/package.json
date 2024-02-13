@@ -1,0 +1,50 @@
+{
+  "name": "@nezuchan/core",
+  "version": "0.7.3",
+  "description": "A Core Low Level API for creating Discord bots using @nezuchan/nezu-gateway.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint src --ext ts",
+    "lint:fix": "eslint src --fix --ext ts",
+    "build": "rimraf dist && tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NezuChan/library"
+  },
+  "homepage": "https://nezu.my.id",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "import": "./dist/index.js"
+  },
+  "type": "module",
+  "files": [
+    "dist/**",
+    "LICENSE",
+    "README.md",
+    "package.json",
+    "pnpm-lock.yaml"
+  ],
+  "author": "KagChi",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "@types/amqplib": "^0.10.4"
+  },
+  "dependencies": {
+    "@cordis/bitfield": "^1.2.0",
+    "@discordjs/rest": "^2.2.0",
+    "@nezuchan/constants": "^0.8.0",
+    "@nezuchan/decorators": "^0.2.0",
+    "@nezuchan/utilities": "^0.6.2",
+    "@sapphire/pieces": "^4.2.2",
+    "@sapphire/result": "^2.6.6",
+    "@sapphire/snowflake": "^3.5.3",
+    "@sapphire/utilities": "^3.15.3",
+    "amqp-connection-manager": "^4.1.14",
+    "discord-api-types": "^0.37.69",
+    "ioredis": "^5.3.2",
+    "tslib": "^2.6.2"
+  }
+}
