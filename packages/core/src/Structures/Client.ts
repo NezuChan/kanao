@@ -8,13 +8,17 @@ import process from "node:process";
 import { URLSearchParams } from "node:url";
 import { REST } from "@discordjs/rest";
 import { RabbitMQ, RedisKey } from "@nezuchan/constants";
-import { GenKey, RoutingKey, createAmqpChannel, createRedis } from "@nezuchan/utilities";
+import * as schema from "@nezuchan/kanao-schema";
+import { GenKey, RoutingKey, createAmqpChannel } from "@nezuchan/utilities";
 import { Result } from "@sapphire/result";
 import type { ChannelWrapper } from "amqp-connection-manager";
 import type { Channel } from "amqplib";
-import type { APIChannel, APIGuild, APIGuildMember, APIMessage, APIUser, GatewayGuildMemberRemoveDispatchData, GatewayVoiceState, RESTPostAPIChannelMessageJSONBody } from "discord-api-types/v10";
+import type { APIChannel, APIGuild, APIGuildMember, APIMessage, APIUser, GatewayVoiceState, RESTPostAPIChannelMessageJSONBody } from "discord-api-types/v10";
 import { ChannelType, Routes } from "discord-api-types/v10";
-import type { Cluster, Redis } from "ioredis";
+import { and, eq } from "drizzle-orm";
+import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import { Events } from "../Enums/Events.js";
 import type { ClientOptions } from "../Typings/index.js";
 import type { BaseChannel } from "./Channels/BaseChannel.js";
@@ -28,13 +32,12 @@ import { User } from "./User.js";
 import { VoiceState } from "./VoiceState.js";
 
 export class Client extends EventEmitter {
+    public drizzle: PostgresJsDatabase<typeof schema>;
     public clientId: string;
     public rest = new REST({
         api: process.env.HTTP_PROXY ?? process.env.PROXY ?? process.env.NIRN_PROXY ?? "https://discord.com/api",
         rejectOnRateLimit: (process.env.PROXY ?? process.env.NIRN_PROXY) === undefined ? null : () => false
     });
-
-    public redis: Cluster | Redis;
 
     public amqp!: ChannelWrapper;
 
@@ -42,14 +45,15 @@ export class Client extends EventEmitter {
         public options: ClientOptions
     ) {
         super();
-        this.redis = createRedis(this.options.redis);
 
         if (options.rest) {
             this.rest.options.api = options.rest;
         }
 
+        this.drizzle = drizzle(postgres(options.databaseUrl), { schema });
+
         options.token ??= process.env.DISCORD_TOKEN;
-        this.clientId = options.clientId ?? Buffer.from(options.token!.split(".")[0], "base64").toString();
+        this.clientId = Buffer.from(options.token!.split(".")[0], "base64").toString();
     }
 
     public connect(): void {
@@ -76,16 +80,59 @@ export class Client extends EventEmitter {
 
     public async resolveMember({ force = false, fetch = true, cache, id, guildId }: { force?: boolean | undefined; fetch?: boolean; cache?: boolean | undefined; id: string; guildId: string; }): Promise<GuildMember | undefined> {
         if (force) {
-            const member = await Result.fromAsync(async () => this.rest.get(Routes.guildMember(guildId, id)));
-            if (member.isOk()) {
-                if (cache) await this.redis.set(GenKey(this.clientId, RedisKey.MEMBER_KEY, id, guildId), JSON.stringify(member));
-                return new GuildMember({ ...member.unwrap() as APIGuildMember | GatewayGuildMemberRemoveDispatchData, id, guild_id: guildId }, this);
+            const result = await Result.fromAsync<APIGuildMember>(async () => this.rest.get(Routes.guildMember(guildId, id)) as unknown as Promise<APIGuildMember>);
+            if (result.isOk()) {
+                const member = result.unwrap();
+                if (cache) {
+                    await this.drizzle.insert(schema.members).values({
+                        id,
+                        guildId,
+                        avatar: member.avatar,
+                        flags: member.flags,
+                        communicationDisabledUntil: member.communication_disabled_until,
+                        deaf: member.deaf,
+                        joinedAt: member.joined_at,
+                        mute: member.mute,
+                        nick: member.nick,
+                        pending: member.pending,
+                        premiumSince: member.premium_since
+                    }).onConflictDoUpdate({
+                        target: schema.members.id,
+                        set: {
+                            avatar: member.avatar,
+                            flags: member.flags,
+                            communicationDisabledUntil: member.communication_disabled_until,
+                            deaf: member.deaf,
+                            joinedAt: member.joined_at,
+                            mute: member.mute,
+                            nick: member.nick,
+                            pending: member.pending,
+                            premiumSince: member.premium_since
+                        }
+                    });
+                }
+                return new GuildMember({
+                    id,
+                    guildId,
+                    avatar: member.avatar ?? null,
+                    flags: member.flags as unknown as number,
+                    communicationDisabledUntil: member.communication_disabled_until ?? null,
+                    deaf: member.deaf,
+                    joinedAt: member.joined_at,
+                    mute: member.mute,
+                    nick: member.nick ?? null,
+                    pending: member.pending ?? false,
+                    premiumSince: member.premium_since ?? null
+                }, this);
             }
         }
 
-        const cached_member = await this.redis.get(GenKey(this.clientId, RedisKey.MEMBER_KEY, id, guildId));
-        if (cached_member) {
-            return new GuildMember({ ...JSON.parse(cached_member), id, guild_id: guildId }, this);
+        const member = await this.drizzle.query.members.findFirst({
+            where: () => and(eq(schema.members.id, id), eq(schema.members.guildId, guildId))
+        });
+
+        if (member) {
+            return new GuildMember(member, this);
         }
 
         if (fetch) {

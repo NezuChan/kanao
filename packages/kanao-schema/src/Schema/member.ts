@@ -14,6 +14,5 @@ export const members = pgTable("members", {
     deaf: boolean("deaf"),
     mute: boolean("mute"),
     pending: boolean("pending"),
-    permissions: integer("permissions"),
     communicationDisabledUntil: text("communication_disabled_until")
 });

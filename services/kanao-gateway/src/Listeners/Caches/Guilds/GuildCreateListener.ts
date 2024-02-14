@@ -131,24 +131,24 @@ export class GuildCreateListener extends Listener {
                 await this.store.drizzle.insert(users).values({
                     id: member.user.id,
                     username: member.user.username,
-                    discriminator: member.user?.discriminator ?? null,
-                    globalName: member.user?.global_name ?? null,
-                    avatar: member.user?.avatar ?? null,
-                    bot: member.user?.bot ?? false,
-                    flags: member.user?.flags,
-                    premiumType: member.user?.premium_type,
-                    publicFlags: member.user?.public_flags
+                    discriminator: member.user.discriminator ?? null,
+                    globalName: member.user.global_name ?? null,
+                    avatar: member.user.avatar ?? null,
+                    bot: member.user.bot ?? false,
+                    flags: member.user.flags,
+                    premiumType: member.user.premium_type,
+                    publicFlags: member.user.public_flags
                 }).onConflictDoUpdate({
                     target: users.id,
                     set: {
                         username: member.user.username,
-                        discriminator: member.user?.discriminator ?? null,
-                        globalName: member.user?.global_name ?? null,
-                        avatar: member.user?.avatar ?? null,
-                        bot: member.user?.bot ?? false,
-                        flags: member.user?.flags,
-                        premiumType: member.user?.premium_type,
-                        publicFlags: member.user?.public_flags
+                        discriminator: member.user.discriminator ?? null,
+                        globalName: member.user.global_name ?? null,
+                        avatar: member.user.avatar ?? null,
+                        bot: member.user.bot ?? false,
+                        flags: member.user.flags,
+                        premiumType: member.user.premium_type,
+                        publicFlags: member.user.public_flags
                     }
                 });
             }
@@ -184,7 +184,8 @@ export class GuildCreateListener extends Listener {
                 for (const role of member.roles) {
                     await this.store.drizzle.insert(memberRoles).values({
                         id: member.user.id,
-                        roleId: role
+                        roleId: role,
+                        guildId: payload.data.d.id
                     }).onConflictDoNothing({ target: memberRoles.id });
                 }
             }

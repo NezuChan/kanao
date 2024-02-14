@@ -1,38 +1,35 @@
-/* eslint-disable unicorn/no-nested-ternary */
 import type { BaseImageURLOptions } from "@discordjs/rest";
-import type { APIGuildMember, GatewayGuildMemberRemoveDispatch } from "discord-api-types/v10";
+import { memberRoles, members, roles } from "@nezuchan/kanao-schema";
+import { and, eq } from "drizzle-orm";
+import type { InferSelectModel } from "drizzle-orm";
 import { Base } from "./Base.js";
-import type { Role } from "./Role.js";
-import { User } from "./User.js";
+import { Role } from "./Role.js";
+import type { User } from "./User.js";
 import type { VoiceState } from "./VoiceState.js";
 
-export class GuildMember extends Base<APIGuildMember | GatewayGuildMemberRemoveDispatch["d"]> {
+export class GuildMember extends Base<InferSelectModel<typeof members>> {
     public get id(): string {
-        return this.data.id ?? this.data.user!.id;
+        return this.data.id;
     }
 
-    public get guildId(): string | undefined {
-        return "guild_id" in this.data ? this.data.guild_id : undefined;
+    public get guildId(): string | null {
+        return this.data.guildId;
     }
 
-    public get nickname(): string | null | undefined {
-        return "nick" in this.data ? this.data.nick : null;
+    public get nickname(): string | null {
+        return this.data.nick;
     }
 
-    public get roles(): string[] {
-        return "roles" in this.data ? this.data.roles : [];
+    public get joinedAt(): Date | null {
+        return this.data.joinedAt ? new Date(this.data.joinedAt) : null;
     }
 
-    public get joinedAt(): Date | undefined {
-        return "joined_at" in this.data ? this.data.joined_at && this.data.joined_at ? new Date(this.data.joined_at) : undefined : undefined;
-    }
-
-    public get premiumSince(): Date | undefined {
-        return "premium_since" in this.data ? this.data.premium_since && this.data.premium_since ? new Date(this.data.premium_since) : undefined : undefined;
+    public get premiumSince(): Date | null {
+        return this.data.premiumSince ? new Date(this.data.premiumSince) : null;
     }
 
     public get communicationDisabledUntilTimestamp(): number | null {
-        return "communication_disabled_until" in this.data && this.data.communication_disabled_until ? Date.parse(this.data.communication_disabled_until) : null;
+        return this.data.communicationDisabledUntil ? Date.parse(this.data.communicationDisabledUntil) : null;
     }
 
     public get communicationDisabledUntil(): Date | null {
@@ -40,7 +37,7 @@ export class GuildMember extends Base<APIGuildMember | GatewayGuildMemberRemoveD
     }
 
     public displayAvatarURL(options?: BaseImageURLOptions): string | null {
-        return "avatar" in this.data && this.data.avatar ? this.client.rest.cdn.guildMemberAvatar(this.guildId!, this.id, this.data.avatar, options) : null;
+        return this.data.avatar ? this.client.rest.cdn.guildMemberAvatar(this.guildId!, this.id, this.data.avatar, options) : null;
     }
 
     public async manageable(): Promise<boolean> {
@@ -53,30 +50,32 @@ export class GuildMember extends Base<APIGuildMember | GatewayGuildMemberRemoveD
         if (!clientMember) return false;
 
         const clientRoles = await clientMember.resolveRoles();
-        const memberRoles = await this.resolveRoles();
+        const mRoles = await this.resolveRoles();
 
-        if (clientRoles[0].position > memberRoles[0].position) return true;
+        if (clientRoles[0].position > mRoles[0].position) return true;
         return false;
     }
 
     public async resolveRoles(): Promise<Role[]> {
-        const roles = [];
+        const mRoles = [];
         if (this.guildId) {
-            for (const id of this.roles) {
-                const role = await this.client.resolveRole({ id, guildId: this.guildId });
-                if (role) roles.push(role);
-            }
+            const guildMemberRoles = await this.client.drizzle.select({
+                role: roles
+            }).from(memberRoles)
+                .where(and(eq(memberRoles.id, this.id), eq(memberRoles.guildId, this.guildId)))
+                .leftJoin(roles, and(eq(memberRoles.id, this.id), eq(memberRoles.guildId, this.guildId)));
+
+            // for (const role of guildMemberRoles) {
+            //     roles.push(new Role(role));
+            // }
+
             const everyoneRole = await this.client.resolveRole({ id: this.guildId, guildId: this.guildId });
-            if (everyoneRole) roles.push(everyoneRole);
+            if (everyoneRole) mRoles.push(everyoneRole);
         }
-        return roles.sort((a, b) => b.position - a.position);
+        return [];
     }
 
     public async resolveUser({ force = false, cache = true }: { force?: boolean; cache?: boolean; }): Promise<User | undefined> {
-        if (this.data.user) {
-            return new User(this.data.user, this.client);
-        }
-
         return this.client.resolveUser({ id: this.id, force, cache });
     }
 
