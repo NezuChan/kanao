@@ -1,18 +1,19 @@
 import type { ImageURLOptions } from "@discordjs/rest";
+import type { users } from "@nezuchan/kanao-schema";
 import { DiscordSnowflake } from "@sapphire/snowflake";
-import type { APIUser } from "discord-api-types/v10";
+import type { InferSelectModel } from "drizzle-orm";
 import { Base } from "./Base.js";
 
-export class User extends Base<APIUser> {
-    public get username(): string {
+export class User extends Base<Partial<InferSelectModel<typeof users>>> {
+    public get username(): string | undefined {
         return this.data.username;
     }
 
-    public get discriminator(): string {
+    public get discriminator(): string | null | undefined {
         return this.data.discriminator;
     }
 
-    public get avatar(): string | null {
+    public get avatar(): string | null | undefined {
         return this.data.avatar;
     }
 
@@ -20,12 +21,8 @@ export class User extends Base<APIUser> {
         return Boolean(this.data.bot);
     }
 
-    public get system(): boolean {
-        return Boolean(this.data.system);
-    }
-
     public get accentColor(): number | null | undefined {
-        return this.data.accent_color;
+        return this.data.accentColor;
     }
 
     public get banner(): string | null | undefined {

@@ -1,47 +1,48 @@
-import type { GatewayVoiceState } from "discord-api-types/v10";
+import type { voiceStates } from "@nezuchan/kanao-schema";
+import type { InferSelectModel } from "drizzle-orm";
 import { Base } from "./Base.js";
 import type { GuildMember } from "./GuildMember.js";
 
-export class VoiceState extends Base<GatewayVoiceState> {
-    public get guildId(): string {
-        return this.data.guild_id!;
+export class VoiceState extends Base<InferSelectModel<typeof voiceStates>> {
+    public get id(): string {
+        return this.data.memberId;
     }
 
-    public get userId(): string {
-        return this.data.user_id;
+    public get guildId(): string {
+        return this.data.guildId!;
     }
 
     public get channelId(): string | null {
-        return this.data.channel_id;
+        return this.data.channelId;
     }
 
     public get sessionId(): string {
-        return this.data.session_id;
+        return this.data.sessionId!;
     }
 
     public get deaf(): boolean {
-        return this.data.deaf;
+        return this.data.deaf!;
     }
 
     public get mute(): boolean {
-        return this.data.mute;
+        return this.data.mute!;
     }
 
     public get selfDeaf(): boolean {
-        return this.data.self_deaf;
+        return this.data.selfDeaf!;
     }
 
     public get selfMute(): boolean {
-        return this.data.self_mute;
+        return this.data.selfMute!;
     }
 
     public get requestToSpeakTimestamp(): Date | null {
-        return this.data.request_to_speak_timestamp ? new Date(this.data.request_to_speak_timestamp) : null;
+        return this.data.requestToSpeakTimestamp ? new Date(this.data.requestToSpeakTimestamp) : null;
     }
 
     public async resolveMember({ force = false, cache = true }: { force?: boolean; cache?: boolean; }): Promise<GuildMember | undefined> {
-        if (this.guildId && this.userId) {
-            return this.client.resolveMember({ id: this.userId, guildId: this.guildId, force, cache });
+        if (this.guildId && this.id) {
+            return this.client.resolveMember({ id: this.id, guildId: this.guildId, force, cache });
         }
 
         return undefined;

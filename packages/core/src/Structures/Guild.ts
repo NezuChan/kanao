@@ -1,16 +1,18 @@
 import type { BaseImageURLOptions } from "@discordjs/rest";
+import type { guilds } from "@nezuchan/kanao-schema";
 import { DiscordSnowflake } from "@sapphire/snowflake";
-import type { APIGuild, GatewayGuildCreateDispatchData, GuildDefaultMessageNotifications, GuildExplicitContentFilter, GuildMFALevel } from "discord-api-types/v10";
-import { GuildFeature, GuildPremiumTier } from "discord-api-types/v10";
+import type { APIGuild, GuildDefaultMessageNotifications, GuildExplicitContentFilter, GuildMFALevel } from "discord-api-types/v10";
+import { GuildPremiumTier } from "discord-api-types/v10";
+import type { InferSelectModel } from "drizzle-orm";
 import { Base } from "./Base.js";
 
-export class Guild extends Base<APIGuild | GatewayGuildCreateDispatchData> {
+export class Guild extends Base<Partial<InferSelectModel<typeof guilds>>> {
     public get name(): string {
-        return this.data.name;
+        return this.data.name!;
     }
 
     public get description(): string | null {
-        return this.data.description;
+        return this.data.description!;
     }
 
     public get available(): boolean {
@@ -18,59 +20,51 @@ export class Guild extends Base<APIGuild | GatewayGuildCreateDispatchData> {
     }
 
     public get discoverySplash(): string | null {
-        return this.data.discovery_splash ?? null;
+        return this.data.discoverySplash ?? null;
     }
 
     public get memberCount(): number {
-        return "member_count" in this.data ? this.data.member_count : 0;
-    }
-
-    public get large(): boolean {
-        return Boolean("large" in this.data ? this.data.large : false);
+        return this.memberCount;
     }
 
     public get premiumProgressBarEnabled(): boolean {
-        return Boolean(this.data.premium_progress_bar_enabled);
-    }
-
-    public get applicationId(): string | null {
-        return this.data.application_id;
+        return Boolean(this.data.premiumProgressBarEnabled);
     }
 
     public get afkTimeout(): APIGuild["afk_timeout"] {
-        return this.data.afk_timeout;
+        return this.data.afkTimeout as APIGuild["afk_timeout"];
     }
 
-    public get afkChannelId(): string | null {
-        return this.data.afk_channel_id;
+    public get afkChannelId(): string | null | undefined {
+        return this.data.afkChannelId;
     }
 
-    public get systemChannelId(): string | null {
-        return this.data.system_channel_id;
+    public get systemChannelId(): string | null | undefined {
+        return this.data.systemChannelId;
     }
 
     public get premiumTier(): GuildPremiumTier {
-        return this.data.premium_tier;
+        return this.data.premiumTier as GuildPremiumTier;
     }
 
-    public get premiumSubscriptionCount(): number | undefined {
-        return this.data.premium_subscription_count;
+    public get premiumSubscriptionCount(): number | null | undefined {
+        return this.data.premiumSubscriptionCount;
     }
 
     public get widgetEnabled(): boolean {
-        return Boolean(this.data.widget_enabled);
+        return Boolean(this.data.widgetEnabled);
     }
 
     public get widgetChannelId(): string | null | undefined {
-        return this.data.widget_channel_id;
+        return this.data.widgetChannelId;
     }
 
     public get explicitContentFilter(): GuildExplicitContentFilter {
-        return this.data.explicit_content_filter;
+        return this.data.explicitContentFilter as GuildExplicitContentFilter;
     }
 
     public get mfaLevel(): GuildMFALevel {
-        return this.data.mfa_level;
+        return this.data.mfaLevel as GuildMFALevel;
     }
 
     public get createdTimestamp(): number {
@@ -81,63 +75,51 @@ export class Guild extends Base<APIGuild | GatewayGuildCreateDispatchData> {
         return new Date(this.createdTimestamp);
     }
 
-    public get joinedTimestamp(): number {
-        return "joined_at" in this.data ? Date.parse(this.data.joined_at) : 0;
-    }
-
     public get defaultMessageNotifications(): GuildDefaultMessageNotifications {
-        return this.data.default_message_notifications;
+        return this.data.defaultMessageNotifications as GuildDefaultMessageNotifications;
     }
 
-    public get maximumMembers(): number | undefined {
-        return this.data.max_members;
+    public get maximumMembers(): number | null | undefined {
+        return this.data.maxMembers;
     }
 
     public get maximumPresences(): number | null | undefined {
-        return this.data.max_presences;
+        return this.data.maxMembers;
     }
 
-    public get maxVideoChannelUsers(): number | undefined {
-        return this.data.max_video_channel_users;
+    public get maxVideoChannelUsers(): number | null | undefined {
+        return this.data.maxVideoChannelUsers;
     }
 
-    public get approximateMemberCount(): number | undefined {
-        return this.data.approximate_member_count;
+    public get approximateMemberCount(): number | null | undefined {
+        return this.data.approximateMemberCount;
     }
 
-    public get rulesChannelId(): string | null {
-        return this.data.rules_channel_id;
+    public get rulesChannelId(): string | null | undefined {
+        return this.data.rulesChannelId;
     }
 
-    public get publicUpdatesChannelId(): string | null {
-        return this.data.public_updates_channel_id;
+    public get publicUpdatesChannelId(): string | null | undefined {
+        return this.data.publicUpdatesChannelId;
     }
 
-    public get ownerId(): string | null {
-        return this.data.owner_id;
+    public get ownerId(): string | null | undefined {
+        return this.data.ownerId;
     }
 
-    public get joinedAt(): Date {
-        return new Date(this.joinedTimestamp);
-    }
-
-    public get features(): APIGuild["features"] {
-        return this.data.features;
-    }
-
-    public get icon(): string | null {
+    public get icon(): string | null | undefined {
         return this.data.icon;
     }
 
-    public get banner(): string | null {
+    public get banner(): string | null | undefined {
         return this.data.banner;
     }
 
-    public bannerURL(options?: BaseImageURLOptions): string | null {
+    public bannerURL(options?: BaseImageURLOptions): string | null | undefined {
         return this.banner && this.client.rest.cdn.banner(this.id, this.banner, options);
     }
 
-    public iconURL(options?: BaseImageURLOptions): string | null {
+    public iconURL(options?: BaseImageURLOptions): string | null | undefined {
         return this.icon && this.client.rest.cdn.icon(this.id, this.icon, options);
     }
 
@@ -146,10 +128,6 @@ export class Guild extends Base<APIGuild | GatewayGuildCreateDispatchData> {
     }
 
     public get maximumBitrate(): 96_000 | 128_000 | 256_000 | 384_000 {
-        if (this.features.includes(GuildFeature.VIPRegions)) {
-            return 384_000;
-        }
-
         switch (this.premiumTier) {
             case GuildPremiumTier.Tier1:
                 return 128_000;

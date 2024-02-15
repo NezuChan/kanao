@@ -36,8 +36,8 @@ export class BaseInteraction extends Base<GatewayInteractionCreateDispatchData> 
         return this.data.channel?.id ?? null;
     }
 
-    public get guildId(): Snowflake | undefined {
-        return this.data.guild_id;
+    public get guildId(): Snowflake | null {
+        return this.data.guild_id ?? null;
     }
 
     public get channel(): Partial<APIChannel> & Pick<APIChannel, "id" | "type"> | undefined {
@@ -53,7 +53,21 @@ export class BaseInteraction extends Base<GatewayInteractionCreateDispatchData> 
     }
 
     public get member(): GuildMember | null {
-        return this.data.member ? new GuildMember({ id: this.data.member.user.id, ...this.data.member }, this.client) : null;
+        return this.data.member
+            ? new GuildMember({
+                id: this.data.user!.id,
+                guildId: this.guildId,
+                nick: this.data.member.nick ?? null,
+                avatar: this.data.member.avatar ?? null,
+                flags: this.data.member.flags,
+                joinedAt: this.data.member.joined_at,
+                premiumSince: this.data.member.premium_since ?? null,
+                deaf: this.data.member.deaf,
+                mute: this.data.member.mute,
+                pending: this.data.member.pending ?? null,
+                communicationDisabledUntil: this.data.member.communication_disabled_until ?? null
+            }, this.client)
+            : null;
     }
 
     public async resolveClientMember({ force, cache }: { force?: boolean; cache: boolean; } = { force: false, cache: true }): Promise<GuildMember | undefined> {

@@ -20,7 +20,6 @@ export const channels = pgTable("channels", {
     videoQualityMode: integer("video_quality_mode"),
     messageCount: integer("message_count"),
     defaultAutoArchiveDuration: integer("default_auto_archive_duration"),
-    permissions: text("permissions"),
     flags: integer("flags"),
 
     guildId: text("guild_id").references(() => guilds.id, { onDelete: "cascade" })

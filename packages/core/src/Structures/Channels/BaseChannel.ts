@@ -1,5 +1,9 @@
-import type { APIChannel, APIOverwrite, ChannelFlags, RESTPostAPIChannelMessageJSONBody } from "discord-api-types/v10";
+import { channelsOverwrite } from "@nezuchan/kanao-schema";
+import type { channels } from "@nezuchan/kanao-schema";
+import type { ChannelFlags, RESTPostAPIChannelMessageJSONBody } from "discord-api-types/v10";
 import { ChannelType, OverwriteType, PermissionFlagsBits } from "discord-api-types/v10";
+import { eq } from "drizzle-orm";
+import type { InferSelectModel } from "drizzle-orm";
 import { Base } from "../Base.js";
 import type { Guild } from "../Guild.js";
 import type { GuildMember } from "../GuildMember.js";
@@ -8,29 +12,29 @@ import { PermissionsBitField } from "../PermissionsBitField.js";
 import type { TextChannel } from "./TextChannel.js";
 import type { VoiceChannel } from "./VoiceChannel.js";
 
-export class BaseChannel extends Base<APIChannel> {
-    public get guildId(): string | undefined {
-        return "guild_id" in this.data ? this.data.guild_id : undefined;
+export class BaseChannel extends Base<Partial<InferSelectModel<typeof channels>>> {
+    public get guildId(): string | null | undefined {
+        return this.data.guildId;
     }
 
-    public get name(): string | null {
+    public get name(): string | null | undefined {
         return this.data.name;
     }
 
     public get type(): ChannelType {
-        return this.data.type;
+        return this.data.type!;
     }
 
-    public get flags(): ChannelFlags | undefined {
+    public get flags(): ChannelFlags | null | undefined {
         return this.data.flags;
     }
 
-    public get position(): number | undefined {
-        return "position" in this.data ? this.data.position : undefined;
+    public get position(): number | null | undefined {
+        return this.data.position;
     }
 
-    public get parentId(): string | undefined {
-        return "parent_id" in this.data ? this.data.parent_id ?? undefined : undefined;
+    public get parentId(): string | null | undefined {
+        return this.data.parentId;
     }
 
     public async send(options: RESTPostAPIChannelMessageJSONBody): Promise<Message> {
@@ -51,8 +55,10 @@ export class BaseChannel extends Base<APIChannel> {
         return ![ChannelType.GuildCategory, ChannelType.GuildDirectory, ChannelType.GuildForum].includes(this.type);
     }
 
-    public get permissionOverwrites(): APIOverwrite[] {
-        return "permission_overwrites" in this.data ? this.data.permission_overwrites ?? [] : [];
+    public async resolveOverwrites(): Promise<InferSelectModel<typeof channelsOverwrite>[]> {
+        return this.client.drizzle.query.channelsOverwrite.findMany({
+            where: () => eq(channelsOverwrite.id, this.id)
+        });
     }
 
     public async permissionsForMember(member: GuildMember): Promise<PermissionsBitField> {
@@ -77,8 +83,8 @@ export class BaseChannel extends Base<APIChannel> {
             member: { allow: 0n, deny: 0n }
         };
 
-        for (const overwrite of this.permissionOverwrites) {
-            if (overwrite.type === OverwriteType.Role) {
+        for (const overwrite of await this.resolveOverwrites()) {
+            if (overwrite.type === OverwriteType.Role && overwrite.deny !== null && overwrite.allow !== null) {
                 if (overwrite.id === guild.id) {
                     overwrites.everyone.deny |= BigInt(overwrite.deny);
                     overwrites.everyone.allow |= BigInt(overwrite.allow);
@@ -86,7 +92,7 @@ export class BaseChannel extends Base<APIChannel> {
                     overwrites.roles.deny |= BigInt(overwrite.deny);
                     overwrites.roles.allow |= BigInt(overwrite.allow);
                 }
-            } else if (overwrite.id === member.id) {
+            } else if (overwrite.id === member.id && overwrite.deny !== null && overwrite.allow !== null) {
                 overwrites.member.deny |= BigInt(overwrite.deny);
                 overwrites.member.allow |= BigInt(overwrite.allow);
             }

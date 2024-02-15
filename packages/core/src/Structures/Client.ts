@@ -1,19 +1,19 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 /* eslint-disable promise/prefer-await-to-then */
 /* eslint-disable stylistic/max-len */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 import { Buffer } from "node:buffer";
 import EventEmitter from "node:events";
 import process from "node:process";
 import { URLSearchParams } from "node:url";
 import { REST } from "@discordjs/rest";
-import { RabbitMQ, RedisKey } from "@nezuchan/constants";
+import { RabbitMQ } from "@nezuchan/constants";
 import * as schema from "@nezuchan/kanao-schema";
-import { GenKey, RoutingKey, createAmqpChannel } from "@nezuchan/utilities";
+import { RoutingKey, createAmqpChannel } from "@nezuchan/utilities";
 import { Result } from "@sapphire/result";
 import type { ChannelWrapper } from "amqp-connection-manager";
 import type { Channel } from "amqplib";
-import type { APIChannel, APIGuild, APIGuildMember, APIMessage, APIUser, GatewayVoiceState, RESTPostAPIChannelMessageJSONBody } from "discord-api-types/v10";
+import type { APIChannel, APIGuild, APIGuildMember, APIMessage, APIUser, RESTPostAPIChannelMessageJSONBody } from "discord-api-types/v10";
 import { ChannelType, Routes } from "discord-api-types/v10";
 import { and, eq } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
@@ -84,6 +84,23 @@ export class Client extends EventEmitter {
             if (result.isOk()) {
                 const member = result.unwrap();
                 if (cache) {
+                    await this.drizzle.insert(schema.users).values({
+                        id: member.user!.id,
+                        username: member.user!.username,
+                        discriminator: member.user!.discriminator ?? null,
+                        globalName: member.user!.global_name ?? null,
+                        avatar: member.user!.avatar ?? null,
+                        bot: member.user!.bot ?? false,
+                        flags: member.user!.flags,
+                        accentColor: member.user!.accent_color,
+                        avatarDecoration: member.user!.avatar_decoration,
+                        banner: member.user!.banner,
+                        locale: member.user!.locale,
+                        mfaEnabled: member.user!.mfa_enabled,
+                        premiumType: member.user!.premium_type,
+                        publicFlags: member.user!.public_flags
+                    }).onConflictDoNothing({ target: schema.users.id });
+
                     await this.drizzle.insert(schema.members).values({
                         id,
                         guildId,
@@ -144,17 +161,44 @@ export class Client extends EventEmitter {
 
     public async resolveUser({ force = false, fetch = true, cache, id }: { force?: boolean | undefined; fetch?: boolean; cache?: boolean | undefined; id: string; }): Promise<User | undefined> {
         if (force) {
-            const user = await Result.fromAsync(async () => this.rest.get(Routes.user(id)));
-            if (user.isOk()) {
-                const user_value = user.unwrap() as APIUser;
-                if (cache) await this.redis.set(GenKey(this.clientId, RedisKey.USER_KEY, id), JSON.stringify(user_value));
-                return new User({ ...user_value, id }, this);
+            const result = await Result.fromAsync(async () => this.rest.get(Routes.user(id)));
+            if (result.isOk()) {
+                const user = result.unwrap() as APIUser;
+                if (cache) {
+                    await this.drizzle.insert(schema.users).values({
+                        id: user.id,
+                        username: user.username,
+                        discriminator: user?.discriminator ?? null,
+                        globalName: user?.global_name ?? null,
+                        avatar: user?.avatar ?? null,
+                        bot: user?.bot ?? false,
+                        flags: user?.flags,
+                        accentColor: user?.accent_color,
+                        avatarDecoration: user?.avatar_decoration,
+                        banner: user?.banner,
+                        locale: user?.locale,
+                        mfaEnabled: user?.mfa_enabled,
+                        premiumType: user?.premium_type,
+                        publicFlags: user?.public_flags
+                    }).onConflictDoNothing({ target: schema.users.id });
+                }
+                return new User({
+                    id: user.id,
+                    discriminator: user.discriminator,
+                    avatar: user.avatar,
+                    banner: user.banner,
+                    bot: user.bot,
+                    accentColor: user.accent_color
+                }, this);
             }
         }
 
-        const cached_user = await this.redis.get(GenKey(this.clientId, RedisKey.USER_KEY, id));
-        if (cached_user) {
-            return new User({ ...JSON.parse(cached_user), id }, this);
+        const user = await this.drizzle.query.users.findFirst({
+            where: () => eq(schema.users.id, id)
+        });
+
+        if (user) {
+            return new User(user, this);
         }
 
         if (fetch) {
@@ -166,22 +210,140 @@ export class Client extends EventEmitter {
 
     public async resolveGuild({ force = false, fetch = true, withCounts = false, cache, id }: { force?: boolean | undefined; fetch?: boolean; cache?: boolean | undefined; id: string; withCounts?: boolean; }): Promise<Guild | undefined> {
         if (force) {
-            const guild = await Result.fromAsync(
+            const result = await Result.fromAsync(
                 async () => this.rest.get(
                     Routes.guild(id),
                     withCounts ? { query: new URLSearchParams({ with_counts: "true" }) } : {}
                 )
             );
-            if (guild.isOk()) {
-                const guild_value = guild.unwrap() as APIGuild;
-                if (cache) await this.redis.set(GenKey(this.clientId, RedisKey.GUILD_KEY, id), JSON.stringify(guild_value));
-                return new Guild({ ...guild_value, id }, this);
+            if (result.isOk()) {
+                const guild = result.unwrap() as APIGuild;
+                if (cache) {
+                    await this.drizzle.insert(schema.guilds).values({
+                        id: guild.id,
+                        name: guild.name,
+                        banner: guild.banner,
+                        owner: guild.owner,
+                        ownerId: guild.owner_id,
+                        afkChannelId: guild.afk_channel_id,
+                        afkTimeout: guild.afk_timeout,
+                        defaultMessageNotifications: guild.default_message_notifications,
+                        explicitContentFilter: guild.explicit_content_filter,
+                        icon: guild.icon,
+                        mfaLevel: guild.mfa_level,
+                        region: guild.region,
+                        systemChannelId: guild.system_channel_id,
+                        verificationLevel: guild.verification_level,
+                        widgetChannelId: guild.widget_channel_id,
+                        widgetEnabled: guild.widget_enabled,
+                        approximateMemberCount: guild.approximate_member_count,
+                        approximatePresenceCount: guild.approximate_presence_count,
+                        description: guild.description,
+                        discoverySplash: guild.discovery_splash,
+                        iconHash: guild.icon_hash,
+                        maxMembers: guild.max_members,
+                        maxPresences: guild.max_presences,
+                        premiumSubscriptionCount: guild.premium_subscription_count,
+                        premiumTier: guild.premium_tier,
+                        vanityUrlCode: guild.vanity_url_code,
+                        nsfwLevel: guild.nsfw_level,
+                        rulesChannelId: guild.rules_channel_id,
+                        publicUpdatesChannelId: guild.public_updates_channel_id,
+                        preferredLocale: guild.preferred_locale,
+                        maxVideoChannelUsers: guild.max_video_channel_users,
+                        permissions: guild.permissions,
+                        premiumProgressBarEnabled: guild.premium_progress_bar_enabled,
+                        safetyAlertChannelId: guild.safety_alerts_channel_id,
+                        splash: guild.splash,
+                        systemChannelFlags: guild.system_channel_flags
+                    }).onConflictDoUpdate({
+                        target: schema.guilds.id,
+                        set: {
+                            name: guild.name,
+                            banner: guild.banner,
+                            owner: guild.owner,
+                            ownerId: guild.owner_id,
+                            afkChannelId: guild.afk_channel_id,
+                            afkTimeout: guild.afk_timeout,
+                            defaultMessageNotifications: guild.default_message_notifications,
+                            explicitContentFilter: guild.explicit_content_filter,
+                            icon: guild.icon,
+                            mfaLevel: guild.mfa_level,
+                            region: guild.region,
+                            systemChannelId: guild.system_channel_id,
+                            verificationLevel: guild.verification_level,
+                            widgetChannelId: guild.widget_channel_id,
+                            widgetEnabled: guild.widget_enabled,
+                            approximateMemberCount: guild.approximate_member_count,
+                            approximatePresenceCount: guild.approximate_presence_count,
+                            description: guild.description,
+                            discoverySplash: guild.discovery_splash,
+                            iconHash: guild.icon_hash,
+                            maxMembers: guild.max_members,
+                            maxPresences: guild.max_presences,
+                            premiumSubscriptionCount: guild.premium_subscription_count,
+                            premiumTier: guild.premium_tier,
+                            vanityUrlCode: guild.vanity_url_code,
+                            nsfwLevel: guild.nsfw_level,
+                            rulesChannelId: guild.rules_channel_id,
+                            publicUpdatesChannelId: guild.public_updates_channel_id,
+                            preferredLocale: guild.preferred_locale,
+                            maxVideoChannelUsers: guild.max_video_channel_users,
+                            permissions: guild.permissions,
+                            premiumProgressBarEnabled: guild.premium_progress_bar_enabled,
+                            safetyAlertChannelId: guild.safety_alerts_channel_id,
+                            splash: guild.splash,
+                            systemChannelFlags: guild.system_channel_flags
+                        }
+                    });
+                }
+                return new Guild({
+                    id: guild.id,
+                    name: guild.name,
+                    banner: guild.banner,
+                    owner: guild.owner,
+                    ownerId: guild.owner_id,
+                    afkChannelId: guild.afk_channel_id,
+                    afkTimeout: guild.afk_timeout,
+                    defaultMessageNotifications: guild.default_message_notifications,
+                    explicitContentFilter: guild.explicit_content_filter,
+                    icon: guild.icon,
+                    mfaLevel: guild.mfa_level,
+                    region: guild.region,
+                    systemChannelId: guild.system_channel_id,
+                    verificationLevel: guild.verification_level,
+                    widgetChannelId: guild.widget_channel_id,
+                    widgetEnabled: guild.widget_enabled,
+                    approximateMemberCount: guild.approximate_member_count,
+                    approximatePresenceCount: guild.approximate_presence_count,
+                    description: guild.description,
+                    discoverySplash: guild.discovery_splash,
+                    iconHash: guild.icon_hash,
+                    maxMembers: guild.max_members,
+                    maxPresences: guild.max_presences,
+                    premiumSubscriptionCount: guild.premium_subscription_count,
+                    premiumTier: guild.premium_tier,
+                    vanityUrlCode: guild.vanity_url_code,
+                    nsfwLevel: guild.nsfw_level,
+                    rulesChannelId: guild.rules_channel_id,
+                    publicUpdatesChannelId: guild.public_updates_channel_id,
+                    preferredLocale: guild.preferred_locale,
+                    maxVideoChannelUsers: guild.max_video_channel_users,
+                    permissions: guild.permissions,
+                    premiumProgressBarEnabled: guild.premium_progress_bar_enabled,
+                    safetyAlertChannelId: guild.safety_alerts_channel_id,
+                    splash: guild.splash,
+                    systemChannelFlags: guild.system_channel_flags
+                }, this);
             }
         }
 
-        const cached_guild = await this.redis.get(GenKey(this.clientId, RedisKey.GUILD_KEY, id));
-        if (cached_guild) {
-            return new Guild({ ...JSON.parse(cached_guild), id }, this);
+        const guild = await this.drizzle.query.guilds.findFirst({
+            where: () => eq(schema.guilds.id, id)
+        });
+
+        if (guild) {
+            return new Guild(guild, this);
         }
 
         if (fetch) {
@@ -192,49 +354,114 @@ export class Client extends EventEmitter {
     }
 
     public async resolveRole({ id, guildId }: { id: string; guildId: string; }): Promise<Role | undefined> {
-        const cached_role = await this.redis.get(GenKey(this.clientId, RedisKey.ROLE_KEY, id, guildId));
-        if (cached_role) {
-            return new Role({ ...JSON.parse(cached_role), id, guild_id: guildId }, this);
+        const { role } = await this.drizzle.select({ role: schema.roles }).from(schema.memberRoles)
+            .where(and(eq(schema.memberRoles.id, id), eq(schema.memberRoles.guildId, guildId)))
+            .leftJoin(schema.roles, and(eq(schema.memberRoles.id, id), eq(schema.memberRoles.guildId, guildId)))
+            .then(x => x[0]);
+
+        if (role) {
+            return new Role(role, this);
         }
 
         return undefined;
     }
 
     public async resolveVoiceState({ id, guildId }: { id: string; guildId: string; }): Promise<VoiceState | undefined> {
-        const state = await this.redis.get(GenKey(this.clientId, RedisKey.VOICE_KEY, id, guildId));
-        if (state) {
-            return new VoiceState({ ...JSON.parse(state) as GatewayVoiceState, id }, this);
-        }
+        const state = await this.drizzle.query.voiceStates.findFirst({
+            where: () => and(eq(schema.voiceStates.memberId, id), eq(schema.voiceStates.guildId, guildId))
+        });
+
+        if (state) return new VoiceState(state, this);
 
         return undefined;
     }
 
     public async resolveChannel({ force = false, fetch = true, cache, id, guildId }: { force?: boolean | undefined; fetch?: boolean; cache?: boolean | undefined; id: string; guildId: string; }): Promise<BaseChannel | undefined> {
         if (force) {
-            const channel = await Result.fromAsync(async () => this.rest.get(Routes.channel(id)));
-            if (channel.isOk()) {
-                const channel_value = channel.unwrap() as APIChannel;
-                if (cache) await this.redis.set(GenKey(this.clientId, RedisKey.CHANNEL_KEY, id, guildId), JSON.stringify(channel_value));
-                switch (channel_value.type) {
+            const result = await Result.fromAsync<APIChannel>(async () => this.rest.get(Routes.channel(id)) as unknown as Promise<APIChannel>);
+            if (result.isOk()) {
+                const channel = result.unwrap();
+                if (cache) {
+                    await this.drizzle.insert(schema.channels).values({
+                        id: channel.id,
+                        guildId: "guild_id" in channel ? channel.guild_id : null,
+                        name: channel.name,
+                        type: channel.type,
+                        position: "position" in channel ? channel.position : null,
+                        topic: "topic" in channel ? channel.topic : null,
+                        nsfw: "nsfw" in channel ? channel.nsfw : null,
+                        lastMessageId: "last_message_id" in channel ? channel.last_message_id : undefined
+                    }).onConflictDoUpdate({
+                        target: schema.channels.id,
+                        set: {
+                            name: channel.name,
+                            type: channel.type,
+                            position: "position" in channel ? channel.position : null,
+                            topic: "topic" in channel ? channel.topic : null,
+                            nsfw: "nsfw" in channel ? channel.nsfw : null,
+                            lastMessageId: "last_message_id" in channel ? channel.last_message_id : undefined
+                        }
+                    });
+
+                    if ("permission_overwrites" in channel && channel.permission_overwrites !== undefined) {
+                        await this.drizzle.delete(schema.channelsOverwrite).where(eq(schema.channelsOverwrite.id, channel.id));
+                        for (const overwrite of channel.permission_overwrites) {
+                            await this.drizzle.insert(schema.channelsOverwrite).values({
+                                id: channel.id,
+                                type: overwrite.type,
+                                allow: overwrite.allow,
+                                deny: overwrite.deny
+                            }).onConflictDoUpdate({
+                                target: schema.channelsOverwrite.id,
+                                set: {
+                                    type: overwrite.type,
+                                    allow: overwrite.allow,
+                                    deny: overwrite.deny
+                                }
+                            });
+                        }
+                    }
+                }
+
+                switch (channel.type) {
                     case ChannelType.GuildStageVoice:
                     case ChannelType.GuildVoice:
-                        return new VoiceChannel({ ...channel_value, id, guild_id: guildId }, this);
+                        return new VoiceChannel({
+                            id,
+                            guildId: channel.guild_id,
+                            name: channel.name,
+                            type: channel.type as unknown as number,
+                            position: "position" in channel ? channel.position : null,
+                            nsfw: "nsfw" in channel ? channel.nsfw ?? false : null,
+                            flags: channel.flags as unknown as number ?? null,
+                            bitrate: channel.bitrate ?? null
+                        }, this);
                     default: {
-                        return new TextChannel({ ...channel_value, id, guild_id: guildId }, this);
+                        return new TextChannel({
+                            id,
+                            guildId: "guild_id" in channel ? channel.guild_id ?? null : null,
+                            name: channel.name,
+                            type: channel.type,
+                            position: "position" in channel ? channel.position : null,
+                            nsfw: "nsfw" in channel ? channel.nsfw ?? false : null,
+                            flags: channel.flags ?? null
+                        }, this);
                     }
                 }
             }
         }
 
-        const cached_user = await this.redis.get(GenKey(this.clientId, RedisKey.CHANNEL_KEY, id, guildId));
-        if (cached_user) {
-            const channel_value = JSON.parse(cached_user) as APIChannel;
-            switch (channel_value.type) {
+        const channel = await this.drizzle.query.channels.findFirst({
+            where: () => and(eq(schema.channels.id, id), eq(schema.channels.guildId, guildId))
+        });
+
+        if (channel) {
+            switch (channel.type) {
                 case ChannelType.GuildStageVoice:
                 case ChannelType.GuildVoice:
-                    return new VoiceChannel({ ...channel_value, id, guild_id: guildId }, this);
+                    return new VoiceChannel(channel, this);
                 default: {
-                    return new TextChannel({ ...channel_value, id, guild_id: guildId }, this);
+                    return new TextChannel(channel, this);
                 }
             }
         }
@@ -262,9 +489,9 @@ export class Client extends EventEmitter {
                 await channel.bindQueue(queue, exchange, RoutingKey(this.clientId, i));
             }
         } else {
-            const shardCount = await this.redis.get(GenKey(this.clientId, RedisKey.SHARDS_KEY));
-            if (shardCount) {
-                for (let i = 0; i < Number(shardCount); i++) {
+            const session = await this.drizzle.query.sessions.findFirst();
+            if (session) {
+                for (let i = 0; i < Number(session.shardCount); i++) {
                     await channel.bindQueue(queue, exchange, RoutingKey(this.clientId, i));
                 }
             }
@@ -272,8 +499,8 @@ export class Client extends EventEmitter {
     }
 
     public async fetchShardCount(): Promise<number> {
-        const shardCount = await this.redis.get(GenKey(this.clientId, RedisKey.SHARDS_KEY));
-        return shardCount ? Number(shardCount) : 1;
+        const session = await this.drizzle.query.sessions.findFirst();
+        return session ? Number(session.shardCount) : 1;
     }
 
     public async publishExchange<T>(guildId: string, exchange: string, data: unknown, waitReply?: () => Promise<unknown>): Promise<Result<T, unknown>> {

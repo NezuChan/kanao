@@ -1,5 +1,6 @@
 import type { BaseImageURLOptions } from "@discordjs/rest";
-import { memberRoles, members, roles } from "@nezuchan/kanao-schema";
+import type { members } from "@nezuchan/kanao-schema";
+import { memberRoles, roles } from "@nezuchan/kanao-schema";
 import { and, eq } from "drizzle-orm";
 import type { InferSelectModel } from "drizzle-orm";
 import { Base } from "./Base.js";
@@ -65,14 +66,14 @@ export class GuildMember extends Base<InferSelectModel<typeof members>> {
                 .where(and(eq(memberRoles.id, this.id), eq(memberRoles.guildId, this.guildId)))
                 .leftJoin(roles, and(eq(memberRoles.id, this.id), eq(memberRoles.guildId, this.guildId)));
 
-            // for (const role of guildMemberRoles) {
-            //     roles.push(new Role(role));
-            // }
+            for (const { role } of guildMemberRoles) {
+                if (role) mRoles.push(new Role(role, this.client));
+            }
 
             const everyoneRole = await this.client.resolveRole({ id: this.guildId, guildId: this.guildId });
             if (everyoneRole) mRoles.push(everyoneRole);
         }
-        return [];
+        return mRoles.sort((a, b) => b.position - a.position);
     }
 
     public async resolveUser({ force = false, cache = true }: { force?: boolean; cache?: boolean; }): Promise<User | undefined> {
