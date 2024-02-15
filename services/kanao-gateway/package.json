@@ -6,6 +6,7 @@
   "author": "KagChi",
   "type": "module",
   "main": "dist/index.js",
+  "private": "true",
   "scripts": {
     "build": "rimraf dist && swc ./src -d dist --config-file .swcrc --strip-leading-paths",
     "lint": "eslint src",
