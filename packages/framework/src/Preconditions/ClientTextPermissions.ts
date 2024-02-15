@@ -29,7 +29,7 @@ export class ClientTextPermissions extends Precondition {
         return this.parseConditions(message.guildId, message.channelId, message.author, await this.container.client.resolveUser({ cache: true, id: this.container.client.clientId }), context);
     }
 
-    public async parseConditions(guildId: string | null | undefined, channelId: string | null, user: User | null, client: User | undefined, context: { permissions: PermissionsBitField; }): Promise<Result<unknown, UserError>> {
+    public async parseConditions(guildId: string | null | undefined, channelId: string | null, user: User | null | undefined, client: User | null | undefined, context: { permissions: PermissionsBitField; }): Promise<Result<unknown, UserError>> {
         if (guildId !== null && guildId !== undefined && client && channelId !== null) {
             const channel = await this.container.client.resolveChannel({ id: channelId, guildId, cache: true });
             const member = await this.container.client.resolveMember({ id: client.id, guildId, cache: true });
