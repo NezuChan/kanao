@@ -16,6 +16,14 @@
     "lint": "eslint src",
     "lint:fix": "eslint src --fix"
   },
+  "files": [
+    "dist/**",
+    "drizzle/**",
+    "LICENSE",
+    "README.md",
+    "package.json",
+    "pnpm-lock.yaml"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/NezuChan/kanao"
