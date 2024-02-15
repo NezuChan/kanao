@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/no-nested-ternary */
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
+
 import type { EventEmitter } from "node:events";
 import type { PieceContext, PieceOptions } from "@sapphire/pieces";
 import { Piece } from "@sapphire/pieces";

@@ -1,5 +1,5 @@
 /* eslint-disable no-param-reassign */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import type { Message } from "@nezuchan/core";
 import type { PieceContext } from "@sapphire/pieces";
 import { Listener } from "../../Stores/Listener.js";

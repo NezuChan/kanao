@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { CommandInteraction, MessageContextMenuInteraction, UserContextMenuInteraction, AutoCompleteInteraction, MessageComponentInteraction, BaseInteraction, ModalSubmitInteraction } from "@nezuchan/core";
 import type { LoaderPieceContext } from "@sapphire/pieces";
 import type { GatewayInteractionCreateDispatch } from "discord-api-types/v10";

@@ -1,5 +1,5 @@
 /* eslint-disable stylistic/max-len */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import { inlineCode } from "@discordjs/builders";
 import type { BaseInteraction, CommandInteraction, Message, PermissionsBitField } from "@nezuchan/core";
 import type { Result } from "@sapphire/result";

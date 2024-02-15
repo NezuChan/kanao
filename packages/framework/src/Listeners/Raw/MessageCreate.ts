@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Message } from "@nezuchan/core";
 import type { LoaderPieceContext } from "@sapphire/pieces";
 import type { GatewayMessageCreateDispatch } from "discord-api-types/v10";

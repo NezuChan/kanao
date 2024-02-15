@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/prefer-module */
-/* eslint-disable promise/prefer-await-to-callbacks */
+
 /* eslint-disable promise/always-return */
 
 /* eslint-disable promise/prefer-await-to-then */

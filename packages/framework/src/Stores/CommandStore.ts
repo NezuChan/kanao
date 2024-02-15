@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { AliasStore } from "@sapphire/pieces";
 import type { RESTPostAPIApplicationCommandsJSONBody } from "discord-api-types/v10";
 import { Routes } from "discord-api-types/v10";

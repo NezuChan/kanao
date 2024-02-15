@@ -4,8 +4,6 @@
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable consistent-return */
 
-/* eslint-disable @typescript-eslint/no-confusing-void-expression */
-
 import { Buffer } from "node:buffer";
 import EventEmitter from "node:events";
 import process from "node:process";
