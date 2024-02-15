@@ -2,12 +2,13 @@
   "name": "kanao",
   "version": "1.0.0",
   "description": "A standalone service for connecting to the Discord gateway",
-	"type": "module",
-	"scripts": {
-		"build": "turbo run build",
-		"lint": "turbo run lint",
-		"lint:fix": "turbo run lint:fix"
-	},
+  "type": "module",
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "release": "turbo run build && changeset version && changeset publish"
+  },
   "keywords": [],
   "author": "",
   "license": "GPL-3.0",
@@ -17,5 +18,8 @@
     "rimraf": "^5.0.5",
     "turbo": "^1.12.4",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@changesets/cli": "^2.27.1"
   }
 }
