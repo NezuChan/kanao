@@ -15,6 +15,11 @@
     "lint": "eslint src",
     "lint:fix": "eslint src --fix"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NezuChan/kanao"
+  },
+  "homepage": "https://nezu.my.id",
   "keywords": [],
   "author": "KagChi",
   "license": "GPL-3.0",

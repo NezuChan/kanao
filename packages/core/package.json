@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/NezuChan/library"
+    "url": "https://github.com/NezuChan/kanao"
   },
   "homepage": "https://nezu.my.id",
   "main": "./dist/index.js",

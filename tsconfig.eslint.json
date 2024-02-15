@@ -2,6 +2,7 @@
     "extends": "./tsconfig.json",
     "include": [
         "./services/**/*.ts",
-        "./packages/**/*.ts"
+        "./packages/**/*.ts",
+        "./plugins/**/*.ts"
     ]
 }
