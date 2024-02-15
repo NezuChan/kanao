@@ -40,7 +40,7 @@ export class GuildMemberAddListener extends Listener {
             guildId: payload.data.d.guild_id,
             avatar: payload.data.d.avatar,
             flags: payload.data.d.flags,
-            communicationDisabledUntil: payload.data.d.premium_since,
+            communicationDisabledUntil: payload.data.d.communication_disabled_until,
             deaf: payload.data.d.deaf,
             joinedAt: payload.data.d.joined_at,
             mute: payload.data.d.mute,
@@ -52,7 +52,7 @@ export class GuildMemberAddListener extends Listener {
             set: {
                 avatar: payload.data.d.avatar,
                 flags: payload.data.d.flags,
-                communicationDisabledUntil: payload.data.d.premium_since,
+                communicationDisabledUntil: payload.data.d.communication_disabled_until,
                 deaf: payload.data.d.deaf,
                 joinedAt: payload.data.d.joined_at,
                 mute: payload.data.d.mute,
@@ -65,7 +65,8 @@ export class GuildMemberAddListener extends Listener {
         for (const role of payload.data.d.roles) {
             await this.store.drizzle.insert(memberRoles).values({
                 id: payload.data.d.user!.id,
-                roleId: role
+                roleId: role,
+                guildId: payload.data.d.guild_id
             }).onConflictDoNothing({ target: memberRoles.id });
         }
 

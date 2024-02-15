@@ -106,7 +106,8 @@ export class MessageCreateListener extends Listener {
             for (const role of payload.data.d.member.roles) {
                 await this.store.drizzle.insert(memberRoles).values({
                     id: payload.data.d.author.id,
-                    roleId: role
+                    roleId: role,
+                    guildId: payload.data.d.guild_id
                 }).onConflictDoNothing({ target: memberRoles.id });
             }
         }

@@ -85,7 +85,8 @@ export class GuildMemberUpdateListener extends Listener {
             for (const role of payload.data.d.roles) {
                 await this.store.drizzle.insert(memberRoles).values({
                     id: payload.data.d.user.id,
-                    roleId: role
+                    roleId: role,
+                    guildId: payload.data.d.guild_id
                 }).onConflictDoNothing({ target: memberRoles.id });
             }
         }

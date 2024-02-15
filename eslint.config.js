@@ -17,6 +17,26 @@ export default [
         {
             rule: "no-await-in-loop",
             option: ["off"]
+        },
+        {
+            rule: "unicorn/custom-error-definition",
+            option: ["off"]
+        },
+        {
+            rule: "tsdoc/syntax",
+            option: ["off"]
+        },
+        {
+            rule: "stylistic/max-len",
+            option: ["off"]
+        },
+        {
+            rule: "promise/prefer-await-to-callbacks",
+            option: ["off"]
+        },
+        {
+            rule: "unicorn/no-object-as-default-parameter",
+            option: ["off"]
         }
     ]),
     ...modules,
@@ -41,6 +61,30 @@ export default [
         },
         {
             rule: "@typescript-eslint/no-unsafe-assignment",
+            option: ["off"]
+        },
+        {
+            rule: "@typescript-eslint/class-literal-property-style",
+            option: ["off"]
+        },
+        {
+            rule: "@typescript-eslint/no-unsafe-return",
+            option: ["off"]
+        },
+        {
+            rule: "@typescript-eslint/no-confusing-void-expression",
+            option: ["off"]
+        },
+        {
+            rule: "@typescript-eslint/no-unsafe-call",
+            option: ["off"]
+        },
+        {
+            rule: "@typescript-eslint/no-unsafe-member-access",
+            option: ["off"]
+        },
+        {
+            rule: "@typescript-eslint/strict-boolean-expressions",
             option: ["off"]
         }
     ]),
