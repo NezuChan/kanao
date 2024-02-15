@@ -86,6 +86,10 @@ export default [
         {
             rule: "@typescript-eslint/strict-boolean-expressions",
             option: ["off"]
+        },
+        {
+            rule: "@typescript-eslint/consistent-type-definitions",
+            option: ["off"]
         }
     ]),
     ...ignores
