@@ -11,6 +11,7 @@ import { Util, createAmqpChannel, RoutingKey } from "@nezuchan/utilities";
 import type { Channel } from "amqplib";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import APM from "prometheus-middleware";
 import { createLogger } from "../Utilities/Logger.js";
@@ -114,6 +115,8 @@ export class NezuGateway extends EventEmitter {
 
         await this.ws.connect();
         const shardCount = await this.ws.getShardCount();
+
+        await migrate(drizzle(postgres(databaseUrl, { max: 1, onnotice: () => void 0 })), { migrationsFolder: "./node_modules/@nezuchan/kanao-schema/drizzle" });
 
         // When multiple replica is running, only reset few shards statuses
         const shardStart = shardIds?.start ?? 0;
