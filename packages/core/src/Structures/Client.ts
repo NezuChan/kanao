@@ -404,10 +404,11 @@ export class Client extends EventEmitter {
                     });
 
                     if ("permission_overwrites" in channel && channel.permission_overwrites !== undefined) {
-                        await this.drizzle.delete(schema.channelsOverwrite).where(eq(schema.channelsOverwrite.id, channel.id));
+                        await this.drizzle.delete(schema.channelsOverwrite).where(eq(schema.channelsOverwrite.channelId, channel.id));
                         for (const overwrite of channel.permission_overwrites) {
                             await this.drizzle.insert(schema.channelsOverwrite).values({
-                                id: channel.id,
+                                userOrRole: overwrite.id,
+                                channelId: channel.id,
                                 type: overwrite.type,
                                 allow: overwrite.allow,
                                 deny: overwrite.deny

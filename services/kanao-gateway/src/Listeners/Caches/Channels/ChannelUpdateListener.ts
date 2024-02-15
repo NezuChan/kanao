@@ -40,10 +40,11 @@ export class ChannelUpdateListener extends Listener {
         });
 
         if ("permission_overwrites" in payload.data.d && payload.data.d.permission_overwrites !== undefined) {
-            await this.store.drizzle.delete(channelsOverwrite).where(eq(channelsOverwrite.id, payload.data.d.id));
+            await this.store.drizzle.delete(channelsOverwrite).where(eq(channelsOverwrite.channelId, payload.data.d.id));
             for (const overwrite of payload.data.d.permission_overwrites) {
                 await this.store.drizzle.insert(channelsOverwrite).values({
-                    id: payload.data.d.id,
+                    userOrRole: overwrite.id,
+                    channelId: payload.data.d.id,
                     type: overwrite.type,
                     allow: overwrite.allow,
                     deny: overwrite.deny

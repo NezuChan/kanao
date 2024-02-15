@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/consistent-type-definitions */
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { ClientOptions as OClientOptions } from "@nezuchan/core";

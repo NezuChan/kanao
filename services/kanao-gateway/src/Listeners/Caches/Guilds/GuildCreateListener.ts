@@ -202,10 +202,11 @@ export class GuildCreateListener extends Listener {
                 }).onConflictDoNothing({ target: channels.id });
 
                 if ("permission_overwrites" in channel && channel.permission_overwrites !== undefined) {
-                    await this.store.drizzle.delete(channelsOverwrite).where(eq(channelsOverwrite.id, channel.id));
+                    await this.store.drizzle.delete(channelsOverwrite).where(eq(channelsOverwrite.channelId, channel.id));
                     for (const overwrite of channel.permission_overwrites) {
                         await this.store.drizzle.insert(channelsOverwrite).values({
-                            id: channel.id,
+                            userOrRole: overwrite.id,
+                            channelId: channel.id,
                             type: overwrite.type,
                             allow: overwrite.allow,
                             deny: overwrite.deny

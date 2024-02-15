@@ -2,7 +2,7 @@ import process from "node:process";
 import type { Config } from "drizzle-kit";
 
 export default {
-    schema: "./dist/schema/index.js",
+    schema: "./dist/index.js",
     out: "./drizzle",
     driver: "pg",
     dbCredentials: {

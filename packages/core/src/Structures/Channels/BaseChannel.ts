@@ -57,7 +57,7 @@ export class BaseChannel extends Base<Partial<InferSelectModel<typeof channels>>
 
     public async resolveOverwrites(): Promise<InferSelectModel<typeof channelsOverwrite>[]> {
         return this.client.drizzle.query.channelsOverwrite.findMany({
-            where: () => eq(channelsOverwrite.id, this.id)
+            where: () => eq(channelsOverwrite.channelId, this.id)
         });
     }
 
@@ -85,14 +85,14 @@ export class BaseChannel extends Base<Partial<InferSelectModel<typeof channels>>
 
         for (const overwrite of await this.resolveOverwrites()) {
             if (overwrite.type === OverwriteType.Role && overwrite.deny !== null && overwrite.allow !== null) {
-                if (overwrite.id === guild.id) {
+                if (overwrite.userOrRole === guild.id) {
                     overwrites.everyone.deny |= BigInt(overwrite.deny);
                     overwrites.everyone.allow |= BigInt(overwrite.allow);
-                } else if (roles.some(x => x.id === overwrite.id)) {
+                } else if (roles.some(x => x.id === overwrite.userOrRole)) {
                     overwrites.roles.deny |= BigInt(overwrite.deny);
                     overwrites.roles.allow |= BigInt(overwrite.allow);
                 }
-            } else if (overwrite.id === member.id && overwrite.deny !== null && overwrite.allow !== null) {
+            } else if (overwrite.userOrRole === member.id && overwrite.deny !== null && overwrite.allow !== null) {
                 overwrites.member.deny |= BigInt(overwrite.deny);
                 overwrites.member.allow |= BigInt(overwrite.allow);
             }

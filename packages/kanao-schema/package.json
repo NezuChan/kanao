@@ -10,6 +10,7 @@
     "import": "./dist/index.js",
     "require": "./dist/index.js"
   },
+  "type": "module",
   "scripts": {
     "build": "rimraf dist && tsc",
     "lint": "eslint src",
@@ -24,7 +25,8 @@
   "author": "KagChi",
   "license": "GPL-3.0",
   "devDependencies": {
-    "drizzle-kit": "^0.20.14"
+    "drizzle-kit": "^0.20.14",
+    "pg": "^8.11.3"
   },
   "dependencies": {
     "drizzle-orm": "^0.29.3",
