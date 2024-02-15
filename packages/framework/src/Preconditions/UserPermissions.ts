@@ -28,7 +28,7 @@ export class UserPermissions extends Precondition {
         return this.parseConditions(message.guildId, message.channelId, message.author, context);
     }
 
-    public async parseConditions(guildId: string | undefined, channelId: string | null, user: { id: string; } | null | undefined, context: { permissions: PermissionsBitField; }): Promise<Result<unknown, UserError>> {
+    public async parseConditions(guildId: string | null | undefined, channelId: string | null, user: { id: string; } | null | undefined, context: { permissions: PermissionsBitField; }): Promise<Result<unknown, UserError>> {
         if (guildId && user && channelId) {
             const channel = await this.container.client.resolveChannel({ id: channelId, guildId });
             const member = await this.container.client.resolveMember({ id: user.id, guildId });

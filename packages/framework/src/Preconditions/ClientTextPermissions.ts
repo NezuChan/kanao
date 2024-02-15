@@ -1,5 +1,6 @@
+/* eslint-disable stylistic/max-len */
 import { inlineCode } from "@discordjs/builders";
-import type { BaseInteraction, CommandInteraction, Message, PermissionsBitField } from "@nezuchan/core";
+import type { BaseInteraction, CommandInteraction, Message, PermissionsBitField, User } from "@nezuchan/core";
 import type { Result } from "@sapphire/result";
 import type { CommandContext } from "../Lib/CommandContext.js";
 import type { Command } from "../Stores/Command.js";
@@ -28,8 +29,8 @@ export class ClientTextPermissions extends Precondition {
         return this.parseConditions(message.guildId, message.channelId, message.author, await this.container.client.resolveUser({ cache: true, id: this.container.client.clientId }), context);
     }
 
-    public async parseConditions(guildId: string | undefined, channelId: string | null, user: { id: string; } | null | undefined, client: { id: string; } | null | undefined, context: { permissions: PermissionsBitField; }): Promise<Result<unknown, UserError>> {
-        if (guildId !== undefined && client && channelId !== null) {
+    public async parseConditions(guildId: string | null | undefined, channelId: string | null, user: User | null, client: User | undefined, context: { permissions: PermissionsBitField; }): Promise<Result<unknown, UserError>> {
+        if (guildId !== null && guildId !== undefined && client && channelId !== null) {
             const channel = await this.container.client.resolveChannel({ id: channelId, guildId, cache: true });
             const member = await this.container.client.resolveMember({ id: client.id, guildId, cache: true });
             if (channel && member) {

@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/no-object-as-default-parameter */
 import type { BaseChannel, Guild, GuildMember, User } from "@nezuchan/core";
 import { BaseInteraction, Message } from "@nezuchan/core";
 import type { ArgumentStream } from "@sapphire/lexure";
@@ -41,7 +40,7 @@ export class CommandContext {
     }
 
     public get guildId(): string | undefined {
-        if (this.isInteraction()) return this.interaction.guildId;
+        if (this.isInteraction()) return this.interaction.guildId!;
         return this.message.guildId;
     }
 
