@@ -116,7 +116,7 @@ export class NezuGateway extends EventEmitter {
         await this.ws.connect();
         const shardCount = await this.ws.getShardCount();
 
-        await migrate(drizzle(postgres(databaseUrl, { max: 1, onnotice: () => void 0 })), { migrationsFolder: "./node_modules/@nezuchan/kanao-schema/drizzle" });
+        await migrate(drizzle(postgres(databaseUrl, { max: 1, onnotice: notice => this.logger.debug(notice, "Migrating Table") })), { migrationsFolder: "./node_modules/@nezuchan/kanao-schema/drizzle" });
 
         // When multiple replica is running, only reset few shards statuses
         const shardStart = shardIds?.start ?? 0;
