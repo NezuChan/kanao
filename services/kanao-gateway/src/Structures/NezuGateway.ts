@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
+import { Buffer } from "node:buffer";
 import EventEmitter from "node:events";
 import { join } from "node:path";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, WebSocketManager, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
@@ -9,9 +11,8 @@ import { RabbitMQ } from "@nezuchan/constants";
 import * as schema from "@nezuchan/kanao-schema";
 import { Util, createAmqpChannel, RoutingKey } from "@nezuchan/utilities";
 import type { Channel } from "amqplib";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import APM from "prometheus-middleware";
 import { createLogger } from "../Utilities/Logger.js";
@@ -116,8 +117,6 @@ export class NezuGateway extends EventEmitter {
         await this.ws.connect();
         const shardCount = await this.ws.getShardCount();
 
-        await migrate(drizzle(postgres(databaseUrl, { max: 1, onnotice: notice => this.logger.debug(notice, "Migrating Table") })), { migrationsFolder: "./node_modules/@nezuchan/kanao-schema/drizzle" });
-
         // When multiple replica is running, only reset few shards statuses
         const shardStart = shardIds?.start ?? 0;
         const shardEnd = shardIds?.end ?? shardCount;
@@ -151,33 +150,33 @@ export class NezuGateway extends EventEmitter {
                 }
 
                 // TODO [2024-02-20]: Implement this
-                // await channel.consume(queue, async message => {
-                //     if (!message) return;
-                //     const content = JSON.parse(message.content.toString()) as { route: string; };
-                //     const stats = [];
-                //     for (const [shardId, status] of await this.ws.fetchStatus()) {
-                //         const raw_value = await this.redis.get(GenKey(RedisKey.STATUSES_KEY, shardId.toString()));
-                //         const shard_status = raw_value === null ? { latency: -1 } : JSON.parse(raw_value) as { latency: number; };
-                //         stats.push({ shardId, status, latency: shard_status.latency });
-                //     }
-                //     const guildCount = await this.redis.get(GenKey(RedisKey.GUILD_KEY, RedisKey.COUNT))
-                //         .then(c => (c === null ? 0 : Number(c)));
-                //     channel.ack(message);
-                //     await amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, content.route, Buffer.from(
-                //         JSON.stringify({
-                //             shards: stats,
-                //             replicaId,
-                //             clientId,
-                //             memoryUsage: process.memoryUsage(),
-                //             cpuUsage: process.cpuUsage(),
-                //             uptime: process.uptime(),
-                //             shardCount: stats.length,
-                //             guildCount
-                //         })
-                //     ), {
-                //         correlationId: message.properties.correlationId as string
-                //     });
-                // });
+                await channel.consume(queue, async message => {
+                    if (!message) return;
+                    const content = JSON.parse(message.content.toString()) as { route: string; };
+                    const stats = [];
+                    for (const [shardId, status] of await this.ws.fetchStatus()) {
+                        const stat = await this.drizzle.query.status.findFirst({
+                            where: () => eq(schema.sessions.id, shardId)
+                        });
+                        stats.push({ shardId, status, latency: stat?.latency ?? -1 });
+                    }
+                    const [result] = await this.drizzle.select({ count: sql`count(*)`.mapWith(Number).as("count") }).from(schema.guilds);
+                    channel.ack(message);
+                    await amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, content.route, Buffer.from(
+                        JSON.stringify({
+                            shards: stats,
+                            replicaId,
+                            clientId,
+                            memoryUsage: process.memoryUsage(),
+                            cpuUsage: process.cpuUsage(),
+                            uptime: process.uptime(),
+                            shardCount: stats.length,
+                            guildCount: result.count
+                        })
+                    ), {
+                        correlationId: message.properties.correlationId as string
+                    });
+                });
             }
         });
 

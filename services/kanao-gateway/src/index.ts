@@ -7,13 +7,18 @@ import { fileURLToPath } from "node:url";
 import { Util } from "@nezuchan/utilities";
 import { range } from "@sapphire/utilities";
 import { createBanner } from "@skyra/start-banner";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
 import gradient from "gradient-string";
+import postgres from "postgres";
 import { NezuGateway } from "./Structures/NezuGateway.js";
-import { getShardCount, replicaCount, replicaId } from "./config.js";
+import { databaseUrl, getShardCount, replicaCount, replicaId } from "./config.js";
 
 const gateway = new NezuGateway();
 const packageJson = Util.loadJSON<{ version: string; }>(`file://${join(fileURLToPath(import.meta.url), "../../package.json")}`);
 const shardIds = await getShardCount();
+
+await migrate(drizzle(postgres(databaseUrl, { max: 1, onnotice: notice => gateway.logger.debug(notice, "Migrating Table") })), { migrationsFolder: "./node_modules/@nezuchan/kanao-schema/drizzle" });
 
 try {
     await gateway.connect();
