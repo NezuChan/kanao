@@ -4,7 +4,6 @@ import { memberRoles, members, messages, users } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayMessageCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { eq } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateMembers, stateMessages, stateUsers } from "../../../config.js";
@@ -101,11 +100,9 @@ export class MessageCreateListener extends Listener {
                 }).onConflictDoNothing({ target: messages.id });
             }
 
-            await this.store.drizzle.delete(memberRoles).where(eq(memberRoles.id, payload.data.d.author.id));
-
             for (const role of payload.data.d.member.roles) {
                 await this.store.drizzle.insert(memberRoles).values({
-                    id: payload.data.d.author.id,
+                    memberId: payload.data.d.author.id,
                     roleId: role,
                     guildId: payload.data.d.guild_id
                 }).onConflictDoNothing({ target: memberRoles.id });
