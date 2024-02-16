@@ -156,7 +156,7 @@ export class NezuGateway extends EventEmitter {
                     const stats = [];
                     for (const [shardId, status] of await this.ws.fetchStatus()) {
                         const stat = await this.drizzle.query.status.findFirst({
-                            where: () => eq(schema.sessions.id, shardId)
+                            where: () => eq(schema.status.shardId, shardId)
                         });
                         stats.push({ shardId, status, latency: stat?.latency ?? -1 });
                     }
