@@ -2,6 +2,7 @@ import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
 import { channels, channelsOverwrite, guilds, guildsRoles, memberRoles, members, roles, users, voiceStates } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
+import { Result } from "@sapphire/result";
 import type { GatewayGuildCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import type { ListenerContext } from "../../../Stores/Listener.js";
@@ -99,7 +100,7 @@ export class GuildCreateListener extends Listener {
         });
 
         if (stateRoles) {
-            for (const role of payload.data.d.roles) {
+            await Promise.all(payload.data.d.roles.map(async role => Result.fromAsync(async () => {
                 await this.store.drizzle.insert(roles).values({
                     id: role.id,
                     name: role.name,
@@ -122,10 +123,10 @@ export class GuildCreateListener extends Listener {
                     roleId: role.id,
                     guildId: payload.data.d.id
                 }).onConflictDoNothing({ target: guildsRoles.id });
-            }
+            })));
         }
 
-        for (const member of payload.data.d.members) {
+        await Promise.all(payload.data.d.members.map(async member => Result.fromAsync(async () => {
             if (stateUsers && member.user !== undefined) {
                 await this.store.drizzle.insert(users).values({
                     id: member.user.id,
@@ -180,18 +181,16 @@ export class GuildCreateListener extends Listener {
                     }
                 });
 
-                for (const role of member.roles) {
-                    await this.store.drizzle.insert(memberRoles).values({
-                        memberId: member.user.id,
-                        roleId: role,
-                        guildId: payload.data.d.id
-                    }).onConflictDoNothing({ target: memberRoles.id });
-                }
+                await Promise.all(member.roles.map(async role => Result.fromAsync(() => this.store.drizzle.insert(memberRoles).values({
+                    memberId: member.user!.id,
+                    roleId: role,
+                    guildId: payload.data.d.id
+                }).onConflictDoNothing({ target: memberRoles.id }))));
             }
-        }
+        })));
 
         if (stateChannels) {
-            for (const channel of payload.data.d.channels) {
+            await Promise.all(payload.data.d.channels.map(async channel => Result.fromAsync(async () => {
                 await this.store.drizzle.insert(channels).values({
                     id: channel.id,
                     guildId: payload.data.d.id,
@@ -201,7 +200,7 @@ export class GuildCreateListener extends Listener {
                 }).onConflictDoNothing({ target: channels.id });
 
                 if ("permission_overwrites" in channel && channel.permission_overwrites !== undefined) {
-                    for (const overwrite of channel.permission_overwrites) {
+                    await Promise.all(channel.permission_overwrites?.map(async overwrite => {
                         await this.store.drizzle.insert(channelsOverwrite).values({
                             userOrRole: overwrite.id,
                             channelId: channel.id,
@@ -211,13 +210,13 @@ export class GuildCreateListener extends Listener {
                         }).onConflictDoNothing({
                             target: channelsOverwrite.id
                         });
-                    }
+                    }));
                 }
-            }
+            })));
         }
 
         if (stateVoices) {
-            for (const voice of payload.data.d.voice_states) {
+            await Promise.all(payload.data.d.voice_states.map(async voice => Result.fromAsync(async () => {
                 if (voice.channel_id !== null) {
                     await this.store.drizzle.insert(voiceStates).values({
                         channelId: voice.channel_id,
@@ -248,7 +247,7 @@ export class GuildCreateListener extends Listener {
                         }
                     });
                 }
-            }
+            })));
         }
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
