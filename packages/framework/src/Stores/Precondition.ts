@@ -37,7 +37,7 @@ export type PreconditionOptions = PieceOptions & {
     position?: number;
 };
 
-export type Preconditions = {
+export interface Preconditions {
     Enabled: never;
     ClientVoicePermissions: {
         permissions: PermissionsBitField;
@@ -48,7 +48,7 @@ export type Preconditions = {
     UserPermissions: {
         permissions: PermissionsBitField;
     };
-};
+}
 
 export type PreconditionContext = Record<PropertyKey, unknown> & {
     external?: boolean;
