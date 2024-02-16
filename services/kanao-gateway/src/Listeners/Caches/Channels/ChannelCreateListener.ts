@@ -2,9 +2,9 @@ import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
 import { channels, channelsOverwrite } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
+import { Result } from "@sapphire/result";
 import type { GatewayChannelCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { eq } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateChannels } from "../../../config.js";
@@ -18,7 +18,7 @@ export class ChannelCreateListener extends Listener {
 
     public async run(payload: { data: GatewayChannelCreateDispatch; shardId: number; }): Promise<void> {
         if (stateChannels) {
-            await this.store.drizzle.insert(channels).values({
+            const channel = await this.store.drizzle.insert(channels).values({
                 id: payload.data.d.id,
                 guildId: "guild_id" in payload.data.d ? payload.data.d.guild_id : null,
                 name: payload.data.d.name,
@@ -37,21 +37,22 @@ export class ChannelCreateListener extends Listener {
                     nsfw: "nsfw" in payload.data.d ? payload.data.d.nsfw : null,
                     lastMessageId: "last_message_id" in payload.data.d ? payload.data.d.last_message_id : undefined
                 }
-            });
+            })
+                .returning({ id: channels.id })
+                .then(c => c[0]);
 
             if ("permission_overwrites" in payload.data.d && payload.data.d.permission_overwrites !== undefined) {
-                await this.store.drizzle.delete(channelsOverwrite).where(eq(channelsOverwrite.channelId, payload.data.d.id));
-                for (const overwrite of payload.data.d.permission_overwrites) {
+                await Promise.all(payload.data.d.permission_overwrites.map(async overwrite => Result.fromAsync(async () => {
                     await this.store.drizzle.insert(channelsOverwrite).values({
                         userOrRole: overwrite.id,
-                        channelId: payload.data.d.id,
+                        channelId: channel.id,
                         type: overwrite.type,
                         allow: overwrite.allow,
                         deny: overwrite.deny
                     }).onConflictDoNothing({
                         target: channelsOverwrite.id
                     });
-                }
+                })));
             }
         }
 
