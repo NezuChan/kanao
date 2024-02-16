@@ -62,7 +62,7 @@ export class VoiceStateUpdateListener extends Listener {
 
         if (stateVoices) {
             await (payload.data.d.channel_id === null
-                ? this.store.drizzle.delete(voiceStates).where(eq(voiceStates.guildId, payload.data.d.guild_id!))
+                ? this.store.drizzle.delete(voiceStates).where(eq(voiceStates.memberId, payload.data.d.user_id))
                 : this.store.drizzle.insert(voiceStates).values({
                     memberId: payload.data.d.user_id,
                     guildId: payload.data.d.guild_id,
