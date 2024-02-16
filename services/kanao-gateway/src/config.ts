@@ -78,4 +78,4 @@ export const stateMessages = process.env.STATE_MESSAGE === "true";
 export const replicaId = hostname();
 export const replicaCount = Number(process.env.GATEWAY_REPLICA_COUNT ?? "1");
 
-export const databaseUrl = process.env.DATABASE_URL!;
+export const databaseUrl = process.env.DATABASE_GATEWAY_URL ?? process.env.DATABASE_URL!;
