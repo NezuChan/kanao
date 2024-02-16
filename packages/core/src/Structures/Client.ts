@@ -184,6 +184,7 @@ export class Client extends EventEmitter {
                 }
                 return new User({
                     id: user.id,
+                    username: user.username,
                     discriminator: user.discriminator,
                     avatar: user.avatar,
                     banner: user.banner,
@@ -354,9 +355,9 @@ export class Client extends EventEmitter {
     }
 
     public async resolveRole({ id, guildId }: { id: string; guildId: string; }): Promise<Role | undefined> {
-        const { role } = await this.drizzle.select({ role: schema.roles }).from(schema.memberRoles)
-            .where(and(eq(schema.memberRoles.memberId, id), eq(schema.memberRoles.guildId, guildId)))
-            .leftJoin(schema.roles, eq(schema.roles.id, schema.memberRoles.roleId))
+        const { role } = await this.drizzle.select({ role: schema.roles }).from(schema.guildsRoles)
+            .where(and(eq(schema.guildsRoles.roleId, id), eq(schema.guildsRoles.guildId, guildId)))
+            .leftJoin(schema.roles, eq(schema.roles.id, schema.guildsRoles.roleId))
             .then(x => x[0]);
 
         if (role) {
