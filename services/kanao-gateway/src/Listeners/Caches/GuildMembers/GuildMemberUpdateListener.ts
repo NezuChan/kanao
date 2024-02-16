@@ -4,7 +4,6 @@ import { memberRoles, members, users } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildMemberUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { eq } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateMembers, stateUsers } from "../../../config.js";
@@ -79,8 +78,6 @@ export class GuildMemberUpdateListener extends Listener {
                     premiumSince: payload.data.d.premium_since
                 }
             });
-
-            await this.store.drizzle.delete(memberRoles).where(eq(memberRoles.memberId, payload.data.d.user.id));
 
             for (const role of payload.data.d.roles) {
                 await this.store.drizzle.insert(memberRoles).values({

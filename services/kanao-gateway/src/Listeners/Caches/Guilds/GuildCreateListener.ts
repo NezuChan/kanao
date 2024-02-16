@@ -4,7 +4,6 @@ import { channels, channelsOverwrite, guilds, guildsRoles, memberRoles, members,
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { eq } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateChannels, stateMembers, stateRoles, stateUsers, stateVoices } from "../../../config.js";
@@ -202,7 +201,6 @@ export class GuildCreateListener extends Listener {
                 }).onConflictDoNothing({ target: channels.id });
 
                 if ("permission_overwrites" in channel && channel.permission_overwrites !== undefined) {
-                    await this.store.drizzle.delete(channelsOverwrite).where(eq(channelsOverwrite.channelId, channel.id));
                     for (const overwrite of channel.permission_overwrites) {
                         await this.store.drizzle.insert(channelsOverwrite).values({
                             userOrRole: overwrite.id,
