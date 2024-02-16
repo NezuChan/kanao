@@ -63,8 +63,8 @@ export class GuildMember extends Base<InferSelectModel<typeof members>> {
             const guildMemberRoles = await this.client.drizzle.select({
                 role: roles
             }).from(memberRoles)
-                .where(and(eq(memberRoles.id, this.id), eq(memberRoles.guildId, this.guildId)))
-                .leftJoin(roles, and(eq(memberRoles.id, this.id), eq(memberRoles.guildId, this.guildId)));
+                .where(and(eq(memberRoles.memberId, this.id), eq(memberRoles.guildId, this.guildId)))
+                .leftJoin(roles, eq(memberRoles.roleId, roles.id));
 
             for (const { role } of guildMemberRoles) {
                 if (role) mRoles.push(new Role(role, this.client));
