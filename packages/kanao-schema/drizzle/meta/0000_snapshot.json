@@ -1,5 +1,5 @@
 {
-  "id": "e8226987-be7a-48c4-af4a-8f734f1d9dde",
+  "id": "79280f55-e67c-474c-8dcd-2c11bf33f8d4",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -207,9 +207,15 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "serial",
           "primaryKey": true,
           "notNull": true
+        },
+        "guild_id": {
+          "name": "guild_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "role_id": {
           "name": "role_id",
@@ -220,12 +226,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "guild_roles_id_guilds_id_fk": {
-          "name": "guild_roles_id_guilds_id_fk",
+        "guild_roles_guild_id_guilds_id_fk": {
+          "name": "guild_roles_guild_id_guilds_id_fk",
           "tableFrom": "guild_roles",
           "tableTo": "guilds",
           "columnsFrom": [
-            "id"
+            "guild_id"
           ],
           "columnsTo": [
             "id"
@@ -256,9 +262,15 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "serial",
           "primaryKey": true,
           "notNull": true
+        },
+        "member_id": {
+          "name": "member_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "role_id": {
           "name": "role_id",
@@ -275,12 +287,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "member_roles_id_members_id_fk": {
-          "name": "member_roles_id_members_id_fk",
+        "member_roles_member_id_members_id_fk": {
+          "name": "member_roles_member_id_members_id_fk",
           "tableFrom": "member_roles",
           "tableTo": "members",
           "columnsFrom": [
-            "id"
+            "member_id"
           ],
           "columnsTo": [
             "id"

@@ -121,7 +121,7 @@ export class GuildCreateListener extends Listener {
 
                 await this.store.drizzle.insert(guildsRoles).values({
                     roleId: role.id,
-                    id: payload.data.d.id
+                    guildId: payload.data.d.id
                 }).onConflictDoNothing({ target: guildsRoles.id });
             }
         }
@@ -183,7 +183,7 @@ export class GuildCreateListener extends Listener {
 
                 for (const role of member.roles) {
                     await this.store.drizzle.insert(memberRoles).values({
-                        id: member.user.id,
+                        memberId: member.user.id,
                         roleId: role,
                         guildId: payload.data.d.id
                     }).onConflictDoNothing({ target: memberRoles.id });

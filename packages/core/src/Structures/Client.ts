@@ -355,8 +355,8 @@ export class Client extends EventEmitter {
 
     public async resolveRole({ id, guildId }: { id: string; guildId: string; }): Promise<Role | undefined> {
         const { role } = await this.drizzle.select({ role: schema.roles }).from(schema.memberRoles)
-            .where(and(eq(schema.memberRoles.id, id), eq(schema.memberRoles.guildId, guildId)))
-            .leftJoin(schema.roles, and(eq(schema.memberRoles.id, id), eq(schema.memberRoles.guildId, guildId)))
+            .where(and(eq(schema.memberRoles.memberId, id), eq(schema.memberRoles.guildId, guildId)))
+            .leftJoin(schema.roles, eq(schema.roles.id, id))
             .then(x => x[0]);
 
         if (role) {

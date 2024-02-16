@@ -55,7 +55,7 @@ export class BaseInteraction extends Base<GatewayInteractionCreateDispatchData> 
     public get member(): GuildMember | null {
         return this.data.member
             ? new GuildMember({
-                id: this.data.user!.id,
+                id: this.data.user?.id ?? this.data.member.user.id,
                 guildId: this.guildId,
                 nick: this.data.member.nick ?? null,
                 avatar: this.data.member.avatar ?? null,

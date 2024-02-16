@@ -30,12 +30,14 @@ CREATE TABLE IF NOT EXISTS "users" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "guild_roles" (
-	"id" text PRIMARY KEY NOT NULL,
+	"id" serial PRIMARY KEY NOT NULL,
+	"guild_id" text,
 	"role_id" text
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "member_roles" (
-	"id" text PRIMARY KEY NOT NULL,
+	"id" serial PRIMARY KEY NOT NULL,
+	"member_id" text,
 	"role_id" text,
 	"guild_id" text
 );
@@ -183,7 +185,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "guild_roles" ADD CONSTRAINT "guild_roles_id_guilds_id_fk" FOREIGN KEY ("id") REFERENCES "guilds"("id") ON DELETE cascade ON UPDATE no action;
+ ALTER TABLE "guild_roles" ADD CONSTRAINT "guild_roles_guild_id_guilds_id_fk" FOREIGN KEY ("guild_id") REFERENCES "guilds"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -195,7 +197,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "member_roles" ADD CONSTRAINT "member_roles_id_members_id_fk" FOREIGN KEY ("id") REFERENCES "members"("id") ON DELETE cascade ON UPDATE no action;
+ ALTER TABLE "member_roles" ADD CONSTRAINT "member_roles_member_id_members_id_fk" FOREIGN KEY ("member_id") REFERENCES "members"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
