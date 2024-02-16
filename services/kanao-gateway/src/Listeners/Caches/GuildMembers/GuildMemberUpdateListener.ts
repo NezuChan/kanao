@@ -80,11 +80,11 @@ export class GuildMemberUpdateListener extends Listener {
                 }
             });
 
-            await this.store.drizzle.delete(memberRoles).where(eq(memberRoles.id, payload.data.d.user.id));
+            await this.store.drizzle.delete(memberRoles).where(eq(memberRoles.memberId, payload.data.d.user.id));
 
             for (const role of payload.data.d.roles) {
                 await this.store.drizzle.insert(memberRoles).values({
-                    id: payload.data.d.user.id,
+                    memberId: payload.data.d.user.id,
                     roleId: role,
                     guildId: payload.data.d.guild_id
                 }).onConflictDoNothing({ target: memberRoles.id });
