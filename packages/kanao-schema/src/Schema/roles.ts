@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { boolean, integer, pgTable, serial, text } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable, primaryKey, text } from "drizzle-orm/pg-core";
 import { guilds } from "./guild.js";
 import { members } from "./member.js";
 
@@ -9,22 +9,17 @@ export const roles = pgTable("roles", {
     color: integer("color"),
     hoist: boolean("hoist"),
     position: integer("position"),
-    permissions: text("permissions")
+    permissions: text("permissions"),
+    guildId: text("guild_id")
 });
 
 export const memberRoles = pgTable("member_roles", {
-    id: serial("id").primaryKey(),
     memberId: text("member_id").references(() => members.id, { onDelete: "cascade" }),
     roleId: text("role_id").references(() => roles.id, { onDelete: "cascade" }),
     guildId: text("guild_id").references(() => guilds.id, { onDelete: "cascade" })
-});
-
-export const guildsRoles = pgTable("guild_roles", {
-    id: serial("id").primaryKey(),
-
-    guildId: text("guild_id").references(() => guilds.id, { onDelete: "cascade" }),
-    roleId: text("role_id").references(() => roles.id, { onDelete: "cascade" })
-});
+}, table => ({
+    pkWithCustomName: primaryKey({ name: "voice_states_member_id_role_id_guild_id", columns: [table.memberId, table.roleId] })
+}));
 
 export const memberRolesRelations = relations(memberRoles, ({ one }) => ({
     role: one(roles, {

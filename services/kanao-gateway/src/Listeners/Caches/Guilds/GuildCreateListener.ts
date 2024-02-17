@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
-import { channels, channelsOverwrite, guilds, guildsRoles, memberRoles, members, roles, users, voiceStates } from "@nezuchan/kanao-schema";
+import { channels, channelsOverwrite, guilds, memberRoles, members, roles, users, voiceStates } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import { Result } from "@sapphire/result";
 import type { GatewayGuildCreateDispatch } from "discord-api-types/v10";
@@ -107,7 +107,8 @@ export class GuildCreateListener extends Listener {
                     permissions: role.permissions,
                     position: role.position,
                     color: role.color,
-                    hoist: role.hoist
+                    hoist: role.hoist,
+                    guildId: payload.data.d.id
                 }).onConflictDoUpdate({
                     target: roles.id,
                     set: {
@@ -118,11 +119,6 @@ export class GuildCreateListener extends Listener {
                         hoist: role.hoist
                     }
                 });
-
-                await this.store.drizzle.insert(guildsRoles).values({
-                    roleId: role.id,
-                    guildId: payload.data.d.id
-                }).onConflictDoNothing({ target: guildsRoles.id });
             })));
         }
 
@@ -185,7 +181,7 @@ export class GuildCreateListener extends Listener {
                     memberId: member.user!.id,
                     roleId: role,
                     guildId: payload.data.d.id
-                }).onConflictDoNothing({ target: memberRoles.id }))));
+                }).onConflictDoNothing({ target: [memberRoles.memberId, memberRoles.roleId] }))));
             }
         })));
 
@@ -208,7 +204,7 @@ export class GuildCreateListener extends Listener {
                             allow: overwrite.allow,
                             deny: overwrite.deny
                         }).onConflictDoNothing({
-                            target: channelsOverwrite.id
+                            target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
                         });
                     }));
                 }

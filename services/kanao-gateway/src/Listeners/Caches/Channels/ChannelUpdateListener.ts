@@ -5,6 +5,7 @@ import { RoutingKey } from "@nezuchan/utilities";
 import { Result } from "@sapphire/result";
 import type { GatewayChannelUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
+import { eq } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateChannels } from "../../../config.js";
@@ -41,6 +42,8 @@ export class ChannelUpdateListener extends Listener {
             .returning({ id: channels.id })
             .then(c => c[0]);
 
+        await this.store.drizzle.delete(channelsOverwrite).where(eq(channelsOverwrite.channelId, payload.data.d.id));
+
         if ("permission_overwrites" in payload.data.d && payload.data.d.permission_overwrites !== undefined) {
             await Promise.all(payload.data.d.permission_overwrites.map(async overwrite => Result.fromAsync(async () => {
                 await this.store.drizzle.insert(channelsOverwrite).values({
@@ -50,7 +53,7 @@ export class ChannelUpdateListener extends Listener {
                     allow: overwrite.allow,
                     deny: overwrite.deny
                 }).onConflictDoNothing({
-                    target: channelsOverwrite.id
+                    target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
                 });
             })));
         }

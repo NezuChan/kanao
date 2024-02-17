@@ -358,9 +358,8 @@ export class Client extends EventEmitter {
     }
 
     public async resolveRole({ id, guildId }: { id: string; guildId: string; }): Promise<Role | undefined> {
-        const { role } = await this.store.select({ role: schema.roles }).from(schema.guildsRoles)
-            .where(and(eq(schema.guildsRoles.roleId, id), eq(schema.guildsRoles.guildId, guildId)))
-            .leftJoin(schema.roles, eq(schema.roles.id, schema.guildsRoles.roleId))
+        const role = await this.store.select().from(schema.roles)
+            .where(and(eq(schema.roles.id, id), eq(schema.roles.id, guildId)))
             .then(x => x[0]);
 
         if (role) {
@@ -417,7 +416,7 @@ export class Client extends EventEmitter {
                                 allow: overwrite.allow,
                                 deny: overwrite.deny
                             }).onConflictDoUpdate({
-                                target: schema.channelsOverwrite.id,
+                                target: [schema.channelsOverwrite.userOrRole, schema.channelsOverwrite.channelId],
                                 set: {
                                     type: overwrite.type,
                                     allow: overwrite.allow,

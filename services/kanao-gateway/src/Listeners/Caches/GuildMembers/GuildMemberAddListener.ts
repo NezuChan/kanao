@@ -68,7 +68,7 @@ export class GuildMemberAddListener extends Listener {
                 memberId: payload.data.d.user!.id,
                 roleId: role,
                 guildId: payload.data.d.guild_id
-            }).onConflictDoNothing({ target: memberRoles.id });
+            }).onConflictDoNothing({ target: [memberRoles.memberId, memberRoles.roleId] });
         })));
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));

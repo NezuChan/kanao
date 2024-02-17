@@ -5,6 +5,7 @@ import { RoutingKey } from "@nezuchan/utilities";
 import { Result } from "@sapphire/result";
 import type { GatewayGuildMemberUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
+import { and, eq } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateMembers, stateUsers } from "../../../config.js";
@@ -80,12 +81,14 @@ export class GuildMemberUpdateListener extends Listener {
                 }
             });
 
+            await this.store.drizzle.delete(memberRoles).where(and(eq(memberRoles.memberId, payload.data.d.user.id), eq(memberRoles.guildId, payload.data.d.guild_id)));
+
             await Promise.all(payload.data.d.roles.map(async role => Result.fromAsync(async () => {
                 await this.store.drizzle.insert(memberRoles).values({
                     memberId: payload.data.d.user.id,
                     roleId: role,
                     guildId: payload.data.d.guild_id
-                }).onConflictDoNothing({ target: memberRoles.id });
+                }).onConflictDoNothing({ target: [memberRoles.memberId, memberRoles.roleId] });
             })));
         }
 

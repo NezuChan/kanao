@@ -56,7 +56,7 @@ export class VoiceStateUpdateListener extends Listener {
                 await this.store.drizzle.insert(memberRoles).values({
                     memberId: payload.data.d.user_id,
                     roleId: role
-                }).onConflictDoNothing({ target: memberRoles.id });
+                }).onConflictDoNothing({ target: [memberRoles.memberId, memberRoles.roleId] });
             })));
         }
 
@@ -77,7 +77,7 @@ export class VoiceStateUpdateListener extends Listener {
                     selfVideo: payload.data.d.self_video,
                     suppress: payload.data.d.suppress
                 }).onConflictDoUpdate({
-                    target: voiceStates.memberId,
+                    target: [voiceStates.memberId, voiceStates.channelId],
                     set: {
                         guildId: payload.data.d.guild_id,
                         channelId: payload.data.d.channel_id,

@@ -12,7 +12,7 @@ export class VoiceState extends Base<InferSelectModel<typeof voiceStates>> {
         return this.data.guildId!;
     }
 
-    public get channelId(): string | null {
+    public get channelId(): string {
         return this.data.channelId;
     }
 
