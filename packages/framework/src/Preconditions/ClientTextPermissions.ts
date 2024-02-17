@@ -10,6 +10,7 @@ import type { UserError } from "../Utilities/Errors/UserError.js";
 
 export class ClientTextPermissions extends Precondition {
     public async contextRun(ctx: CommandContext, command: Command, context: { permissions: PermissionsBitField; }): Promise<Result<unknown, UserError>> {
+        if (ctx.isInteraction() && !ctx.interaction.deferred) await ctx.interaction.deferReply();
         const guildId = ctx.isMessage() ? ctx.message.guildId! : ctx.interaction.guildId;
         const client = await this.container.client.resolveUser({ cache: true, id: this.container.client.clientId });
         const channelId = ctx.isMessage() ? ctx.message.channelId : ctx.interaction.channelId;
@@ -21,6 +22,7 @@ export class ClientTextPermissions extends Precondition {
     }
 
     public async chatInputRun(interaction: CommandInteraction, command: Command, context: { permissions: PermissionsBitField; }): Promise<Result<unknown, UserError>> {
+        if (interaction.deferred) await interaction.deferReply();
         return this.parseConditions(interaction.guildId, interaction.channelId, await this.container.client.resolveUser({ cache: true, id: this.container.client.clientId }), context);
     }
 
@@ -30,8 +32,8 @@ export class ClientTextPermissions extends Precondition {
 
     public async parseConditions(guildId: string | null | undefined, channelId: string | null, client: User | null | undefined, context: { permissions: PermissionsBitField; }): Promise<Result<unknown, UserError>> {
         if (guildId !== null && guildId !== undefined && client && channelId !== null) {
-            const channel = await this.container.client.resolveChannel({ id: channelId, guildId, cache: true });
-            const member = await this.container.client.resolveMember({ id: client.id, guildId, cache: true });
+            const channel = await this.container.client.resolveChannel({ id: channelId, guildId, fetch: true, cache: true });
+            const member = await this.container.client.resolveMember({ id: client.id, guildId, fetch: true, cache: true });
             if (channel && member) {
                 const permissions = await channel.permissionsForMember(member);
                 const missing = permissions.missing(context.permissions);
