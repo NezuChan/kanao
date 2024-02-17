@@ -359,7 +359,7 @@ export class Client extends EventEmitter {
 
     public async resolveRole({ id, guildId }: { id: string; guildId: string; }): Promise<Role | undefined> {
         const role = await this.store.select().from(schema.roles)
-            .where(and(eq(schema.roles.id, id), eq(schema.roles.id, guildId)))
+            .where(and(eq(schema.roles.id, id), eq(schema.roles.guildId, guildId)))
             .then(x => x[0]);
 
         if (role) {
