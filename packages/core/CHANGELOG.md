@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.10.2
+
+### Patch Changes
+
+- df8afb9: properly resolve role
+
 ## 0.10.1
 
 ### Patch Changes
