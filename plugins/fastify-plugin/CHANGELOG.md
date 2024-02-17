@@ -1,5 +1,14 @@
 # Change Log
 
+## 0.6.1
+
+### Patch Changes
+
+- 8e33162: properly check deferred
+- Updated dependencies [8e33162]
+  - @nezuchan/core@0.10.1
+  - @nezuchan/framework@0.10.1
+
 ## 0.6.0
 
 ### Minor Changes
