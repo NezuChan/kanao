@@ -4,9 +4,9 @@ import { guilds } from "./guild.js";
 import { members } from "./member.js";
 
 export const voiceStates = pgTable("voice_states", {
-    memberId: text("member_id").references(() => members.id, { onDelete: "cascade" }),
+    memberId: text("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
     guildId: text("guild_id").references(() => guilds.id, { onDelete: "cascade" }),
-    channelId: text("channel_id").references(() => channels.id, { onDelete: "cascade" }),
+    channelId: text("channel_id").notNull().references(() => channels.id, { onDelete: "cascade" }),
     sessionId: text("session_id"),
 
     deaf: boolean("deaf"),
