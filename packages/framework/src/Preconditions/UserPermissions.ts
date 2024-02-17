@@ -22,7 +22,7 @@ export class UserPermissions extends Precondition {
     }
 
     public async chatInputRun(interaction: BaseInteraction, command: Command, context: { permissions: PermissionsBitField; }): Promise<Result<unknown, UserError>> {
-        if (interaction.deferred) await interaction.deferReply();
+        if (!interaction.deferred) await interaction.deferReply();
         return this.parseConditions(interaction.guildId, interaction.channelId, await interaction.member?.resolveUser({ cache: true }), context);
     }
 

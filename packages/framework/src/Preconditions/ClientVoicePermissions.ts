@@ -24,7 +24,7 @@ export class ClientVoicePermissions extends Precondition {
     }
 
     public async chatInputRun(interaction: CommandInteraction, command: Command, context: { permissions: PermissionsBitField; }): Promise<Result<unknown, UserError>> {
-        if (interaction.deferred) await interaction.deferReply();
+        if (!interaction.deferred) await interaction.deferReply();
         return this.parseConditions(interaction.guildId, interaction.channelId, await interaction.member?.resolveUser({ cache: true }), await this.container.client.resolveUser({ cache: true, id: this.container.client.clientId }), context);
     }
 
