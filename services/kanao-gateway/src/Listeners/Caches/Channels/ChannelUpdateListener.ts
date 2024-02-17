@@ -50,7 +50,7 @@ export class ChannelUpdateListener extends Listener {
                     allow: overwrite.allow,
                     deny: overwrite.deny
                 }).onConflictDoNothing({
-                    target: channelsOverwrite.id
+                    target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
                 });
             })));
         }

@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
-import { guildsRoles, roles } from "@nezuchan/kanao-schema";
+import { roles } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildRoleCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
@@ -23,7 +23,8 @@ export class GuildRoleCreateListener extends Listener {
                 permissions: payload.data.d.role.permissions,
                 position: payload.data.d.role.position,
                 color: payload.data.d.role.color,
-                hoist: payload.data.d.role.hoist
+                hoist: payload.data.d.role.hoist,
+                guildId: payload.data.d.guild_id
             }).onConflictDoUpdate({
                 target: roles.id,
                 set: {
@@ -34,11 +35,6 @@ export class GuildRoleCreateListener extends Listener {
                     hoist: payload.data.d.role.hoist
                 }
             });
-
-            await this.store.drizzle.insert(guildsRoles).values({
-                roleId: payload.data.d.role.id,
-                guildId: payload.data.d.guild_id
-            }).onConflictDoNothing({ target: guildsRoles.id });
         }
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }

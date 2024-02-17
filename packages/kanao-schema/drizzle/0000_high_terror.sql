@@ -29,17 +29,11 @@ CREATE TABLE IF NOT EXISTS "users" (
 	"mfa_enabled" boolean
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "guild_roles" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"guild_id" text,
-	"role_id" text
-);
---> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "member_roles" (
-	"id" serial PRIMARY KEY NOT NULL,
 	"member_id" text,
 	"role_id" text,
-	"guild_id" text
+	"guild_id" text,
+	CONSTRAINT "voice_states_member_id_role_id_guild_id" PRIMARY KEY("member_id","role_id")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "roles" (
@@ -48,7 +42,8 @@ CREATE TABLE IF NOT EXISTS "roles" (
 	"color" integer,
 	"hoist" boolean,
 	"position" integer,
-	"permissions" text
+	"permissions" text,
+	"guild_id" text
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "guilds" (
@@ -115,18 +110,18 @@ CREATE TABLE IF NOT EXISTS "channels" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "channels_overwrite" (
-	"id" serial PRIMARY KEY NOT NULL,
 	"user_or_role" text,
 	"channel_id" text,
 	"type" integer,
 	"allow" text,
-	"deny" text
+	"deny" text,
+	CONSTRAINT "channels_overwrite_user_or_role_channel_id" PRIMARY KEY("user_or_role","channel_id")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "voice_states" (
-	"member_id" text PRIMARY KEY NOT NULL,
+	"member_id" text NOT NULL,
 	"guild_id" text,
-	"channel_id" text,
+	"channel_id" text NOT NULL,
 	"session_id" text,
 	"deaf" boolean,
 	"mute" boolean,
@@ -135,7 +130,8 @@ CREATE TABLE IF NOT EXISTS "voice_states" (
 	"self_stream" boolean,
 	"self_video" boolean,
 	"suppress" boolean,
-	"request_to_speak_timestamp" text
+	"request_to_speak_timestamp" text,
+	CONSTRAINT "voice_states_member_id_channel_id" PRIMARY KEY("member_id","channel_id")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "messages" (
@@ -180,18 +176,6 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "members" ADD CONSTRAINT "members_guild_id_guilds_id_fk" FOREIGN KEY ("guild_id") REFERENCES "guilds"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "guild_roles" ADD CONSTRAINT "guild_roles_guild_id_guilds_id_fk" FOREIGN KEY ("guild_id") REFERENCES "guilds"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "guild_roles" ADD CONSTRAINT "guild_roles_role_id_roles_id_fk" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
