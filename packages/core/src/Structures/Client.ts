@@ -18,6 +18,7 @@ import { ChannelType, Routes } from "discord-api-types/v10";
 import { and, eq } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { drizzle } from "drizzle-orm/postgres-js";
+import type { Sql } from "postgres";
 import postgres from "postgres";
 import { Events } from "../Enums/Events.js";
 import type { ClientOptions } from "../Typings/index.js";
@@ -32,7 +33,8 @@ import { User } from "./User.js";
 import { VoiceState } from "./VoiceState.js";
 
 export class Client extends EventEmitter {
-    public drizzle: PostgresJsDatabase<typeof schema>;
+    public store: PostgresJsDatabase<typeof schema>;
+    public storeBackend: Sql;
     public clientId: string;
     public rest = new REST({
         api: process.env.HTTP_PROXY ?? process.env.PROXY ?? process.env.NIRN_PROXY ?? "https://discord.com/api",
@@ -50,7 +52,8 @@ export class Client extends EventEmitter {
             this.rest.options.api = options.rest;
         }
 
-        this.drizzle = drizzle(postgres(options.databaseUrl), { schema });
+        this.storeBackend = postgres(options.databaseUrl);
+        this.store = drizzle(this.storeBackend, { schema });
 
         options.token ??= process.env.DISCORD_TOKEN;
         this.clientId = Buffer.from(options.token!.split(".")[0], "base64").toString();
@@ -84,7 +87,7 @@ export class Client extends EventEmitter {
             if (result.isOk()) {
                 const member = result.unwrap();
                 if (cache) {
-                    await this.drizzle.insert(schema.users).values({
+                    await this.store.insert(schema.users).values({
                         id: member.user!.id,
                         username: member.user!.username,
                         discriminator: member.user!.discriminator ?? null,
@@ -101,7 +104,7 @@ export class Client extends EventEmitter {
                         publicFlags: member.user!.public_flags
                     }).onConflictDoNothing({ target: schema.users.id });
 
-                    await this.drizzle.insert(schema.members).values({
+                    await this.store.insert(schema.members).values({
                         id,
                         guildId,
                         avatar: member.avatar,
@@ -144,7 +147,7 @@ export class Client extends EventEmitter {
             }
         }
 
-        const member = await this.drizzle.query.members.findFirst({
+        const member = await this.store.query.members.findFirst({
             where: () => and(eq(schema.members.id, id), eq(schema.members.guildId, guildId))
         });
 
@@ -165,7 +168,7 @@ export class Client extends EventEmitter {
             if (result.isOk()) {
                 const user = result.unwrap() as APIUser;
                 if (cache) {
-                    await this.drizzle.insert(schema.users).values({
+                    await this.store.insert(schema.users).values({
                         id: user.id,
                         username: user.username,
                         discriminator: user?.discriminator ?? null,
@@ -194,7 +197,7 @@ export class Client extends EventEmitter {
             }
         }
 
-        const user = await this.drizzle.query.users.findFirst({
+        const user = await this.store.query.users.findFirst({
             where: () => eq(schema.users.id, id)
         });
 
@@ -220,7 +223,7 @@ export class Client extends EventEmitter {
             if (result.isOk()) {
                 const guild = result.unwrap() as APIGuild;
                 if (cache) {
-                    await this.drizzle.insert(schema.guilds).values({
+                    await this.store.insert(schema.guilds).values({
                         id: guild.id,
                         name: guild.name,
                         banner: guild.banner,
@@ -339,7 +342,7 @@ export class Client extends EventEmitter {
             }
         }
 
-        const guild = await this.drizzle.query.guilds.findFirst({
+        const guild = await this.store.query.guilds.findFirst({
             where: () => eq(schema.guilds.id, id)
         });
 
@@ -355,7 +358,7 @@ export class Client extends EventEmitter {
     }
 
     public async resolveRole({ id, guildId }: { id: string; guildId: string; }): Promise<Role | undefined> {
-        const { role } = await this.drizzle.select({ role: schema.roles }).from(schema.guildsRoles)
+        const { role } = await this.store.select({ role: schema.roles }).from(schema.guildsRoles)
             .where(and(eq(schema.guildsRoles.roleId, id), eq(schema.guildsRoles.guildId, guildId)))
             .leftJoin(schema.roles, eq(schema.roles.id, schema.guildsRoles.roleId))
             .then(x => x[0]);
@@ -368,7 +371,7 @@ export class Client extends EventEmitter {
     }
 
     public async resolveVoiceState({ id, guildId }: { id: string; guildId: string; }): Promise<VoiceState | undefined> {
-        const state = await this.drizzle.query.voiceStates.findFirst({
+        const state = await this.store.query.voiceStates.findFirst({
             where: () => and(eq(schema.voiceStates.memberId, id), eq(schema.voiceStates.guildId, guildId))
         });
 
@@ -383,7 +386,7 @@ export class Client extends EventEmitter {
             if (result.isOk()) {
                 const channel = result.unwrap();
                 if (cache) {
-                    await this.drizzle.insert(schema.channels).values({
+                    await this.store.insert(schema.channels).values({
                         id: channel.id,
                         guildId: "guild_id" in channel ? channel.guild_id : null,
                         name: channel.name,
@@ -405,9 +408,9 @@ export class Client extends EventEmitter {
                     });
 
                     if ("permission_overwrites" in channel && channel.permission_overwrites !== undefined) {
-                        await this.drizzle.delete(schema.channelsOverwrite).where(eq(schema.channelsOverwrite.channelId, channel.id));
+                        await this.store.delete(schema.channelsOverwrite).where(eq(schema.channelsOverwrite.channelId, channel.id));
                         for (const overwrite of channel.permission_overwrites) {
-                            await this.drizzle.insert(schema.channelsOverwrite).values({
+                            await this.store.insert(schema.channelsOverwrite).values({
                                 userOrRole: overwrite.id,
                                 channelId: channel.id,
                                 type: overwrite.type,
@@ -453,7 +456,7 @@ export class Client extends EventEmitter {
             }
         }
 
-        const channel = await this.drizzle.query.channels.findFirst({
+        const channel = await this.store.query.channels.findFirst({
             where: () => and(eq(schema.channels.id, id), eq(schema.channels.guildId, guildId))
         });
 
@@ -491,7 +494,7 @@ export class Client extends EventEmitter {
                 await channel.bindQueue(queue, exchange, RoutingKey(this.clientId, i));
             }
         } else {
-            const session = await this.drizzle.query.sessions.findFirst();
+            const session = await this.store.query.sessions.findFirst();
             if (session) {
                 for (let i = 0; i < Number(session.shardCount); i++) {
                     await channel.bindQueue(queue, exchange, RoutingKey(this.clientId, i));
@@ -501,7 +504,7 @@ export class Client extends EventEmitter {
     }
 
     public async fetchShardCount(): Promise<number> {
-        const session = await this.drizzle.query.sessions.findFirst();
+        const session = await this.store.query.sessions.findFirst();
         return session ? Number(session.shardCount) : 1;
     }
 

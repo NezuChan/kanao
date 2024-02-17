@@ -60,7 +60,7 @@ export class GuildMember extends Base<InferSelectModel<typeof members>> {
     public async resolveRoles(): Promise<Role[]> {
         const mRoles = [];
         if (this.guildId) {
-            const guildMemberRoles = await this.client.drizzle.select({
+            const guildMemberRoles = await this.client.store.select({
                 role: roles
             }).from(memberRoles)
                 .where(and(eq(memberRoles.memberId, this.id), eq(memberRoles.guildId, this.guildId)))

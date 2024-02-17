@@ -56,7 +56,7 @@ export class BaseChannel extends Base<Partial<InferSelectModel<typeof channels>>
     }
 
     public async resolveOverwrites(): Promise<InferSelectModel<typeof channelsOverwrite>[]> {
-        return this.client.drizzle.query.channelsOverwrite.findMany({
+        return this.client.store.query.channelsOverwrite.findMany({
             where: () => eq(channelsOverwrite.channelId, this.id)
         });
     }
