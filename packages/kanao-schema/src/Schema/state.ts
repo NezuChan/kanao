@@ -18,5 +18,5 @@ export const voiceStates = pgTable("voice_states", {
     suppress: boolean("suppress"),
     requestToSpeakTimestamp: text("request_to_speak_timestamp")
 }, table => ({
-    pk: primaryKey({ columns: [table.memberId, table.channelId] })
+    pkWithCustomName: primaryKey({ name: "voice_states_member_id_channel_id", columns: [table.memberId, table.channelId] })
 }));
