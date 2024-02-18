@@ -5,7 +5,7 @@ import { RoutingKey } from "@nezuchan/utilities";
 import { Result } from "@sapphire/result";
 import type { GatewayVoiceStateUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateMembers, stateUsers, stateVoices } from "../../../config.js";
@@ -62,10 +62,10 @@ export class VoiceStateUpdateListener extends Listener {
 
         if (stateVoices) {
             await (payload.data.d.channel_id === null
-                ? this.store.drizzle.delete(voiceStates).where(eq(voiceStates.memberId, payload.data.d.user_id))
+                ? this.store.drizzle.delete(voiceStates).where(and(eq(voiceStates.memberId, payload.data.d.user_id), eq(voiceStates.guildId, payload.data.d.guild_id!)))
                 : this.store.drizzle.insert(voiceStates).values({
                     memberId: payload.data.d.user_id,
-                    guildId: payload.data.d.guild_id,
+                    guildId: payload.data.d.guild_id!,
                     channelId: payload.data.d.channel_id,
                     sessionId: payload.data.d.session_id,
                     deaf: payload.data.d.deaf,
