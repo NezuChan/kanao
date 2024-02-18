@@ -77,7 +77,7 @@ export class VoiceStateUpdateListener extends Listener {
                     selfVideo: payload.data.d.self_video,
                     suppress: payload.data.d.suppress
                 }).onConflictDoUpdate({
-                    target: [voiceStates.memberId, voiceStates.channelId],
+                    target: [voiceStates.memberId, voiceStates.guildId],
                     set: {
                         guildId: payload.data.d.guild_id,
                         channelId: payload.data.d.channel_id,
