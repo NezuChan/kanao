@@ -1,5 +1,11 @@
 # @nezuchan/kanao-schema
 
+## 0.4.0
+
+### Minor Changes
+
+- cf6d6ab: dont make session id unique
+
 ## 0.3.1
 
 ### Patch Changes
