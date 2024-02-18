@@ -8,6 +8,13 @@
       "when": 1708235263010,
       "tag": "0000_futuristic_mole_man",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1708240414963,
+      "tag": "0001_oval_chronomancer",
+      "breakpoints": true
     }
   ]
 }
