@@ -1,5 +1,11 @@
 # @nezuchan/kanao-gateway
 
+## 4.1.1
+
+### Patch Changes
+
+- 51bbdfe: use transaction when there is channel update
+
 ## 4.1.0
 
 ### Minor Changes
