@@ -1,5 +1,11 @@
 # @nezuchan/kanao-gateway
 
+## 4.1.2
+
+### Patch Changes
+
+- ea93201: revert last change
+
 ## 4.1.1
 
 ### Patch Changes
