@@ -1,5 +1,5 @@
 {
-  "id": "ab759bda-c256-4fc6-b4ea-de791bf064ec",
+  "id": "dff2f68c-be88-4c13-ad05-ff82a69b0db6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -781,7 +781,7 @@
           "name": "guild_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "channel_id": {
           "name": "channel_id",
@@ -887,11 +887,11 @@
         }
       },
       "compositePrimaryKeys": {
-        "voice_states_member_id_channel_id": {
-          "name": "voice_states_member_id_channel_id",
+        "voice_states_member_id_guild_id": {
+          "name": "voice_states_member_id_guild_id",
           "columns": [
             "member_id",
-            "channel_id"
+            "guild_id"
           ]
         }
       },

@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS "channels_overwrite" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "voice_states" (
 	"member_id" text NOT NULL,
-	"guild_id" text,
+	"guild_id" text NOT NULL,
 	"channel_id" text NOT NULL,
 	"session_id" text,
 	"deaf" boolean,
@@ -131,7 +131,7 @@ CREATE TABLE IF NOT EXISTS "voice_states" (
 	"self_video" boolean,
 	"suppress" boolean,
 	"request_to_speak_timestamp" text,
-	CONSTRAINT "voice_states_member_id_channel_id" PRIMARY KEY("member_id","channel_id")
+	CONSTRAINT "voice_states_member_id_guild_id" PRIMARY KEY("member_id","guild_id")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "messages" (
