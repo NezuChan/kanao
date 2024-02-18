@@ -1,5 +1,16 @@
 # Change Log
 
+## 0.11.0
+
+### Minor Changes
+
+- cf6d6ab: dont make session id unique
+
+### Patch Changes
+
+- Updated dependencies [cf6d6ab]
+  - @nezuchan/core@0.11.0
+
 ## 0.10.2
 
 ### Patch Changes
