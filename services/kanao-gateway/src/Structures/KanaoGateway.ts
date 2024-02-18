@@ -24,7 +24,7 @@ const shardIds = await getShardCount();
 
 export class NezuGateway extends EventEmitter {
     public rest = new REST({ api: proxy, rejectOnRateLimit: proxy === "https://discord.com/api" ? null : () => false });
-    public logger = createLogger("nezu-gateway", clientId, storeLogs, lokiHost);
+    public logger = createLogger("kanao-gateway", clientId, storeLogs, lokiHost);
 
     public drizzle = drizzle(postgres(databaseUrl), { schema });
 
@@ -48,7 +48,7 @@ export class NezuGateway extends EventEmitter {
         initialPresence: {
             activities: [
                 {
-                    name: gatewayPresenceName ?? `NezukoChan Gateway v${packageJson.version}`,
+                    name: gatewayPresenceName ?? `Kanao Gateway v${packageJson.version}`,
                     type: gatewayPresenceType
                 }
             ],

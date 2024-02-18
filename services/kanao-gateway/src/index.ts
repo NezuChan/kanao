@@ -11,7 +11,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import gradient from "gradient-string";
 import postgres from "postgres";
-import { NezuGateway } from "./Structures/NezuGateway.js";
+import { NezuGateway } from "./Structures/KanaoGateway.js";
 import { databaseUrl, getShardCount, replicaCount, replicaId } from "./config.js";
 
 const gateway = new NezuGateway();
@@ -48,7 +48,7 @@ console.log(
                 String.raw`╲________╱╲___╱____╱ ╲______╱ ╲________╱╲________╱╲___╱____╱   ╲_____╱ `
             ],
             extra: [
-                ` Nezu Gateway: v${packageJson.version}`,
+                ` Kanao Gateway: v${packageJson.version}`,
                 ` ├ ReplicaId: ${replicaId}`,
                 ` ├ ReplicaCount: ${replicaCount}`,
                 ` ├ Shards: ${shardIds ? range(shardIds.start, shardIds.end!, 1).join(", ") : range(0, (gateway.ws.options.shardCount ?? 1) - 1, 1).join(", ")}`,

@@ -1,13 +1,13 @@
 /* eslint-disable unicorn/no-nested-ternary */
 
 import type { EventEmitter } from "node:events";
-import type { PieceContext, PieceOptions } from "@sapphire/pieces";
+import type { LoaderPieceContext, PieceOptions } from "@sapphire/pieces";
 import { Piece } from "@sapphire/pieces";
 import { Result } from "@sapphire/result";
 import type { Logger } from "pino";
 import type { ListenerStore } from "./ListenerStore.js";
 
-export type ListenerContext = PieceContext & {
+export type ListenerContext = LoaderPieceContext & {
     store: ListenerStore;
 };
 
