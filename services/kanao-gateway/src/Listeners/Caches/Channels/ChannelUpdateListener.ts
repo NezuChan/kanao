@@ -42,23 +42,21 @@ export class ChannelUpdateListener extends Listener {
             .returning({ id: channels.id })
             .then(c => c[0]);
 
-        await this.store.drizzle.transaction(async tx => {
-            await tx.delete(channelsOverwrite).where(eq(channelsOverwrite.channelId, payload.data.d.id));
+        await this.store.drizzle.delete(channelsOverwrite).where(eq(channelsOverwrite.channelId, payload.data.d.id));
 
-            if ("permission_overwrites" in payload.data.d && payload.data.d.permission_overwrites !== undefined) {
-                await Promise.all(payload.data.d.permission_overwrites.map(async overwrite => Result.fromAsync(async () => {
-                    await tx.insert(channelsOverwrite).values({
-                        userOrRole: overwrite.id,
-                        channelId: channel.id,
-                        type: overwrite.type,
-                        allow: overwrite.allow,
-                        deny: overwrite.deny
-                    }).onConflictDoNothing({
-                        target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
-                    });
-                })));
-            }
-        });
+        if ("permission_overwrites" in payload.data.d && payload.data.d.permission_overwrites !== undefined && payload.data.d.permission_overwrites.length > 0) {
+            await Promise.all(payload.data.d.permission_overwrites.map(async overwrite => Result.fromAsync(async () => {
+                await this.store.drizzle.insert(channelsOverwrite).values({
+                    userOrRole: overwrite.id,
+                    channelId: channel.id,
+                    type: overwrite.type,
+                    allow: overwrite.allow,
+                    deny: overwrite.deny
+                }).onConflictDoNothing({
+                    target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
+                });
+            })));
+        }
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }
