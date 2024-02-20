@@ -2,7 +2,6 @@ import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
 import { memberRoles, members, users, voiceStates } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
-import { Result } from "@sapphire/result";
 import type { GatewayVoiceStateUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import { and, eq } from "drizzle-orm";
@@ -52,12 +51,13 @@ export class VoiceStateUpdateListener extends Listener {
                 premiumSince: payload.data.d.member.premium_since
             }).onConflictDoNothing({ target: members.id });
 
-            await Promise.all(payload.data.d.member.roles.map(async role => Result.fromAsync(async () => {
-                await this.store.drizzle.insert(memberRoles).values({
+            if (payload.data.d.member.roles.length > 0) {
+                await this.store.drizzle.insert(memberRoles).values(payload.data.d.member.roles.map(role => ({
                     memberId: payload.data.d.user_id,
-                    roleId: role
-                }).onConflictDoNothing({ target: [memberRoles.memberId, memberRoles.roleId] });
-            })));
+                    roleId: role,
+                    guildId: payload.data.d.guild_id
+                }))).onConflictDoNothing({ target: [memberRoles.memberId, memberRoles.roleId] });
+            }
         }
 
         if (stateVoices) {

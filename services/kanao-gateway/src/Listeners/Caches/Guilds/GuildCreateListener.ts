@@ -185,30 +185,28 @@ export class GuildCreateListener extends Listener {
             }
         })));
 
-        if (stateChannels) {
-            await Promise.all(payload.data.d.channels.map(async channel => Result.fromAsync(async () => {
-                await this.store.drizzle.insert(channels).values({
-                    id: channel.id,
-                    guildId: payload.data.d.id,
-                    name: channel.name,
-                    type: channel.type,
-                    flags: channel.flags
-                }).onConflictDoNothing({ target: channels.id });
+        if (stateChannels && payload.data.d.channels.length > 0) {
+            await this.store.drizzle.insert(channels).values(payload.data.d.channels.map(channel => ({
+                id: channel.id,
+                guildId: payload.data.d.id,
+                name: channel.name,
+                type: channel.type,
+                flags: channel.flags
+            }))).onConflictDoNothing({ target: channels.id });
 
-                if ("permission_overwrites" in channel && channel.permission_overwrites !== undefined) {
-                    await Promise.all(channel.permission_overwrites?.map(async overwrite => {
-                        await this.store.drizzle.insert(channelsOverwrite).values({
-                            userOrRole: overwrite.id,
-                            channelId: channel.id,
-                            type: overwrite.type,
-                            allow: overwrite.allow,
-                            deny: overwrite.deny
-                        }).onConflictDoNothing({
-                            target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
-                        });
-                    }));
+            for (const channel of payload.data.d.channels) {
+                if ("permission_overwrites" in channel && channel.permission_overwrites !== undefined && channel.permission_overwrites.length > 0) {
+                    await this.store.drizzle.insert(channelsOverwrite).values(channel.permission_overwrites.map(overwrite => ({
+                        userOrRole: overwrite.id,
+                        channelId: channel.id,
+                        type: overwrite.type,
+                        allow: overwrite.allow,
+                        deny: overwrite.deny
+                    }))).onConflictDoNothing({
+                        target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
+                    });
                 }
-            })));
+            }
         }
 
         if (stateVoices) {

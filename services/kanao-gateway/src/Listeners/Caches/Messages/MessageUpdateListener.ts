@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
-import { members, messages, users } from "@nezuchan/kanao-schema";
+import { memberRoles, members, messages, users } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayMessageUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
@@ -80,6 +80,14 @@ export class MessageUpdateListener extends Listener {
                     premiumSince: payload.data.d.member.premium_since
                 }
             });
+
+            if (payload.data.d.member.roles.length > 0) {
+                await this.store.drizzle.insert(memberRoles).values(payload.data.d.member.roles.map(role => ({
+                    memberId: payload.data.d.author!.id,
+                    roleId: role,
+                    guildId: payload.data.d.guild_id
+                }))).onConflictDoNothing({ target: [memberRoles.memberId, memberRoles.roleId] });
+            }
         }
 
         if (stateMessages) {

@@ -2,7 +2,6 @@ import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
 import { channels, channelsOverwrite } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
-import { Result } from "@sapphire/result";
 import type { GatewayChannelCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import type { ListenerContext } from "../../../Stores/Listener.js";
@@ -41,18 +40,16 @@ export class ChannelCreateListener extends Listener {
                 .returning({ id: channels.id })
                 .then(c => c[0]);
 
-            if ("permission_overwrites" in payload.data.d && payload.data.d.permission_overwrites !== undefined) {
-                await Promise.all(payload.data.d.permission_overwrites.map(async overwrite => Result.fromAsync(async () => {
-                    await this.store.drizzle.insert(channelsOverwrite).values({
-                        userOrRole: overwrite.id,
-                        channelId: channel.id,
-                        type: overwrite.type,
-                        allow: overwrite.allow,
-                        deny: overwrite.deny
-                    }).onConflictDoNothing({
-                        target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
-                    });
-                })));
+            if ("permission_overwrites" in payload.data.d && payload.data.d.permission_overwrites !== undefined && payload.data.d.permission_overwrites.length > 0) {
+                await this.store.drizzle.insert(channelsOverwrite).values(payload.data.d.permission_overwrites.map(overwrite => ({
+                    userOrRole: overwrite.id,
+                    channelId: channel.id,
+                    type: overwrite.type,
+                    allow: overwrite.allow,
+                    deny: overwrite.deny
+                }))).onConflictDoNothing({
+                    target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
+                });
             }
         }
 

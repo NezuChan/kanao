@@ -2,7 +2,6 @@ import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
 import { memberRoles, members, users } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
-import { Result } from "@sapphire/result";
 import type { GatewayGuildMemberAddDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import type { ListenerContext } from "../../../Stores/Listener.js";
@@ -63,13 +62,13 @@ export class GuildMemberAddListener extends Listener {
             }
         });
 
-        await Promise.all(payload.data.d.roles.map(async role => Result.fromAsync(async () => {
-            await this.store.drizzle.insert(memberRoles).values({
+        if (payload.data.d.roles.length > 0) {
+            await this.store.drizzle.insert(memberRoles).values(payload.data.d.roles.map(role => ({
                 memberId: payload.data.d.user!.id,
                 roleId: role,
                 guildId: payload.data.d.guild_id
-            }).onConflictDoNothing({ target: [memberRoles.memberId, memberRoles.roleId] });
-        })));
+            }))).onConflictDoNothing({ target: [memberRoles.memberId, memberRoles.roleId] });
+        }
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
     }

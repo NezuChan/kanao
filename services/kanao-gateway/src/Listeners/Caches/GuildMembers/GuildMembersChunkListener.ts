@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
-import { members, users } from "@nezuchan/kanao-schema";
+import { memberRoles, members, users } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildMembersChunkDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
@@ -50,6 +50,14 @@ export class GuildMembersChunkListener extends Listener {
                         pending: member.pending,
                         premiumSince: member.premium_since
                     }).onConflictDoNothing({ target: members.id });
+                }
+
+                if (member.roles.length > 0) {
+                    await this.store.drizzle.insert(memberRoles).values(member.roles.map(role => ({
+                        memberId: member.user!.id,
+                        roleId: role,
+                        guildId: payload.data.d.guild_id
+                    }))).onConflictDoNothing({ target: [memberRoles.memberId, memberRoles.roleId] });
                 }
             }
         }
