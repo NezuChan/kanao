@@ -2,6 +2,7 @@ import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
 import { channels, channelsOverwrite, guilds, memberRoles, members, roles, users, voiceStates } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
+import { chunk } from "@sapphire/utilities";
 import type { GatewayGuildCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import { sql } from "drizzle-orm";
@@ -106,29 +107,19 @@ export class GuildCreateListener extends Listener {
             });
 
         if (stateRoles) {
-            await this.store.drizzle
-                .insert(roles)
-                .values(
-                    payload.data.d.roles.map(role => ({
-                        id: role.id,
-                        name: role.name,
-                        permissions: role.permissions,
-                        position: role.position,
-                        color: role.color,
-                        hoist: role.hoist,
-                        guildId: payload.data.d.id
-                    }))
-                )
-                .onConflictDoUpdate({
-                    target: roles.id,
-                    set: {
-                        name: sql`EXCLUDED.name`,
-                        permissions: sql`EXCLUDED.permissions`,
-                        position: sql`EXCLUDED.position`,
-                        color: sql`EXCLUDED.color`,
-                        hoist: sql`EXCLUDED.hoist`
-                    }
-                });
+            const values = sql.empty();
+
+            for (const role of payload.data.d.roles) {
+                values.append(sql`${values.queryChunks.length === 0 ? undefined : sql.raw(", ")}(${role.id}, ${role.name}, ${role.permissions}, ${role.position}, ${role.color}, ${role.hoist}, ${payload.data.d.id})`);
+            }
+
+            await this.store.drizzle.execute(
+                sql.join([
+                    sql`INSERT INTO roles (id, name, permissions, position, color, hoist, guild_id) VALUES `,
+                    values,
+                    sql` ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, permissions = EXCLUDED.permissions, position = EXCLUDED.position, color = EXCLUDED.color, hoist = EXCLUDED.hoist`
+                ])
+            );
         }
 
         const bot = payload.data.d.members.find(member => member.user?.id === clientId)!;
@@ -200,38 +191,39 @@ export class GuildCreateListener extends Listener {
         }
 
         if (stateChannels && payload.data.d.channels.length > 0) {
-            await this.store.drizzle
-                .insert(channels)
-                .values(
-                    payload.data.d.channels.map(channel => ({
-                        id: channel.id,
-                        guildId: payload.data.d.id,
-                        name: channel.name,
-                        type: channel.type,
-                        flags: channel.flags
-                    }))
-                )
-                .onConflictDoNothing({ target: channels.id });
+            const values = sql.empty();
+
+            for (const channel of payload.data.d.channels) {
+                values.append(sql`${values.queryChunks.length === 0 ? undefined : sql.raw(", ")}(${channel.id}, ${payload.data.d.id}, ${channel.name}, ${channel.type}, ${channel.flags})`);
+            }
+
+            await this.store.drizzle.execute(
+                sql.join([
+                    sql`INSERT INTO channels (id, guild_id, name, type, flags) VALUES `,
+                    values,
+                    sql` ON CONFLICT ("id") DO NOTHING`
+                ])
+            );
+
             for (const ch of payload.data.d.channels) {
                 if (
                     "permission_overwrites" in ch &&
                     ch.permission_overwrites !== undefined &&
                     ch.permission_overwrites.length > 0
                 ) {
-                    await this.store.drizzle
-                        .insert(channelsOverwrite)
-                        .values(
-                            ch.permission_overwrites.map(overwrite => ({
-                                userOrRole: overwrite.id,
-                                channelId: ch.id,
-                                type: overwrite.type,
-                                allow: overwrite.allow,
-                                deny: overwrite.deny
-                            }))
-                        )
-                        .onConflictDoNothing({
-                            target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
-                        });
+                    const values2 = sql.empty();
+
+                    for (const overwrite of ch.permission_overwrites) {
+                        values2.append(sql`${values2.queryChunks.length === 0 ? undefined : sql.raw(", ")}(${overwrite.id}, ${ch.id}, ${overwrite.type}, ${overwrite.allow}, ${overwrite.deny})`);
+                    }
+
+                    await this.store.drizzle.execute(
+                        sql.join([
+                            sql`INSERT INTO channels_overwrite (user_or_role, channel_id, type, allow, deny) VALUES `,
+                            values2,
+                            sql` ON CONFLICT ("user_or_role", "channel_id") DO NOTHING`
+                        ])
+                    );
                 }
             }
         }
