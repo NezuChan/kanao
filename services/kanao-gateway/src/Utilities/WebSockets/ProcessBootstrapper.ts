@@ -197,7 +197,11 @@ export class ProcessBootstrapper {
                         op: WorkerReceivePayloadOp.Connected,
                         shardId: payload.shardId
                     };
-                    process.send!(response);
+                    try {
+                        process.send!(response);
+                    } catch {
+                        setTimeout(async () => Result.fromAsync(() => process.send!(response)), 2_000);
+                    }
                     break;
                 }
 
@@ -208,7 +212,11 @@ export class ProcessBootstrapper {
                         shardId: payload.shardId
                     };
 
-                    process.send!(response);
+                    try {
+                        process.send!(response);
+                    } catch {
+                        setTimeout(async () => Result.fromAsync(() => process.send!(response)), 2_000);
+                    }
                     break;
                 }
 
@@ -240,7 +248,11 @@ export class ProcessBootstrapper {
                         nonce: payload.nonce
                     };
 
-                    process.send!(response);
+                    try {
+                        process.send!(response);
+                    } catch {
+                        setTimeout(async () => Result.fromAsync(() => process.send!(response)), 2_000);
+                    }
                     break;
                 }
 
