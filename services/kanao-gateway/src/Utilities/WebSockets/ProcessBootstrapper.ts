@@ -18,7 +18,7 @@ import { StoreRegistry } from "@sapphire/pieces";
 import type { Channel, ConsumeMessage } from "amqplib";
 import type { GatewaySendPayload } from "discord-api-types/v10";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { Client } from "pg";
+import pg from "pg";
 import type { Listener } from "../../Stores/Listener.js";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
 import { discordToken, storeLogs, lokiHost, amqp, databaseUrl, clientId } from "../../config.js";
@@ -26,7 +26,7 @@ import { createLogger } from "../Logger.js";
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 
 export class ProcessBootstrapper {
-    public pgClient = new Client({ connectionString: databaseUrl });
+    public pgClient = new pg.Client({ connectionString: databaseUrl });
 
     public drizzle = drizzle(this.pgClient, { schema });
 
