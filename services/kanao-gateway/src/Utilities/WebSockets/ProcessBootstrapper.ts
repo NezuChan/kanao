@@ -15,6 +15,7 @@ import { RabbitMQ, ShardOp } from "@nezuchan/constants";
 import * as schema from "@nezuchan/kanao-schema";
 import { RoutingKey, RoutingKeyToId, createAmqpChannel } from "@nezuchan/utilities";
 import { StoreRegistry } from "@sapphire/pieces";
+import { Result } from "@sapphire/result";
 import type { Channel, ConsumeMessage } from "amqplib";
 import type { GatewaySendPayload } from "discord-api-types/v10";
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -65,7 +66,12 @@ export class ProcessBootstrapper {
                         data,
                         shardId
                     } satisfies WorkerReceivePayload;
-                    process.send!(payload);
+                    try {
+                        process.send!(payload);
+                    } catch {
+                        setTimeout(async () => Result.fromAsync(() => process.send!(payload)), 2_000);
+                    }
+
                     (this.stores.get("listeners") as unknown as Listener).emitter!.emit(event, { shard, data, shardId });
                 });
             }
@@ -80,7 +86,11 @@ export class ProcessBootstrapper {
         const message = {
             op: WorkerReceivePayloadOp.WorkerReady
         } satisfies WorkerReceivePayload;
-        process.send!(message);
+        try {
+            process.send!(message);
+        } catch {
+            setTimeout(async () => Result.fromAsync(() => process.send!(message)), 2_000);
+        }
     }
 
     public setupAmqp(): void {
