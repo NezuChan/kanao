@@ -133,6 +133,7 @@ export class GuildCreateListener extends Listener {
 
         const mbrs = payload.data.d.members.filter(member => member.user !== undefined);
 
+        // TODO [2024-02-20]: Fix upserts
         if (stateUsers) {
             await this.store.drizzle
                 .insert(users)
@@ -172,20 +173,8 @@ export class GuildCreateListener extends Listener {
                             premiumSince: member.premium_since
                         }))
                 )
-                .onConflictDoUpdate({
-                    target: members.id,
-                    set: {
-                        avatar: sql`EXCLUDED.avatar`,
-                        flags: sql`EXCLUDED.flags`,
-                        communicationDisabledUntil: sql`EXCLUDED.communication_disabled_until`,
-                        deaf: sql`EXCLUDED.deaf`,
-                        joinedAt: sql`EXCLUDED.joined_at`,
-                        mute: sql`EXCLUDED.mute`,
-                        nick: sql`EXCLUDED.nick`,
-                        pending: sql`EXCLUDED.pending`,
-                        premiumSince: sql`EXCLUDED.premium_since`
-                    }
-                });
+                .onConflictDoNothing({ target: members.id });
+
             for (const member of mbrs) {
                 if (member.roles.length > 0) {
                     await this.store.drizzle.insert(memberRoles)
@@ -214,12 +203,13 @@ export class GuildCreateListener extends Listener {
             for (const ch of payload.data.d.channels) {
                 if (
                     "permission_overwrites" in ch &&
-                    (ch.permission_overwrites?.length ?? 0) > 0
+                    ch.permission_overwrites !== undefined &&
+                    ch.permission_overwrites.length > 0
                 ) {
                     await this.store.drizzle
                         .insert(channelsOverwrite)
                         .values(
-                            ch.permission_overwrites!.map(overwrite => ({
+                            ch.permission_overwrites.map(overwrite => ({
                                 userOrRole: overwrite.id,
                                 channelId: ch.id,
                                 type: overwrite.type,
