@@ -106,6 +106,7 @@ export class NezuGateway extends EventEmitter {
 
     public async connect(): Promise<void> {
         this.setupAmqp();
+        this.pgClient.on("error", e => this.logger.error(e, "Postgres emitted error"));
         await this.pgClient.connect();
         if (enablePrometheus) this.setupPrometheus();
 
