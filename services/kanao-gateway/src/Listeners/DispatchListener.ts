@@ -30,7 +30,6 @@ export class ReadyListener extends Listener {
 
         const statuses = await this.checkStatus.execute();
         this.ready = statuses.length === 0;
-        console.log(statuses);
         if (!this.ready) return;
 
         switch (payload.data.data.t) {
