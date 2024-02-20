@@ -1,14 +1,17 @@
 import { Buffer } from "node:buffer";
-import { WebSocketShardEvents } from "@discordjs/ws";
+import { WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
 import { RabbitMQ } from "@nezuchan/constants";
+import { status } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayDispatchPayload } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
+import { eq, not } from "drizzle-orm";
 import type { ListenerContext } from "../Stores/Listener.js";
 import { Listener } from "../Stores/Listener.js";
 import { clientId } from "../config.js";
 
 export class ReadyListener extends Listener {
+    public ready = false;
     public constructor(context: ListenerContext) {
         super(context, {
             event: WebSocketShardEvents.Dispatch
@@ -16,11 +19,21 @@ export class ReadyListener extends Listener {
     }
 
     public async run(payload: { shardId: number; data: { data: GatewayDispatchPayload; }; }): Promise<void> {
+        if (payload.data.data.t === GatewayDispatchEvents.GuildCreate) {
+            this.store.emitter.emit(payload.data.data.t, { shardId: payload.shardId, data: payload.data.data });
+        }
+
+        if (!this.ready) {
+            const statuses = await this.store.drizzle.select({ shardId: status.shardId }).from(status)
+                .where(not(eq(status.status, WebSocketShardStatus.Ready)));
+            this.ready = statuses.length === 0;
+            return;
+        }
+
         switch (payload.data.data.t) {
             case GatewayDispatchEvents.ChannelCreate:
             case GatewayDispatchEvents.ChannelDelete:
             case GatewayDispatchEvents.ChannelUpdate:
-            case GatewayDispatchEvents.GuildCreate:
             case GatewayDispatchEvents.GuildDelete:
             case GatewayDispatchEvents.GuildMemberRemove:
             case GatewayDispatchEvents.GuildMemberUpdate:
