@@ -7,7 +7,7 @@ import { GatewayDispatchEvents } from "discord-api-types/v10";
 import { sql } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
-import { clientId, stateChannels, stateMembers, stateRoles, stateUsers, stateVoices } from "../../../config.js";
+import { clientId, stateChannels, stateRoles, stateVoices } from "../../../config.js";
 
 export class GuildCreateListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -131,60 +131,72 @@ export class GuildCreateListener extends Listener {
                 });
         }
 
-        const mbrs = payload.data.d.members.filter(member => member.user !== undefined);
+        const bot = payload.data.d.members.find(member => member.user?.id === clientId)!;
 
-        // TODO [2024-02-20]: Fix upserts
-        if (stateUsers) {
-            await this.store.drizzle
-                .insert(users)
-                .values(
-                    mbrs
-                        .map(member => ({
-                            id: member.user!.id,
-                            username: member.user!.username,
-                            discriminator: member.user!.discriminator ?? null,
-                            globalName: member.user!.global_name ?? null,
-                            avatar: member.user!.avatar ?? null,
-                            bot: member.user!.bot ?? false,
-                            flags: member.user!.flags,
-                            premiumType: member.user!.premium_type,
-                            publicFlags: member.user!.public_flags
-                        }))
-                )
-                .onConflictDoNothing({ target: users.id });
-        }
-
-        if (stateMembers) {
-            await this.store.drizzle
-                .insert(members)
-                .values(
-                    mbrs
-                        .map(member => ({
-                            id: member.user!.id,
-                            guildId: payload.data.d.id,
-                            avatar: member.avatar,
-                            flags: member.flags,
-                            communicationDisabledUntil: member.communication_disabled_until,
-                            deaf: member.deaf,
-                            joinedAt: member.joined_at,
-                            mute: member.mute,
-                            nick: member.nick,
-                            pending: member.pending,
-                            premiumSince: member.premium_since
-                        }))
-                )
-                .onConflictDoNothing({ target: members.id });
-
-            for (const member of mbrs) {
-                if (member.roles.length > 0) {
-                    await this.store.drizzle.insert(memberRoles)
-                        .values(member.roles.map(role => ({
-                            memberId: member.user!.id,
-                            roleId: role,
-                            guildId: payload.data.d.id
-                        }))).onConflictDoNothing({ target: [memberRoles.memberId, memberRoles.roleId] });
+        await this.store.drizzle
+            .insert(users)
+            .values({
+                id: bot.user!.id,
+                username: bot.user!.username,
+                discriminator: bot.user!.discriminator ?? null,
+                globalName: bot.user!.global_name ?? null,
+                avatar: bot.user!.avatar ?? null,
+                bot: bot.user!.bot ?? false,
+                flags: bot.user!.flags,
+                premiumType: bot.user!.premium_type,
+                publicFlags: bot.user!.public_flags
+            })
+            .onConflictDoUpdate({
+                target: users.id,
+                set: {
+                    username: sql`EXCLUDED.username`,
+                    discriminator: sql`EXCLUDED.discriminator`,
+                    globalName: sql`EXCLUDED.global_name`,
+                    avatar: sql`EXCLUDED.avatar`,
+                    bot: sql`EXCLUDED.bot`,
+                    flags: sql`EXCLUDED.flags`,
+                    premiumType: sql`EXCLUDED.premium_type`,
+                    publicFlags: sql`EXCLUDED.public_flags`
                 }
-            }
+            })
+            .execute();
+
+        await this.store.drizzle.insert(members)
+            .values({
+                id: bot.user!.id,
+                guildId: payload.data.d.id,
+                avatar: bot.avatar,
+                flags: bot.flags,
+                communicationDisabledUntil: bot.communication_disabled_until,
+                deaf: bot.deaf,
+                joinedAt: bot.joined_at,
+                mute: bot.mute,
+                nick: bot.nick,
+                pending: bot.pending,
+                premiumSince: bot.premium_since
+            }).onConflictDoUpdate({
+                target: members.id,
+                set: {
+                    avatar: bot.avatar,
+                    flags: bot.flags,
+                    communicationDisabledUntil: bot.communication_disabled_until,
+                    deaf: bot.deaf,
+                    joinedAt: bot.joined_at,
+                    mute: bot.mute,
+                    nick: bot.nick,
+                    pending: bot.pending,
+                    premiumSince: bot.premium_since
+                }
+            });
+
+        if (bot.roles.length > 0) {
+            await this.store.drizzle.insert(memberRoles)
+                .values(bot.roles.map(role => ({
+                    memberId: bot.user!.id,
+                    roleId: role,
+                    guildId: payload.data.d.id
+                })).filter(role => role.roleId !== null))
+                .onConflictDoNothing({ target: [memberRoles.memberId, memberRoles.roleId] });
         }
 
         if (stateChannels && payload.data.d.channels.length > 0) {
