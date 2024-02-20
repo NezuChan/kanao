@@ -150,19 +150,7 @@ export class GuildCreateListener extends Listener {
                             publicFlags: member.user!.public_flags
                         }))
                 )
-                .onConflictDoUpdate({
-                    target: users.id,
-                    set: {
-                        username: sql`EXCLUDED.username`,
-                        discriminator: sql`EXCLUDED.discriminator`,
-                        globalName: sql`EXCLUDED.global_name`,
-                        avatar: sql`EXCLUDED.avatar`,
-                        bot: sql`EXCLUDED.bot`,
-                        flags: sql`EXCLUDED.flags`,
-                        premiumType: sql`EXCLUDED.premium_type`,
-                        publicFlags: sql`EXCLUDED.public_flags`
-                    }
-                });
+                .onConflictDoNothing({ target: users.id });
         }
 
         if (stateMembers) {
