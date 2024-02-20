@@ -244,7 +244,7 @@ export class GuildCreateListener extends Listener {
                     }))
                 )
                 .onConflictDoUpdate({
-                    target: voiceStates.memberId,
+                    target: [voiceStates.memberId, voiceStates.guildId],
                     set: {
                         channelId: sql`EXCLUDED.channel_id`,
                         sessionId: sql`EXCLUDED.session_id`,
