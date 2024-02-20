@@ -85,10 +85,15 @@ export class ProcessContextFetchingStrategy implements IContextFetchingStrategy 
         }
 
         const listener = (): void => {
-            process.send!({
+            const message = {
                 op: WorkerReceivePayloadOp.CancelIdentify,
                 nonce
-            });
+            };
+            try {
+                process.send!(message);
+            } catch {
+                setTimeout(async () => Result.fromAsync(() => process.send!(message)), 2_000);
+            }
         };
 
         (signal as unknown as PolyFillAbortSignal).addEventListener("abort", listener);
