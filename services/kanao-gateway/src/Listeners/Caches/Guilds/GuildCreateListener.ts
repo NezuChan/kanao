@@ -236,25 +236,25 @@ export class GuildCreateListener extends Listener {
             }
         }
 
-        if (stateVoices && payload.data.d.voice_states.length > 0) {
+        const voiceState = payload.data.d.voice_states.find(voice => voice.user_id === clientId && voice.channel_id !== undefined)!;
+
+        if (stateVoices) {
             await this.store.drizzle
                 .insert(voiceStates)
-                .values(
-                    payload.data.d.voice_states.map(voice => ({
-                        channelId: voice.channel_id!,
-                        guildId: payload.data.d.id,
-                        sessionId: voice.session_id,
-                        memberId: voice.user_id,
-                        deaf: voice.deaf,
-                        mute: voice.mute,
-                        requestToSpeakTimestamp: voice.request_to_speak_timestamp,
-                        selfDeaf: voice.self_deaf,
-                        selfMute: voice.self_mute,
-                        selfStream: voice.self_stream,
-                        selfVideo: voice.self_video,
-                        suppress: voice.suppress
-                    }))
-                )
+                .values({
+                    memberId: voiceState.user_id,
+                    guildId: payload.data.d.id,
+                    channelId: voiceState.channel_id!,
+                    sessionId: voiceState.session_id,
+                    deaf: voiceState.deaf,
+                    mute: voiceState.mute,
+                    requestToSpeakTimestamp: voiceState.request_to_speak_timestamp,
+                    selfDeaf: voiceState.self_deaf,
+                    selfMute: voiceState.self_mute,
+                    selfStream: voiceState.self_stream,
+                    selfVideo: voiceState.self_video,
+                    suppress: voiceState.suppress
+                })
                 .onConflictDoUpdate({
                     target: [voiceStates.memberId, voiceStates.guildId],
                     set: {
