@@ -236,39 +236,41 @@ export class GuildCreateListener extends Listener {
             }
         }
 
-        const voiceState = payload.data.d.voice_states.find(voice => voice.user_id === clientId && voice.channel_id !== undefined)!;
+        const voiceState = payload.data.d.voice_states.find(voice => voice.user_id === clientId && voice.channel_id !== undefined);
 
-        await this.store.drizzle
-            .insert(voiceStates)
-            .values({
-                memberId: voiceState.user_id,
-                guildId: payload.data.d.id,
-                channelId: voiceState.channel_id!,
-                sessionId: voiceState.session_id,
-                deaf: voiceState.deaf,
-                mute: voiceState.mute,
-                requestToSpeakTimestamp: voiceState.request_to_speak_timestamp,
-                selfDeaf: voiceState.self_deaf,
-                selfMute: voiceState.self_mute,
-                selfStream: voiceState.self_stream,
-                selfVideo: voiceState.self_video,
-                suppress: voiceState.suppress
-            })
-            .onConflictDoUpdate({
-                target: [voiceStates.memberId, voiceStates.guildId],
-                set: {
-                    channelId: sql`EXCLUDED.channel_id`,
-                    sessionId: sql`EXCLUDED.session_id`,
-                    deaf: sql`EXCLUDED.deaf`,
-                    mute: sql`EXCLUDED.mute`,
-                    requestToSpeakTimestamp: sql`EXCLUDED.request_to_speak_timestamp`,
-                    selfDeaf: sql`EXCLUDED.self_deaf`,
-                    selfMute: sql`EXCLUDED.self_mute`,
-                    selfStream: sql`EXCLUDED.self_stream`,
-                    selfVideo: sql`EXCLUDED.self_video`,
-                    suppress: sql`EXCLUDED.suppress`
-                }
-            });
+        if (voiceState) {
+            await this.store.drizzle
+                .insert(voiceStates)
+                .values({
+                    memberId: voiceState.user_id,
+                    guildId: payload.data.d.id,
+                    channelId: voiceState.channel_id!,
+                    sessionId: voiceState.session_id,
+                    deaf: voiceState.deaf,
+                    mute: voiceState.mute,
+                    requestToSpeakTimestamp: voiceState.request_to_speak_timestamp,
+                    selfDeaf: voiceState.self_deaf,
+                    selfMute: voiceState.self_mute,
+                    selfStream: voiceState.self_stream,
+                    selfVideo: voiceState.self_video,
+                    suppress: voiceState.suppress
+                })
+                .onConflictDoUpdate({
+                    target: [voiceStates.memberId, voiceStates.guildId],
+                    set: {
+                        channelId: sql`EXCLUDED.channel_id`,
+                        sessionId: sql`EXCLUDED.session_id`,
+                        deaf: sql`EXCLUDED.deaf`,
+                        mute: sql`EXCLUDED.mute`,
+                        requestToSpeakTimestamp: sql`EXCLUDED.request_to_speak_timestamp`,
+                        selfDeaf: sql`EXCLUDED.self_deaf`,
+                        selfMute: sql`EXCLUDED.self_mute`,
+                        selfStream: sql`EXCLUDED.self_stream`,
+                        selfVideo: sql`EXCLUDED.self_video`,
+                        suppress: sql`EXCLUDED.suppress`
+                    }
+                });
+        }
 
         await this.store.amqp.publish(
             RabbitMQ.GATEWAY_QUEUE_SEND,
