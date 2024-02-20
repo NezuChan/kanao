@@ -26,7 +26,11 @@ import { createLogger } from "../Logger.js";
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 
 export class ProcessBootstrapper {
-    public drizzle = drizzle(postgres(databaseUrl), { schema });
+    public drizzle = drizzle(postgres(databaseUrl, {
+        debug: (connection, query, parameters, paramTypes) => {
+            this.logger.debug({ connection, query, parameters, paramTypes }, "POSTGRES_DEBUG:");
+        }
+    }), { schema });
 
     /**
      * The data passed to the child process
