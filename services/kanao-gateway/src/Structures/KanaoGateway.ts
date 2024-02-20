@@ -116,7 +116,6 @@ export class NezuGateway extends EventEmitter {
             this.ws.options.shardCount = Number(Math.ceil((shards * (1_000 / Number(gatewayGuildPerShard))) / 1));
         }
 
-        await this.ws.connect();
         const shardCount = await this.ws.getShardCount();
 
         // When multiple replica is running, only reset few shards statuses
@@ -138,6 +137,8 @@ export class NezuGateway extends EventEmitter {
                 }
             });
         }
+
+        await this.ws.connect();
     }
 
     public setupAmqp(): void {

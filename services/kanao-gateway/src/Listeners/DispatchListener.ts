@@ -5,13 +5,18 @@ import { status } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayDispatchPayload } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { eq, not } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import type { ListenerContext } from "../Stores/Listener.js";
 import { Listener } from "../Stores/Listener.js";
 import { clientId } from "../config.js";
 
 export class ReadyListener extends Listener {
     public ready = false;
+    public checkStatus = this.store.drizzle.select({ shardId: status.shardId })
+        .from(status)
+        .where(eq(status.status, WebSocketShardStatus.Connecting))
+        .prepare("checkShardStatus");
+
     public constructor(context: ListenerContext) {
         super(context, {
             event: WebSocketShardEvents.Dispatch
@@ -23,12 +28,9 @@ export class ReadyListener extends Listener {
             this.store.emitter.emit(payload.data.data.t, { shardId: payload.shardId, data: payload.data.data });
         }
 
-        if (!this.ready) {
-            const statuses = await this.store.drizzle.select({ shardId: status.shardId }).from(status)
-                .where(not(eq(status.status, WebSocketShardStatus.Ready)));
-            this.ready = statuses.length === 0;
-            return;
-        }
+        const statuses = await this.checkStatus.execute();
+        this.ready = statuses.length === 0;
+        if (!this.ready) return;
 
         switch (payload.data.data.t) {
             case GatewayDispatchEvents.ChannelCreate:
