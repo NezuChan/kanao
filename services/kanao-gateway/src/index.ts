@@ -18,7 +18,11 @@ const gateway = new NezuGateway();
 const packageJson = Util.loadJSON<{ version: string; }>(`file://${join(fileURLToPath(import.meta.url), "../../package.json")}`);
 const shardIds = await getShardCount();
 
-await migrate(drizzle(postgres(databaseUrl, { max: 1, onnotice: notice => gateway.logger.debug(notice, "Migrating Table") })), { migrationsFolder: "./node_modules/@nezuchan/kanao-schema/drizzle" });
+const migClient = postgres(databaseUrl, { max: 1, onnotice: notice => gateway.logger.debug(notice, "Migrating Table") });
+
+await migrate(drizzle(migClient), { migrationsFolder: "./node_modules/@nezuchan/kanao-schema/drizzle" });
+
+await migClient.end();
 
 try {
     await gateway.connect();
