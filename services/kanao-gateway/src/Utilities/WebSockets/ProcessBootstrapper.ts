@@ -50,6 +50,7 @@ export class ProcessBootstrapper {
      * Bootstraps the child process with the provided options
      */
     public async bootstrap(options: Readonly<BootstrapOptions> = {}): Promise<void> {
+        this.pgClient.on("error", e => this.logger.error(e, "Postgres emitted error"));
         await this.pgClient.connect();
         this.setupAmqp(); await this.stores.load();
 

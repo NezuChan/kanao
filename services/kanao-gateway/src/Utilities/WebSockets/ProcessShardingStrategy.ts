@@ -218,6 +218,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
                     setTimeout(async () => Result.fromAsync(() => worker.send(payload)), 2_000);
                 }
             }
+            worker.on("error", error => this.logger.error({ error, shardIds: workerData.shardIds }, "process emitted error !"));
         }).catch(error => setTimeout(() => {
             this.logger.error(error, "Error when starting worker !");
             const worker = this.#workerByShardId.get(workerData.shardIds[0])!;
