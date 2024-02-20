@@ -222,7 +222,7 @@ export class GuildCreateListener extends Listener {
                         values2.append(sql`${values2.queryChunks.length === 0 ? undefined : sql.raw(", ")}(${overwrite.id}, ${ch.id}, ${overwrite.type}, ${overwrite.allow}, ${overwrite.deny})`);
                     }
 
-                    const chunks = chunk(values.queryChunks, 6);
+                    const chunks = chunk(values2.queryChunks, 6);
                     for (const valueChunk of chunks) {
                         await this.store.drizzle.execute(
                             sql.join([
