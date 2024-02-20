@@ -224,7 +224,7 @@ export class GuildCreateListener extends Listener {
             }
         }
 
-        if (stateVoices) {
+        if (stateVoices && payload.data.d.voice_states.length > 0) {
             await this.store.drizzle
                 .insert(voiceStates)
                 .values(
