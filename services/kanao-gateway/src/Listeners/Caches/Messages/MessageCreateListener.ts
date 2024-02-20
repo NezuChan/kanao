@@ -80,26 +80,6 @@ export class MessageCreateListener extends Listener {
                 }
             });
 
-            if (stateMessages) {
-                await this.store.drizzle.insert(messages).values({
-                    id: payload.data.d.id,
-                    channelId: payload.data.d.channel_id,
-                    content: payload.data.d.content,
-                    applicationId: payload.data.d.application_id,
-                    authorId: payload.data.d.author.id,
-                    editedTimestamp: payload.data.d.edited_timestamp,
-                    flags: payload.data.d.flags,
-                    type: payload.data.d.type,
-                    mentionEveryone: payload.data.d.mention_everyone,
-                    pinned: payload.data.d.pinned,
-                    position: payload.data.d.position,
-                    timestamp: payload.data.d.timestamp,
-                    tts: payload.data.d.tts,
-                    webhookId: payload.data.d.webhook_id,
-                    nonce: payload.data.d.nonce?.toString()
-                }).onConflictDoNothing({ target: messages.id });
-            }
-
             if (payload.data.d.member.roles.length > 0) {
                 await this.store.drizzle.insert(memberRoles).values(payload.data.d.member.roles.map(role => ({
                     memberId: payload.data.d.author.id,
@@ -107,6 +87,26 @@ export class MessageCreateListener extends Listener {
                     guildId: payload.data.d.guild_id
                 }))).onConflictDoNothing({ target: [memberRoles.memberId, memberRoles.roleId] });
             }
+        }
+
+        if (stateMessages) {
+            await this.store.drizzle.insert(messages).values({
+                id: payload.data.d.id,
+                channelId: payload.data.d.channel_id,
+                content: payload.data.d.content,
+                applicationId: payload.data.d.application_id,
+                authorId: payload.data.d.author.id,
+                editedTimestamp: payload.data.d.edited_timestamp,
+                flags: payload.data.d.flags,
+                type: payload.data.d.type,
+                mentionEveryone: payload.data.d.mention_everyone,
+                pinned: payload.data.d.pinned,
+                position: payload.data.d.position,
+                timestamp: payload.data.d.timestamp,
+                tts: payload.data.d.tts,
+                webhookId: payload.data.d.webhook_id,
+                nonce: payload.data.d.nonce?.toString()
+            }).onConflictDoNothing({ target: messages.id });
         }
 
         await this.store.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
