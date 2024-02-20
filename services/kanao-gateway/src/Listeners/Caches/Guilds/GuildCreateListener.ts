@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-shadow */
 import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
 import { channels, channelsOverwrite, guilds, memberRoles, members, roles, users, voiceStates } from "@nezuchan/kanao-schema";
@@ -197,13 +198,17 @@ export class GuildCreateListener extends Listener {
                 values.append(sql`${values.queryChunks.length === 0 ? undefined : sql.raw(", ")}(${channel.id}, ${payload.data.d.id}, ${channel.name}, ${channel.type}, ${channel.flags})`);
             }
 
-            await this.store.drizzle.execute(
-                sql.join([
-                    sql`INSERT INTO channels (id, guild_id, name, type, flags) VALUES `,
-                    values,
-                    sql` ON CONFLICT ("id") DO NOTHING`
-                ])
-            );
+            const chunks = chunk(values.queryChunks, 32);
+
+            for (const valueChunk of chunks) {
+                await this.store.drizzle.execute(
+                    sql.join([
+                        sql`INSERT INTO channels (id, guild_id, name, type, flags) VALUES `,
+                        valueChunk,
+                        sql` ON CONFLICT ("id") DO NOTHING`
+                    ])
+                );
+            }
 
             for (const ch of payload.data.d.channels) {
                 if (
@@ -217,13 +222,16 @@ export class GuildCreateListener extends Listener {
                         values2.append(sql`${values2.queryChunks.length === 0 ? undefined : sql.raw(", ")}(${overwrite.id}, ${ch.id}, ${overwrite.type}, ${overwrite.allow}, ${overwrite.deny})`);
                     }
 
-                    await this.store.drizzle.execute(
-                        sql.join([
-                            sql`INSERT INTO channels_overwrite (user_or_role, channel_id, type, allow, deny) VALUES `,
-                            values2,
-                            sql` ON CONFLICT ("user_or_role", "channel_id") DO NOTHING`
-                        ])
-                    );
+                    const chunks = chunk(values.queryChunks, 6);
+                    for (const valueChunk of chunks) {
+                        await this.store.drizzle.execute(
+                            sql.join([
+                                sql`INSERT INTO channels_overwrite (user_or_role, channel_id, type, allow, deny) VALUES `,
+                                valueChunk,
+                                sql` ON CONFLICT ("user_or_role", "channel_id") DO NOTHING`
+                            ])
+                        );
+                    }
                 }
             }
         }
