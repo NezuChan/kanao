@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
-import { channels, channelsOverwrite, guilds, memberRoles, roles, users, voiceStates } from "@nezuchan/kanao-schema";
+import { channels, channelsOverwrite, guilds, memberRoles, members, roles, users, voiceStates } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
@@ -131,13 +131,13 @@ export class GuildCreateListener extends Listener {
                 });
         }
 
-        const members = payload.data.d.members.filter(member => member.user !== undefined);
+        const mbrs = payload.data.d.members.filter(member => member.user !== undefined);
 
         if (stateUsers) {
             await this.store.drizzle
                 .insert(users)
                 .values(
-                    members
+                    mbrs
                         .map(member => ({
                             id: member.user!.id,
                             username: member.user!.username,
@@ -167,35 +167,38 @@ export class GuildCreateListener extends Listener {
 
         if (stateMembers) {
             await this.store.drizzle
-                .insert(users)
+                .insert(members)
                 .values(
-                    members
+                    mbrs
                         .map(member => ({
                             id: member.user!.id,
-                            username: member.user!.username,
-                            discriminator: member.user!.discriminator ?? null,
-                            globalName: member.user!.global_name ?? null,
-                            avatar: member.user!.avatar ?? null,
-                            bot: member.user!.bot ?? false,
-                            flags: member.user!.flags,
-                            premiumType: member.user!.premium_type,
-                            publicFlags: member.user!.public_flags
+                            guildId: payload.data.d.id,
+                            avatar: member.avatar,
+                            flags: member.flags,
+                            communicationDisabledUntil: member.communication_disabled_until,
+                            deaf: member.deaf,
+                            joinedAt: member.joined_at,
+                            mute: member.mute,
+                            nick: member.nick,
+                            pending: member.pending,
+                            premiumSince: member.premium_since
                         }))
                 )
                 .onConflictDoUpdate({
                     target: users.id,
                     set: {
-                        username: sql`EXCLUDED.username`,
-                        discriminator: sql`EXCLUDED.discriminator`,
-                        globalName: sql`EXCLUDED.global_name`,
                         avatar: sql`EXCLUDED.avatar`,
-                        bot: sql`EXCLUDED.bot`,
                         flags: sql`EXCLUDED.flags`,
-                        premiumType: sql`EXCLUDED.premium_type`,
-                        publicFlags: sql`EXCLUDED.public_flags`
+                        communicationDisabledUntil: sql`EXCLUDED.communication_disabled_until`,
+                        deaf: sql`EXCLUDED.deaf`,
+                        joinedAt: sql`EXCLUDED.joined_at`,
+                        mute: sql`EXCLUDED.mute`,
+                        nick: sql`EXCLUDED.nick`,
+                        pending: sql`EXCLUDED.pending`,
+                        premiumSince: sql`EXCLUDED.premium_since`
                     }
                 });
-            for (const member of members) {
+            for (const member of mbrs) {
                 if (member.roles.length > 0) {
                     await this.store.drizzle.insert(memberRoles)
                         .values(member.roles.map(role => ({
