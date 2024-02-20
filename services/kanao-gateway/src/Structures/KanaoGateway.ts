@@ -12,8 +12,8 @@ import * as schema from "@nezuchan/kanao-schema";
 import { Util, createAmqpChannel, RoutingKey } from "@nezuchan/utilities";
 import type { Channel } from "amqplib";
 import { eq, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Client } from "pg";
 import APM from "prometheus-middleware";
 import { createLogger } from "../Utilities/Logger.js";
 import { ProcessShardingStrategy } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
@@ -25,12 +25,9 @@ const shardIds = await getShardCount();
 export class NezuGateway extends EventEmitter {
     public rest = new REST({ api: proxy, rejectOnRateLimit: proxy === "https://discord.com/api" ? null : () => false });
     public logger = createLogger("kanao-gateway", clientId, storeLogs, lokiHost);
+    public pgClient = new Client({ connectionString: databaseUrl });
 
-    public drizzle = drizzle(postgres(databaseUrl, {
-        debug: (connection, query, parameters, paramTypes) => {
-            this.logger.debug({ connection, query, parameters, paramTypes }, "POSTGRES_DEBUG:");
-        }
-    }), { schema });
+    public drizzle = drizzle(this.pgClient, { schema });
 
     public prometheus = new APM({
         PORT: prometheusPort,
@@ -109,6 +106,7 @@ export class NezuGateway extends EventEmitter {
 
     public async connect(): Promise<void> {
         this.setupAmqp();
+        await this.pgClient.connect();
         if (enablePrometheus) this.setupPrometheus();
 
         this.ws.on(WebSocketShardEvents.Debug, ({ message }) => this.logger.debug(message));

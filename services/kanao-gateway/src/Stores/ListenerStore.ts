@@ -4,12 +4,12 @@ import { fileURLToPath } from "node:url";
 import type * as schema from "@nezuchan/kanao-schema";
 import { Store } from "@sapphire/pieces";
 import type { ChannelWrapper } from "amqp-connection-manager";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { Logger } from "pino";
 import { Listener } from "./Listener.js";
 
 export class ListenerStore extends Store<Listener> {
-    public readonly drizzle: PostgresJsDatabase<typeof schema>;
+    public readonly drizzle: NodePgDatabase<typeof schema>;
     public readonly logger: Logger;
     public readonly emitter: EventEmitter;
     public readonly amqp: ChannelWrapper;
@@ -29,6 +29,6 @@ export class ListenerStore extends Store<Listener> {
 type ListenerStoreOptions = {
     logger: Logger;
     emitter: EventEmitter;
-    drizzle: PostgresJsDatabase<typeof schema>;
+    drizzle: NodePgDatabase<typeof schema>;
     amqp: ChannelWrapper;
 };

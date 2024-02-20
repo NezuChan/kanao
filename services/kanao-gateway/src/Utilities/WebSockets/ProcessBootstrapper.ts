@@ -17,8 +17,8 @@ import { RoutingKey, RoutingKeyToId, createAmqpChannel } from "@nezuchan/utiliti
 import { StoreRegistry } from "@sapphire/pieces";
 import type { Channel, ConsumeMessage } from "amqplib";
 import type { GatewaySendPayload } from "discord-api-types/v10";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Client } from "pg";
 import type { Listener } from "../../Stores/Listener.js";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
 import { discordToken, storeLogs, lokiHost, amqp, databaseUrl, clientId } from "../../config.js";
@@ -26,11 +26,9 @@ import { createLogger } from "../Logger.js";
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 
 export class ProcessBootstrapper {
-    public drizzle = drizzle(postgres(databaseUrl, {
-        debug: (connection, query, parameters, paramTypes) => {
-            this.logger.debug({ connection, query, parameters, paramTypes }, "POSTGRES_DEBUG:");
-        }
-    }), { schema });
+    public pgClient = new Client({ connectionString: databaseUrl });
+
+    public drizzle = drizzle(this.pgClient, { schema });
 
     /**
      * The data passed to the child process
@@ -51,6 +49,7 @@ export class ProcessBootstrapper {
      * Bootstraps the child process with the provided options
      */
     public async bootstrap(options: Readonly<BootstrapOptions> = {}): Promise<void> {
+        await this.pgClient.connect();
         this.setupAmqp(); await this.stores.load();
 
         // Start by initializing the shards
