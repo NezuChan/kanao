@@ -185,7 +185,7 @@ export class GuildCreateListener extends Listener {
                         }))
                 )
                 .onConflictDoUpdate({
-                    target: users.id,
+                    target: members.id,
                     set: {
                         avatar: sql`EXCLUDED.avatar`,
                         flags: sql`EXCLUDED.flags`,
