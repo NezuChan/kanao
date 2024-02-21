@@ -85,7 +85,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
 
             const promise = new Promise<void>(resolve => this.connectPromises.set(shardId, resolve));
             try {
-                worker.send(payload);
+                if (worker.connected) worker.send(payload);
             } catch {
                 setTimeout(async () => Result.fromAsync(() => worker.send(payload)), 2_000);
             }
@@ -106,7 +106,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
 
             const promise = new Promise<void>(resolve => this.destroyPromises.set(shardId, resolve)).then(() => worker.kill());
             try {
-                worker.send(payload);
+                if (worker.connected) worker.send(payload);
             } catch {
                 setTimeout(async () => Result.fromAsync(() => worker.send(payload)), 2_000);
             }
@@ -132,7 +132,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
             payload: data
         } satisfies WorkerSendPayload;
         try {
-            worker.send(payload);
+            if (worker.connected) worker.send(payload);
         } catch {
             setTimeout(async () => Result.fromAsync(() => worker.send(payload)), 2_000);
         }
@@ -154,7 +154,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
 
             const promise = new Promise<WebSocketShardStatus>(resolve => this.fetchStatusPromises.set(nonce, resolve));
             try {
-                worker.send(payload);
+                if (worker.connected) worker.send(payload);
             } catch {
                 setTimeout(async () => Result.fromAsync(() => worker.send(payload)), 2_000);
             }
@@ -213,7 +213,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
                     shardId
                 } satisfies WorkerSendPayload;
                 try {
-                    worker.send(payload);
+                    if (worker.connected) worker.send(payload);
                 } catch {
                     setTimeout(async () => Result.fromAsync(() => worker.send(payload)), 2_000);
                 }

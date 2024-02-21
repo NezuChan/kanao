@@ -47,9 +47,9 @@ export class ProcessContextFetchingStrategy implements IContextFetchingStrategy 
         const promise = new Promise<SessionInfo | null>(resolve => this.sessionPromises.set(nonce, resolve));
 
         try {
-            process.send!(payload);
+            if (process.connected && process.connected) process.send!(payload);
         } catch {
-            setTimeout(async () => Result.fromAsync(() => process.send!(payload)), 2_000);
+            setTimeout(async () => Result.fromAsync(() => { if (process.connected) process.send!(payload); }), 2_000);
         }
         return promise;
     }
@@ -61,9 +61,9 @@ export class ProcessContextFetchingStrategy implements IContextFetchingStrategy 
             session: sessionInfo
         } satisfies WorkerReceivePayload;
         try {
-            process.send!(payload);
+            if (process.connected) process.send!(payload);
         } catch {
-            setTimeout(async () => Result.fromAsync(() => process.send!(payload)), 2_000);
+            setTimeout(async () => Result.fromAsync(() => { if (process.connected) process.send!(payload); }), 2_000);
         }
     }
 
@@ -79,9 +79,9 @@ export class ProcessContextFetchingStrategy implements IContextFetchingStrategy 
         const promise = new Promise<void>((resolve, reject) => this.waitForIdentifyPromises.set(nonce, { resolve, reject }));
 
         try {
-            process.send!(payload);
+            if (process.connected) process.send!(payload);
         } catch {
-            setTimeout(async () => Result.fromAsync(() => process.send!(payload)), 2_000);
+            setTimeout(async () => Result.fromAsync(() => { if (process.connected) process.send!(payload); }), 2_000);
         }
 
         const listener = (): void => {
@@ -90,9 +90,9 @@ export class ProcessContextFetchingStrategy implements IContextFetchingStrategy 
                 nonce
             };
             try {
-                process.send!(message);
+                if (process.connected) process.send!(message);
             } catch {
-                setTimeout(async () => Result.fromAsync(() => process.send!(message)), 2_000);
+                setTimeout(async () => Result.fromAsync(() => { if (process.connected) process.send!(message); }), 2_000);
             }
         };
 

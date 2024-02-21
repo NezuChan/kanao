@@ -68,7 +68,7 @@ export class ProcessBootstrapper {
                         shardId
                     } satisfies WorkerReceivePayload;
                     try {
-                        process.send!(payload);
+                        if (process.connected) process.send!(payload);
                     } catch {
                         setTimeout(async () => Result.fromAsync(() => process.send!(payload)), 2_000);
                     }
