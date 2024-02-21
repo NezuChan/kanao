@@ -20,6 +20,8 @@ const shardIds = await getShardCount();
 
 const migClient = new pg.Client(databaseUrl);
 
+await migClient.connect();
+
 await migrate(drizzle(migClient), { migrationsFolder: "./node_modules/@nezuchan/kanao-schema/drizzle" });
 
 await migClient.end();
