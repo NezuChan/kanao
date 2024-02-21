@@ -1,5 +1,16 @@
 # Change Log
 
+## 0.12.0
+
+### Minor Changes
+
+- f3f75dd: replace postgres.js to node-postgres
+
+### Patch Changes
+
+- Updated dependencies [f3f75dd]
+  - @nezuchan/core@0.12.0
+
 ## 0.11.0
 
 ### Minor Changes
