@@ -7,11 +7,11 @@ import { GatewayDispatchEvents } from "discord-api-types/v10";
 import { sql } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
-import { clientId, stateChannels, stateRoles } from "../../../config.js";
+import { clientId, guildCreateGcEvery, stateChannels, stateRoles } from "../../../config.js";
 
 export class GuildCreateListener extends Listener {
     public count = 0;
-    public gcEvery = 50;
+    public gcEvery = guildCreateGcEvery;
     public constructor(context: ListenerContext) {
         super(context, {
             event: GatewayDispatchEvents.GuildCreate

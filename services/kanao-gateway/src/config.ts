@@ -79,3 +79,5 @@ export const replicaId = hostname();
 export const replicaCount = Number(process.env.GATEWAY_REPLICA_COUNT ?? "1");
 
 export const databaseUrl = process.env.DATABASE_GATEWAY_URL ?? process.env.DATABASE_URL!;
+
+export const guildCreateGcEvery = Number(process.env.GUILD_CREATE_GC_EVERY ?? 50);
