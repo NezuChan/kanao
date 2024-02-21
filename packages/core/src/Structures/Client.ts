@@ -16,10 +16,9 @@ import type { Channel } from "amqplib";
 import type { APIChannel, APIGuild, APIGuildMember, APIMessage, APIUser, RESTPostAPIChannelMessageJSONBody } from "discord-api-types/v10";
 import { ChannelType, Routes } from "discord-api-types/v10";
 import { and, eq } from "drizzle-orm";
-import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { drizzle } from "drizzle-orm/postgres-js";
-import type { Sql } from "postgres";
-import postgres from "postgres";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { drizzle } from "drizzle-orm/node-postgres";
+import pg from "pg";
 import { Events } from "../Enums/Events.js";
 import type { ClientOptions } from "../Typings/index.js";
 import type { BaseChannel } from "./Channels/BaseChannel.js";
@@ -33,8 +32,8 @@ import { User } from "./User.js";
 import { VoiceState } from "./VoiceState.js";
 
 export class Client extends EventEmitter {
-    public store: PostgresJsDatabase<typeof schema>;
-    public storeBackend: Sql;
+    public store: NodePgDatabase<typeof schema>;
+    public storeBackend: pg.Client;
     public clientId: string;
     public rest = new REST({
         api: process.env.HTTP_PROXY ?? process.env.PROXY ?? process.env.NIRN_PROXY ?? "https://discord.com/api",
@@ -52,7 +51,7 @@ export class Client extends EventEmitter {
             this.rest.options.api = options.rest;
         }
 
-        this.storeBackend = postgres(options.databaseUrl);
+        this.storeBackend = new pg.Client(options.databaseUrl);
         this.store = drizzle(this.storeBackend, { schema });
 
         options.token ??= process.env.DISCORD_TOKEN;

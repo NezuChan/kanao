@@ -30,7 +30,8 @@
   "author": "KagChi",
   "license": "GPL-3.0",
   "devDependencies": {
-    "@types/amqplib": "^0.10.4"
+    "@types/amqplib": "^0.10.4",
+    "@types/pg": "^8.11.0"
   },
   "dependencies": {
     "@cordis/bitfield": "^1.2.0",
@@ -46,6 +47,7 @@
     "amqp-connection-manager": "^4.1.14",
     "discord-api-types": "^0.37.70",
     "drizzle-orm": "^0.29.3",
+    "pg": "^8.11.3",
     "postgres": "^3.4.3",
     "tslib": "^2.6.2"
   },
