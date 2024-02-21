@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
-import { channels, channelsOverwrite, guilds, memberRoles, members, roles, users, voiceStates } from "@nezuchan/kanao-schema";
+import { guilds, memberRoles, members, users, voiceStates } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import { chunk } from "@sapphire/utilities";
 import type { GatewayGuildCreateDispatch } from "discord-api-types/v10";
@@ -23,6 +23,8 @@ export class GuildCreateListener extends Listener {
             payload.data.d.unavailable !== undefined &&
             payload.data.d.unavailable
         ) return;
+
+        this.logger.debug(`Received GUILD_CREATE event for guild ${payload.data.d.id}`);
 
         await this.store.drizzle
             .insert(guilds)
@@ -107,7 +109,10 @@ export class GuildCreateListener extends Listener {
                 }
             });
 
+        this.logger.debug(`Inserted guild ${payload.data.d.id} into the database`);
+
         if (stateRoles) {
+            this.logger.debug(`Inserting ${payload.data.d.roles.length} roles for guild ${payload.data.d.id} into the database`);
             const values = sql.empty();
 
             for (const role of payload.data.d.roles) {
@@ -121,9 +126,13 @@ export class GuildCreateListener extends Listener {
                     sql` ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, permissions = EXCLUDED.permissions, position = EXCLUDED.position, color = EXCLUDED.color, hoist = EXCLUDED.hoist`
                 ])
             );
+
+            this.logger.debug(`Inserted ${payload.data.d.roles.length} roles for guild ${payload.data.d.id} into the database`);
         }
 
         const bot = payload.data.d.members.find(member => member.user?.id === clientId)!;
+
+        this.logger.debug(`Inserting bot ${bot.user!.id} into the database`);
 
         await this.store.drizzle
             .insert(users)
@@ -191,7 +200,10 @@ export class GuildCreateListener extends Listener {
                 .onConflictDoNothing({ target: [memberRoles.memberId, memberRoles.roleId] });
         }
 
+        this.logger.debug(`Inserted bot ${bot.user!.id} into the database`);
+
         if (stateChannels && payload.data.d.channels.length > 0) {
+            this.logger.debug(`Inserting ${payload.data.d.channels.length} channels for guild ${payload.data.d.id} into the database`);
             const values = sql.empty();
 
             for (const channel of payload.data.d.channels) {
@@ -234,11 +246,13 @@ export class GuildCreateListener extends Listener {
                     }
                 }
             }
+            this.logger.debug(`Inserted ${payload.data.d.channels.length} channels for guild ${payload.data.d.id} into the database`);
         }
 
         const voiceState = payload.data.d.voice_states.find(voice => voice.user_id === clientId && voice.channel_id !== undefined);
 
         if (voiceState) {
+            this.logger.debug(`Inserting voice state for bot ${bot.user!.id} in guild ${payload.data.d.id} into the database`);
             await this.store.drizzle
                 .insert(voiceStates)
                 .values({
@@ -270,6 +284,7 @@ export class GuildCreateListener extends Listener {
                         suppress: sql`EXCLUDED.suppress`
                     }
                 });
+            this.logger.debug(`Inserted voice state for bot ${bot.user!.id} in guild ${payload.data.d.id} into the database`);
         }
 
         await this.store.amqp.publish(
