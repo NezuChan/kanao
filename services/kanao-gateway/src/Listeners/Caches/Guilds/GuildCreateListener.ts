@@ -1,11 +1,10 @@
-/* eslint-disable promise/prefer-await-to-then */
-
 import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
 import { guilds, memberRoles, members, users, voiceStates } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
+import type { SQL } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
@@ -24,7 +23,7 @@ export class GuildCreateListener extends Listener {
             payload.data.d.unavailable
         ) return;
 
-        const ops = [];
+        const ops: SQL[] = [];
 
         this.logger.debug(`Received GUILD_CREATE event for guild ${payload.data.d.id}`);
 
@@ -111,7 +110,7 @@ export class GuildCreateListener extends Listener {
                         systemChannelFlags: payload.data.d.system_channel_flags
                     }
                 })
-                .then(() => this.logger.debug(`Inserted guild ${payload.data.d.id} into the database`))
+                .getSQL()
         );
 
         if (stateRoles) {
@@ -123,13 +122,11 @@ export class GuildCreateListener extends Listener {
             }
 
             ops.push(
-                this.store.drizzle.execute(
-                    sql.join([
-                        sql`INSERT INTO roles (id, name, permissions, position, color, hoist, guild_id) VALUES `,
-                        values,
-                        sql` ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, permissions = EXCLUDED.permissions, position = EXCLUDED.position, color = EXCLUDED.color, hoist = EXCLUDED.hoist`
-                    ])
-                ).then(() => this.logger.debug(`Inserted ${payload.data.d.roles.length} roles for guild ${payload.data.d.id} into the database`))
+                sql.join([
+                    sql`INSERT INTO roles (id, name, permissions, position, color, hoist, guild_id) VALUES `,
+                    values,
+                    sql` ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, permissions = EXCLUDED.permissions, position = EXCLUDED.position, color = EXCLUDED.color, hoist = EXCLUDED.hoist`
+                ])
             );
 
             // @ts-expect-error deallocate array
@@ -166,7 +163,8 @@ export class GuildCreateListener extends Listener {
                         premiumType: sql`EXCLUDED.premium_type`,
                         publicFlags: sql`EXCLUDED.public_flags`
                     }
-                }),
+                })
+                .getSQL(),
             this.store.drizzle.insert(members)
                 .values({
                     id: bot.user!.id,
@@ -194,6 +192,7 @@ export class GuildCreateListener extends Listener {
                         premiumSince: bot.premium_since
                     }
                 })
+                .getSQL()
         );
 
         if (bot.roles.length > 0) {
@@ -205,7 +204,7 @@ export class GuildCreateListener extends Listener {
                         guildId: payload.data.d.id
                     })).filter(role => role.roleId !== null))
                     .onConflictDoNothing({ target: [memberRoles.memberId, memberRoles.roleId] })
-                    .then(() => this.logger.debug(`Inserted ${bot.roles.length} roles for bot ${bot.user!.id} into the database`))
+                    .getSQL()
             );
 
             // @ts-expect-error deallocate array
@@ -235,21 +234,22 @@ export class GuildCreateListener extends Listener {
             }
 
             ops.push(
-                this.store.drizzle.execute(
-                    sql.join([
-                        sql`INSERT INTO channels (id, guild_id, name, type, flags) VALUES `,
-                        values,
-                        sql` ON CONFLICT ("id") DO NOTHING`
-                    ])
-                ).then(() => this.logger.debug(`Inserted ${payload.data.d.channels.length} channels for guild ${payload.data.d.id} into the database`)),
-                this.store.drizzle.execute(
+                sql.join([
+                    sql`INSERT INTO channels (id, guild_id, name, type, flags) VALUES `,
+                    values,
+                    sql` ON CONFLICT ("id") DO NOTHING`
+                ])
+            );
+
+            if (values2.queryChunks.length > 0) {
+                ops.push(
                     sql.join([
                         sql`INSERT INTO channels_overwrite (user_or_role, channel_id, type, allow, deny) VALUES `,
                         values2,
                         sql` ON CONFLICT ("user_or_role", "channel_id") DO NOTHING`
                     ])
-                ).then(() => this.logger.debug(`Inserted permission overwrites for ${payload.data.d.channels.length} channels for guild ${payload.data.d.id} into the database`))
-            );
+                );
+            }
         }
 
         // @ts-expect-error deallocate array
@@ -291,7 +291,7 @@ export class GuildCreateListener extends Listener {
                             suppress: sql`EXCLUDED.suppress`
                         }
                     })
-                    .then(() => this.logger.debug(`Inserted voice state for bot ${bot.user!.id} in guild ${payload.data.d.id} into the database`))
+                    .getSQL()
             );
         }
 
@@ -299,8 +299,19 @@ export class GuildCreateListener extends Listener {
         payload.data.d.voice_states = null;
 
         for (const op of ops) {
-            await op.then(() => this.logger.debug("Insert operation completed"));
+            try {
+                await this.store.drizzle.execute(op);
+            } catch (error) {
+                this.logger.error(error, op.toQuery({
+                    escapeName: String,
+                    escapeString: String,
+                    escapeParam: (_, v) => typeof v === "string" ? `'${v}'` : v as string
+                }).sql);
+            }
+            this.logger.debug(`Executed SQL operation for ${payload.data.d.id}`);
         }
+
+        this.logger.debug(`Sending GUILD_CREATE event for guild ${payload.data.d.id} to the gateway queue`);
 
         await this.store.amqp.publish(
             RabbitMQ.GATEWAY_QUEUE_SEND,
