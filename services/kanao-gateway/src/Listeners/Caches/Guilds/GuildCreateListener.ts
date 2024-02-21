@@ -23,7 +23,20 @@ export class GuildCreateListener extends Listener {
             payload.data.d.unavailable
         ) return;
 
-        const ops: SQL[] = [];
+        // Removing unnecessary data from the payload
+        // @ts-expect-error deallocate value
+        payload.data.d.presences = null;
+
+        // @ts-expect-error deallocate value
+        payload.data.d.emojis = null;
+
+        // @ts-expect-error deallocate value
+        payload.data.d.stickers = null;
+
+        // @ts-expect-error deallocate value
+        payload.data.d.threads = null;
+
+        let ops: SQL[] = [];
 
         this.logger.debug(`Received GUILD_CREATE event for guild ${payload.data.d.id}`);
 
@@ -298,6 +311,8 @@ export class GuildCreateListener extends Listener {
         // @ts-expect-error deallocate array
         payload.data.d.voice_states = null;
 
+        this.logger.debug(`Flushing ${ops.length} operations to the database`);
+
         for (const op of ops) {
             try {
                 await this.store.drizzle.execute(op);
@@ -308,10 +323,15 @@ export class GuildCreateListener extends Listener {
                     escapeParam: (_, v) => typeof v === "string" ? `'${v}'` : v as string
                 }).sql);
             }
-            this.logger.debug(`Executed SQL operation for ${payload.data.d.id}`);
+
+            // @ts-expect-error deallocate value
+            ops[ops.indexOf(op)] = null;
         }
 
-        this.logger.debug(`Sending GUILD_CREATE event for guild ${payload.data.d.id} to the gateway queue`);
+        // @ts-expect-error deallocate array
+        ops = null;
+
+        this.logger.debug(`Operations for ${payload.data.d.id} flushed to the database`);
 
         await this.store.amqp.publish(
             RabbitMQ.GATEWAY_QUEUE_SEND,
