@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { RabbitMQ } from "@nezuchan/constants";
-import { guilds, memberRoles, members, users, voiceStates } from "@nezuchan/kanao-schema";
+import { channels, channelsOverwrite, guilds, memberRoles, members, roles, users, voiceStates } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
@@ -121,19 +121,22 @@ export class GuildCreateListener extends Listener {
             });
 
         if (stateRoles) {
-            const values = sql.empty();
-
             for (const role of payload.data.d.roles) {
-                values.append(sql`${values.queryChunks.length === 0 ? undefined : sql.raw(", ")}(${role.id}, ${role.name}, ${role.permissions}, ${role.position}, ${role.color}, ${role.hoist}, ${payload.data.d.id})`);
+                // @ts-expect-error Intended to avoid .map
+                role.guildId = payload.data.d.id;
             }
-
-            await this.store.drizzle.execute(
-                sql.join([
-                    sql`INSERT INTO roles (id, name, permissions, position, color, hoist, guild_id) VALUES `,
-                    values,
-                    sql` ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, permissions = EXCLUDED.permissions, position = EXCLUDED.position, color = EXCLUDED.color, hoist = EXCLUDED.hoist`
-                ])
-            );
+            await this.store.drizzle.insert(roles)
+                .values(payload.data.d.roles)
+                .onConflictDoUpdate({
+                    target: roles.id,
+                    set: {
+                        name: sql`EXCLUDED.name`,
+                        permissions: sql`EXCLUDED.permissions`,
+                        position: sql`EXCLUDED.position`,
+                        color: sql`EXCLUDED.color`,
+                        hoist: sql`EXCLUDED.hoist`
+                    }
+                });
         }
 
         // @ts-expect-error deallocate array
@@ -145,13 +148,8 @@ export class GuildCreateListener extends Listener {
         await this.store.drizzle
             .insert(users)
             .values({
-                id: bot.user!.id,
-                username: bot.user!.username,
-                discriminator: bot.user!.discriminator ?? null,
+                ...bot.user!,
                 globalName: bot.user!.global_name ?? null,
-                avatar: bot.user!.avatar ?? null,
-                bot: bot.user!.bot ?? false,
-                flags: bot.user!.flags,
                 premiumType: bot.user!.premium_type,
                 publicFlags: bot.user!.public_flags
             })
@@ -168,31 +166,27 @@ export class GuildCreateListener extends Listener {
                     publicFlags: sql`EXCLUDED.public_flags`
                 }
             });
+
         await this.store.drizzle.insert(members)
             .values({
+                ...bot,
                 id: bot.user!.id,
                 guildId: payload.data.d.id,
-                avatar: bot.avatar,
-                flags: bot.flags,
                 communicationDisabledUntil: bot.communication_disabled_until,
-                deaf: bot.deaf,
                 joinedAt: bot.joined_at,
-                mute: bot.mute,
-                nick: bot.nick,
-                pending: bot.pending,
                 premiumSince: bot.premium_since
             }).onConflictDoUpdate({
                 target: members.id,
                 set: {
-                    avatar: bot.avatar,
-                    flags: bot.flags,
-                    communicationDisabledUntil: bot.communication_disabled_until,
-                    deaf: bot.deaf,
-                    joinedAt: bot.joined_at,
-                    mute: bot.mute,
-                    nick: bot.nick,
-                    pending: bot.pending,
-                    premiumSince: bot.premium_since
+                    avatar: sql`EXCLUDED.avatar`,
+                    flags: sql`EXCLUDED.flags`,
+                    communicationDisabledUntil: sql`EXCLUDED.communication_disabled_until`,
+                    deaf: sql`EXCLUDED.deaf`,
+                    joinedAt: sql`EXCLUDED.joined_at`,
+                    mute: sql`EXCLUDED.mute`,
+                    nick: sql`EXCLUDED.nick`,
+                    pending: sql`EXCLUDED.pending`,
+                    premiumSince: sql`EXCLUDED.premium_since`
                 }
             });
 
@@ -215,39 +209,48 @@ export class GuildCreateListener extends Listener {
         payload.data.d.members = null;
 
         if (stateChannels && payload.data.d.channels.length > 0) {
-            const values = sql.empty();
-            const values2 = sql.empty();
-
-            for (const channel of payload.data.d.channels) {
-                values.append(sql`${values.queryChunks.length === 0 ? undefined : sql.raw(", ")}(${channel.id}, ${payload.data.d.id}, ${channel.name}, ${channel.type}, ${channel.flags})`);
+            for (const ch of payload.data.d.channels) {
+                // @ts-expect-error Intended to avoid .map
+                ch.guildId = payload.data.d.id;
 
                 if (
-                    "permission_overwrites" in channel &&
-                    channel.permission_overwrites !== undefined &&
-                    channel.permission_overwrites.length > 0
+                    "permission_overwrites" in ch &&
+                    ch.permission_overwrites !== undefined &&
+                    ch.permission_overwrites.length > 0
                 ) {
-                    for (const overwrite of channel.permission_overwrites) {
-                        values2.append(sql`${values2.queryChunks.length === 0 ? undefined : sql.raw(", ")}(${overwrite.id}, ${channel.id}, ${overwrite.type}, ${overwrite.allow}, ${overwrite.deny})`);
+                    for (const overwrite of ch.permission_overwrites) {
+                        // @ts-expect-error Intended to avoid .map
+                        overwrite.channelId = ch.id;
+
+                        // @ts-expect-error Intended to avoid .map
+                        overwrite.userOrRole = overwrite.id;
                     }
                 }
             }
 
-            await this.store.drizzle.execute(
-                sql.join([
-                    sql`INSERT INTO channels (id, guild_id, name, type, flags) VALUES `,
-                    values,
-                    sql` ON CONFLICT ("id") DO NOTHING`
-                ])
-            );
+            await this.store.drizzle.insert(channels)
+                .values(payload.data.d.channels)
+                .onConflictDoUpdate({
+                    target: channels.id,
+                    set: {
+                        name: sql`EXCLUDED.name`,
+                        type: sql`EXCLUDED.type`,
+                        flags: sql`EXCLUDED.flags`
+                    }
+                });
 
-            if (values2.queryChunks.length > 0) {
-                await this.store.drizzle.execute(
-                    sql.join([
-                        sql`INSERT INTO channels_overwrite (user_or_role, channel_id, type, allow, deny) VALUES `,
-                        values2,
-                        sql` ON CONFLICT ("user_or_role", "channel_id") DO NOTHING`
-                    ])
-                );
+            for (const ch of payload.data.d.channels) {
+                if (
+                    "permission_overwrites" in ch &&
+                    ch.permission_overwrites !== undefined &&
+                    ch.permission_overwrites.length > 0
+                ) {
+                    await this.store.drizzle.insert(channelsOverwrite)
+                        .values(ch.permission_overwrites)
+                        .onConflictDoNothing({
+                            target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
+                        });
+                }
             }
         }
 
