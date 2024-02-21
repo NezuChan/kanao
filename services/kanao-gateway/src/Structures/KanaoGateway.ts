@@ -153,7 +153,6 @@ export class NezuGateway extends EventEmitter {
                     await channel.bindQueue(queue, RabbitMQ.GATEWAY_QUEUE_STATS, route);
                 }
 
-                // TODO [2024-02-20]: Implement this
                 await channel.consume(queue, async message => {
                     if (!message) return;
                     const content = JSON.parse(message.content.toString()) as { route: string; };
