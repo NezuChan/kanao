@@ -307,7 +307,7 @@ export class GuildCreateListener extends Listener {
         this.count++;
 
         if (global.gc && this.count % this.gcEvery === 0) {
-            this.logger.info(`Running garbage collection, ${this.count} Guilds flushed to the database so far`);
+            this.logger.info(`Running garbage collection in ${payload.shardId}, ${this.count} Guilds flushed to the database so far`);
             global.gc();
         }
     }
