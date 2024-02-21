@@ -12,7 +12,7 @@ import { clientId, stateChannels, stateRoles } from "../../../config.js";
 
 export class GuildCreateListener extends Listener {
     public count = 0;
-    public gcEvery = 256;
+    public gcEvery = 50;
     public constructor(context: ListenerContext) {
         super(context, {
             event: GatewayDispatchEvents.GuildCreate
@@ -39,8 +39,6 @@ export class GuildCreateListener extends Listener {
         payload.data.d.threads = null;
 
         let ops: SQL[] = [];
-
-        this.logger.debug(`Received GUILD_CREATE event for guild ${payload.data.d.id}`);
 
         ops.push(
             this.store.drizzle
@@ -308,8 +306,6 @@ export class GuildCreateListener extends Listener {
         // @ts-expect-error deallocate array
         payload.data.d.voice_states = null;
 
-        this.logger.debug(`Flushing ${ops.length} operations for ${payload.data.d.id} to the database`);
-
         for (const op of ops) {
             try {
                 await this.store.drizzle.execute(op);
@@ -328,8 +324,6 @@ export class GuildCreateListener extends Listener {
         // @ts-expect-error deallocate array
         ops = null;
 
-        this.logger.debug(`Operations for ${payload.data.d.id} flushed to the database`);
-
         await this.store.amqp.publish(
             RabbitMQ.GATEWAY_QUEUE_SEND,
             RoutingKey(clientId, payload.shardId),
@@ -339,7 +333,7 @@ export class GuildCreateListener extends Listener {
         this.count++;
 
         if (global.gc && this.count % this.gcEvery === 0) {
-            this.logger.debug(`Running garbage collection, ${this.count} Guilds flushed to the database so far`);
+            this.logger.info(`Running garbage collection, ${this.count} Guilds flushed to the database so far`);
             global.gc();
         }
     }
