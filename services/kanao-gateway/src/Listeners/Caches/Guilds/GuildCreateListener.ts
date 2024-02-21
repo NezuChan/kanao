@@ -127,7 +127,6 @@ export class GuildCreateListener extends Listener {
         );
 
         if (stateRoles) {
-            this.logger.debug(`Inserting ${payload.data.d.roles.length} roles for guild ${payload.data.d.id} into the database`);
             const values = sql.empty();
 
             for (const role of payload.data.d.roles) {
@@ -147,8 +146,6 @@ export class GuildCreateListener extends Listener {
         }
 
         const bot = payload.data.d.members.find(member => member.user?.id === clientId)!;
-
-        this.logger.debug(`Inserting bot ${bot.user!.id} into the database`);
 
         ops.push(
             this.store.drizzle
@@ -228,7 +225,6 @@ export class GuildCreateListener extends Listener {
         payload.data.d.members = null;
 
         if (stateChannels && payload.data.d.channels.length > 0) {
-            this.logger.debug(`Inserting ${payload.data.d.channels.length} channels for guild ${payload.data.d.id} into the database`);
             const values = sql.empty();
             const values2 = sql.empty();
 
@@ -271,7 +267,6 @@ export class GuildCreateListener extends Listener {
         const voiceState = payload.data.d.voice_states.find(voice => voice.user_id === clientId && voice.channel_id !== undefined);
 
         if (voiceState) {
-            this.logger.debug(`Inserting voice state for bot ${bot.user!.id} in guild ${payload.data.d.id} into the database`);
             ops.push(
                 this.store.drizzle
                     .insert(voiceStates)
@@ -311,6 +306,11 @@ export class GuildCreateListener extends Listener {
         // @ts-expect-error deallocate array
         payload.data.d.voice_states = null;
 
+        if (global.gc) {
+            this.logger.debug("Running first garbage collection");
+            global.gc();
+        }
+
         this.logger.debug(`Flushing ${ops.length} operations to the database`);
 
         for (const op of ops) {
@@ -330,6 +330,11 @@ export class GuildCreateListener extends Listener {
 
         // @ts-expect-error deallocate array
         ops = null;
+
+        if (global.gc) {
+            this.logger.debug("Running second garbage collection");
+            global.gc();
+        }
 
         this.logger.debug(`Operations for ${payload.data.d.id} flushed to the database`);
 

@@ -11,8 +11,8 @@
     "build": "rimraf dist && swc ./src -d dist --config-file .swcrc --strip-leading-paths",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "start": "node -r dotenv/config dist/index.js",
-    "start:dev": "npm run build && node -r dotenv/config dist/index.js"
+    "start": "node --expose-gc -r dotenv/config dist/index.js",
+    "start:dev": "npm run build && node --expose-gc -r dotenv/config dist/index.js"
   },
   "dependencies": {
     "@discordjs/collection": "^2.0.0",
