@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.12.0
+
+### Minor Changes
+
+- f3f75dd: replace postgres.js to node-postgres
+
 ## 0.11.0
 
 ### Minor Changes
