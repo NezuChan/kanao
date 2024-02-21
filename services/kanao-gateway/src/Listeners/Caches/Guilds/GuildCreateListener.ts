@@ -11,6 +11,8 @@ import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateChannels, stateRoles } from "../../../config.js";
 
 export class GuildCreateListener extends Listener {
+    public count = 0;
+    public gcEvery = 256;
     public constructor(context: ListenerContext) {
         super(context, {
             event: GatewayDispatchEvents.GuildCreate
@@ -306,12 +308,7 @@ export class GuildCreateListener extends Listener {
         // @ts-expect-error deallocate array
         payload.data.d.voice_states = null;
 
-        if (global.gc) {
-            this.logger.debug("Running first garbage collection");
-            global.gc();
-        }
-
-        this.logger.debug(`Flushing ${ops.length} operations to the database`);
+        this.logger.debug(`Flushing ${ops.length} operations for ${payload.data.d.id} to the database`);
 
         for (const op of ops) {
             try {
@@ -331,11 +328,6 @@ export class GuildCreateListener extends Listener {
         // @ts-expect-error deallocate array
         ops = null;
 
-        if (global.gc) {
-            this.logger.debug("Running second garbage collection");
-            global.gc();
-        }
-
         this.logger.debug(`Operations for ${payload.data.d.id} flushed to the database`);
 
         await this.store.amqp.publish(
@@ -343,5 +335,12 @@ export class GuildCreateListener extends Listener {
             RoutingKey(clientId, payload.shardId),
             Buffer.from(JSON.stringify(payload.data))
         );
+
+        this.count++;
+
+        if (global.gc && this.count % this.gcEvery === 0) {
+            this.logger.debug(`Running garbage collection, ${this.count} Guilds flushed to the database so far`);
+            global.gc();
+        }
     }
 }
