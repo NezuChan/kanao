@@ -18,7 +18,7 @@ export class ChannelUpdateListener extends Listener {
     }
 
     public async run(payload: { data: GatewayChannelUpdateDispatch; shardId: number; }): Promise<void> {
-        const channel = await this.container.client.drizzle.insert(channels).values({
+        await this.container.client.drizzle.insert(channels).values({
             id: payload.data.d.id,
             guildId: "guild_id" in payload.data.d ? payload.data.d.guild_id : null,
             name: payload.data.d.name,
@@ -41,18 +41,23 @@ export class ChannelUpdateListener extends Listener {
             .returning({ id: channels.id })
             .then(c => c[0]);
 
+        // TODO [2024-03-01]: Avoid delete all, intelligently delete only the ones that are not in the new payload
         await this.container.client.drizzle.delete(channelsOverwrite).where(eq(channelsOverwrite.channelId, payload.data.d.id));
 
         if ("permission_overwrites" in payload.data.d && payload.data.d.permission_overwrites !== undefined && payload.data.d.permission_overwrites.length > 0) {
-            await this.container.client.drizzle.insert(channelsOverwrite).values(payload.data.d.permission_overwrites.map(overwrite => ({
-                userOrRole: overwrite.id,
-                channelId: channel.id,
-                type: overwrite.type,
-                allow: overwrite.allow,
-                deny: overwrite.deny
-            }))).onConflictDoNothing({
-                target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
-            });
+            for (const overwrite of payload.data.d.permission_overwrites) {
+                // @ts-expect-error Intended to avoid .map
+                overwrite.channelId = payload.data.d.id;
+
+                // @ts-expect-error Intended to avoid .map
+                overwrite.userOrRole = overwrite.id;
+            }
+
+            await this.container.client.drizzle.insert(channelsOverwrite)
+                .values(payload.data.d.permission_overwrites)
+                .onConflictDoNothing({
+                    target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
+                });
         }
 
         await this.container.client.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));

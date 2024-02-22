@@ -70,6 +70,7 @@ export class GuildMemberUpdateListener extends Listener {
                 }
             });
 
+            // TODO [2024-03-01]: Avoid delete all, intelligently delete only the ones that are not in the new payload
             await this.container.client.drizzle.delete(memberRoles).where(and(eq(memberRoles.memberId, payload.data.d.user.id), eq(memberRoles.guildId, payload.data.d.guild_id)));
 
             if (payload.data.d.roles.length > 0) {

@@ -18,6 +18,7 @@ export class GuildMembersChunkListener extends Listener {
     }
 
     public async run(payload: { data: GatewayGuildMembersChunkDispatch; shardId: number; }): Promise<void> {
+        // TODO [2024-03-01]: Avoid .map for large arrays (unless if it's just string[])
         const chunks = chunk(payload.data.d.members, 1_000);
 
         for (const memberChunk of chunks) {

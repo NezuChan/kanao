@@ -10,8 +10,6 @@ import { Listener } from "../../../Stores/Listener.js";
 import { clientId, guildCreateGcEvery, stateChannels, stateRoles } from "../../../config.js";
 
 export class GuildCreateListener extends Listener {
-    public count = 0;
-    public gcEvery = guildCreateGcEvery;
     public constructor(context: ListenerContext) {
         super(context, {
             event: GatewayDispatchEvents.GuildCreate
@@ -304,11 +302,10 @@ export class GuildCreateListener extends Listener {
             Buffer.from(JSON.stringify(payload.data))
         );
 
-        this.count++;
-
-        if (global.gc && this.count % this.gcEvery === 0) {
-            this.logger.info(`Running garbage collection in ${payload.shardId}, ${this.count} Guilds flushed to the database so far`);
+        if (global.gc && this.container.client.guildsCreateThrottle % guildCreateGcEvery === 0) {
+            this.logger.info(`Running garbage collection in ${payload.shardId}, ${this.container.client.guildsCreateThrottle} Guilds flushed to the database so far`);
             global.gc();
+            this.container.client.guildsCreateThrottle = 0;
         }
     }
 }
