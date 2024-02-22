@@ -1,5 +1,16 @@
 # Change Log
 
+## 0.14.0
+
+### Minor Changes
+
+- bcb8e97: stability updates
+
+### Patch Changes
+
+- Updated dependencies [bcb8e97]
+  - @nezuchan/kanao-schema@0.6.0
+
 ## 0.13.0
 
 ### Minor Changes

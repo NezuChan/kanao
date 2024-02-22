@@ -1,5 +1,11 @@
 # @nezuchan/kanao-gateway
 
+## 4.3.0
+
+### Minor Changes
+
+- bcb8e97: stability updates
+
 ## 4.1.2
 
 ### Patch Changes
