@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.10.1
+
+### Patch Changes
+
+- Updated dependencies [83adeb3]
+  - @nezuchan/core@0.15.0
+  - @nezuchan/framework@0.14.1
+
 ## 0.10.0
 
 ### Minor Changes
