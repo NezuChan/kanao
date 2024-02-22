@@ -1,8 +1,8 @@
 import type { WebSocketShard } from "@discordjs/ws";
 import { WebSocketShardEvents } from "@discordjs/ws";
-import { status } from "@nezuchan/kanao-schema";
 import type { ListenerContext } from "../Stores/Listener.js";
 import { Listener } from "../Stores/Listener.js";
+import { status } from "../Structures/DatabaseSchema.js";
 
 export class ReadyListener extends Listener {
     public constructor(context: ListenerContext) {

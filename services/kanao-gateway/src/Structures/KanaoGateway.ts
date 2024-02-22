@@ -8,16 +8,17 @@ import { REST } from "@discordjs/rest";
 import { CompressionMethod, WebSocketManager, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
 import type { SessionInfo, ShardRange } from "@discordjs/ws";
 import { RabbitMQ } from "@nezuchan/constants";
-import * as schema from "@nezuchan/kanao-schema";
 import { Util, createAmqpChannel, RoutingKey } from "@nezuchan/utilities";
 import type { Channel } from "amqplib";
-import { eq, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
+import Database from "better-sqlite3";
+import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import APM from "prometheus-middleware";
 import { createLogger } from "../Utilities/Logger.js";
 import { ProcessShardingStrategy } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
-import { amqp, clientId, databaseUrl, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, replicaId, storeLogs } from "../config.js";
+import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, replicaId, storeLogs } from "../config.js";
+import * as schema from "./DatabaseSchema.js";
 
 const packageJson = Util.loadJSON<{ version: string; }>(`file://${join(fileURLToPath(import.meta.url), "../../../package.json")}`);
 const shardIds = await getShardCount();
@@ -25,9 +26,9 @@ const shardIds = await getShardCount();
 export class NezuGateway extends EventEmitter {
     public rest = new REST({ api: proxy, rejectOnRateLimit: proxy === "https://discord.com/api" ? null : () => false });
     public logger = createLogger("kanao-gateway", clientId, storeLogs, lokiHost);
-    public pgClient = new pg.Client({ connectionString: databaseUrl });
 
-    public drizzle = drizzle(this.pgClient, { schema });
+    public database = new Database(join(process.cwd(), "storage", "kanao-gateway.db"));
+    public drizzle = drizzle(this.database, { schema });
 
     public prometheus = new APM({
         PORT: prometheusPort,
@@ -106,8 +107,10 @@ export class NezuGateway extends EventEmitter {
 
     public async connect(): Promise<void> {
         this.setupAmqp();
-        this.pgClient.on("error", e => this.logger.error(e, "Postgres emitted error"));
-        await this.pgClient.connect();
+
+        await this.database.pragma("journal_mode = WAL");
+        migrate(this.drizzle, { migrationsFolder: "drizzle" });
+
         if (enablePrometheus) this.setupPrometheus();
 
         this.ws.on(WebSocketShardEvents.Debug, ({ message }) => this.logger.debug(message));
@@ -167,7 +170,6 @@ export class NezuGateway extends EventEmitter {
                         });
                         stats.push({ shardId, status, latency: stat?.latency ?? -1 });
                     }
-                    const [result] = await this.drizzle.select({ count: sql`count(*)`.mapWith(Number).as("count") }).from(schema.guilds);
                     channel.ack(message);
                     await amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, content.route, Buffer.from(
                         JSON.stringify({
@@ -177,8 +179,7 @@ export class NezuGateway extends EventEmitter {
                             memoryUsage: process.memoryUsage(),
                             cpuUsage: process.cpuUsage(),
                             uptime: process.uptime(),
-                            shardCount: stats.length,
-                            guildCount: result.count
+                            shardCount: stats.length
                         })
                     ), {
                         correlationId: message.properties.correlationId as string

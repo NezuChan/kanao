@@ -1,15 +1,15 @@
 import type EventEmitter from "node:events";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type * as schema from "@nezuchan/kanao-schema";
 import { Store } from "@sapphire/pieces";
 import type { ChannelWrapper } from "amqp-connection-manager";
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3/driver";
 import type { Logger } from "pino";
+import type * as schema from "../Structures/DatabaseSchema.js";
 import { Listener } from "./Listener.js";
 
 export class ListenerStore extends Store<Listener> {
-    public readonly drizzle: NodePgDatabase<typeof schema>;
+    public readonly drizzle: BetterSQLite3Database<typeof schema>;
     public readonly logger: Logger;
     public readonly emitter: EventEmitter;
     public readonly amqp: ChannelWrapper;
@@ -29,6 +29,6 @@ export class ListenerStore extends Store<Listener> {
 type ListenerStoreOptions = {
     logger: Logger;
     emitter: EventEmitter;
-    drizzle: NodePgDatabase<typeof schema>;
+    drizzle: BetterSQLite3Database<typeof schema>;
     amqp: ChannelWrapper;
 };

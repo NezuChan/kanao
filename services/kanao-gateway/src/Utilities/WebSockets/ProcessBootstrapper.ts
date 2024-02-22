@@ -6,30 +6,30 @@
 
 import { Buffer } from "node:buffer";
 import EventEmitter from "node:events";
+import { join } from "node:path";
 import process from "node:process";
 import { setTimeout } from "node:timers";
 import { Collection } from "@discordjs/collection";
 import type { BootstrapOptions, WorkerReceivePayload, WorkerSendPayload, WorkerData, WebSocketShardDestroyOptions } from "@discordjs/ws";
 import { WebSocketShardEvents, WebSocketShard, WorkerReceivePayloadOp, WorkerSendPayloadOp } from "@discordjs/ws";
 import { RabbitMQ, ShardOp } from "@nezuchan/constants";
-import * as schema from "@nezuchan/kanao-schema";
 import { RoutingKey, RoutingKeyToId, createAmqpChannel } from "@nezuchan/utilities";
 import { StoreRegistry } from "@sapphire/pieces";
 import { Result } from "@sapphire/result";
 import type { Channel, ConsumeMessage } from "amqplib";
+import Database from "better-sqlite3";
 import type { GatewaySendPayload } from "discord-api-types/v10";
-import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
+import { drizzle } from "drizzle-orm/better-sqlite3/driver";
 import type { Listener } from "../../Stores/Listener.js";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
-import { discordToken, storeLogs, lokiHost, amqp, databaseUrl, clientId } from "../../config.js";
+import * as schema from "../../Structures/DatabaseSchema.js";
+import { discordToken, storeLogs, lokiHost, amqp, clientId } from "../../config.js";
 import { createLogger } from "../Logger.js";
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 
 export class ProcessBootstrapper {
-    public pgClient = new pg.Client({ connectionString: databaseUrl });
-
-    public drizzle = drizzle(this.pgClient, { schema });
+    public database = new Database(join(process.cwd(), "storage", "kanao-gateway.db"));
+    public drizzle = drizzle(this.database, { schema });
 
     /**
      * The data passed to the child process
@@ -50,8 +50,6 @@ export class ProcessBootstrapper {
      * Bootstraps the child process with the provided options
      */
     public async bootstrap(options: Readonly<BootstrapOptions> = {}): Promise<void> {
-        this.pgClient.on("error", e => this.logger.error(e, "Postgres emitted error"));
-        await this.pgClient.connect();
         this.setupAmqp(); await this.stores.load();
 
         // Start by initializing the shards
