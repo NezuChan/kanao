@@ -31,7 +31,7 @@
     "amqplib": "^0.10.3",
     "discord-api-types": "^0.37.70",
     "dotenv": "^16.4.5",
-    "drizzle-orm": "^0.29.3",
+    "drizzle-orm": "^0.29.4",
     "gradient-string": "^2.0.2",
     "pg": "^8.11.3",
     "pino": "^8.19.0",
