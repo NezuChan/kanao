@@ -18,7 +18,7 @@ export class ChannelCreateListener extends Listener {
 
     public async run(payload: { data: GatewayChannelCreateDispatch; shardId: number; }): Promise<void> {
         if (stateChannels) {
-            const channel = await this.container.client.drizzle.insert(channels).values({
+            await this.container.client.drizzle.insert(channels).values({
                 id: payload.data.d.id,
                 guildId: "guild_id" in payload.data.d ? payload.data.d.guild_id : null,
                 name: payload.data.d.name,
@@ -42,15 +42,19 @@ export class ChannelCreateListener extends Listener {
                 .then(c => c[0]);
 
             if ("permission_overwrites" in payload.data.d && payload.data.d.permission_overwrites !== undefined && payload.data.d.permission_overwrites.length > 0) {
-                await this.container.client.drizzle.insert(channelsOverwrite).values(payload.data.d.permission_overwrites.map(overwrite => ({
-                    userOrRole: overwrite.id,
-                    channelId: channel.id,
-                    type: overwrite.type,
-                    allow: overwrite.allow,
-                    deny: overwrite.deny
-                }))).onConflictDoNothing({
-                    target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
-                });
+                for (const overwrite of payload.data.d.permission_overwrites) {
+                    // @ts-expect-error Intended to avoid .map
+                    overwrite.channelId = payload.data.d.id;
+
+                    // @ts-expect-error Intended to avoid .map
+                    overwrite.userOrRole = overwrite.id;
+                }
+
+                await this.container.client.drizzle.insert(channelsOverwrite)
+                    .values(payload.data.d.permission_overwrites)
+                    .onConflictDoNothing({
+                        target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
+                    });
             }
         }
 

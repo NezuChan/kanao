@@ -19,4 +19,5 @@ export const stateRoles = process.env.STATE_ROLE === "true";
 export const stateChannels = process.env.STATE_CHANNEL === "true";
 export const stateMessages = process.env.STATE_MESSAGE === "true";
 
-export const guildCreateGcEvery = Number(process.env.GUILD_CREATE_GC_EVERY ?? 50);
+export const guildCreateGcEvery = Number(process.env.GUILD_CREATE_GC_EVERY ?? 150);
+export const disableGuildCreateGcThrottle = process.env.DISABLE_GUILD_CREATE_GC_THROTTLE === "true";
