@@ -1,8 +1,8 @@
 {
-  "name": "kanao-cache",
+  "name": "@nezuchan/kanao-cache",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A standalone caching service for kanao gateway.",
+  "main": "dist/index.js",
   "scripts": {
     "build": "rimraf dist && swc ./src -d dist --config-file .swcrc --strip-leading-paths",
     "lint": "eslint src",
@@ -10,10 +10,11 @@
     "start": "node --expose-gc -r dotenv/config dist/index.js",
     "start:dev": "npm run build && node --expose-gc -r dotenv/config dist/index.js"
   },
+  "private": true,
   "type": "module",
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "KagChi",
+  "license": "GPL-3.0",
   "optionalDependencies": {
     "ioredis": "^5.3.2",
     "pino-loki": "^2.2.1"
