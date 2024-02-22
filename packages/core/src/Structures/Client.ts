@@ -406,15 +406,17 @@ export class Client extends EventEmitter {
                     });
 
                     if ("permission_overwrites" in channel && channel.permission_overwrites !== undefined) {
+                        // TODO [2024-03-01]: Avoid delete all, intelligently delete only the ones that are not in the new payload
                         await this.store.delete(schema.channelsOverwrite).where(eq(schema.channelsOverwrite.channelId, channel.id));
                         for (const overwrite of channel.permission_overwrites) {
-                            await this.store.insert(schema.channelsOverwrite).values({
-                                userOrRole: overwrite.id,
-                                channelId: channel.id,
-                                type: overwrite.type,
-                                allow: overwrite.allow,
-                                deny: overwrite.deny
-                            }).onConflictDoUpdate({
+                            // @ts-expect-error Intended to avoid .map
+                            overwrite.channelId = channel.id;
+
+                            // @ts-expect-error Intended to avoid .map
+                            overwrite.userOrRole = overwrite.id;
+                        }
+                        await this.store.insert(schema.channelsOverwrite).values(channel.permission_overwrites)
+                            .onConflictDoUpdate({
                                 target: [schema.channelsOverwrite.userOrRole, schema.channelsOverwrite.channelId],
                                 set: {
                                     type: sql`EXCLUDED.type`,
@@ -422,7 +424,6 @@ export class Client extends EventEmitter {
                                     deny: sql`EXCLUDED.deny`
                                 }
                             });
-                        }
                     }
                 }
 
