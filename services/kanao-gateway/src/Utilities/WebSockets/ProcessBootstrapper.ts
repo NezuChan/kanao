@@ -95,7 +95,6 @@ export class ProcessBootstrapper {
         const amqpChannel = createAmqpChannel(amqp, {
             setup: async (channel: Channel) => {
                 await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "direct", { durable: false });
-                await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_SEND, "direct", { durable: false });
                 const { queue } = await channel.assertQueue("", { exclusive: true });
 
                 for (const shard of this.data.shardIds) {
