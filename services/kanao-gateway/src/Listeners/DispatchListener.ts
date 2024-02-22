@@ -13,6 +13,6 @@ export class DispatchListener extends Listener {
     }
 
     public async run(payload: { shardId: number; data: { data: GatewayDispatchPayload; }; }): Promise<void> {
-        await this.store.amqp.publish("nezu-gateway.cache", clientId, Buffer.from(JSON.stringify({ data: payload.data, shardId: payload.shardId })));
+        await this.store.amqp.publish("nezu-gateway.cache", clientId, Buffer.from(JSON.stringify({ data: payload.data, shardId: payload.shardId })), { replyTo: clientId });
     }
 }

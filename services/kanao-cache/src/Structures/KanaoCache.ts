@@ -34,15 +34,13 @@ export class KanaoCache extends EventEmitter {
     }
 
     public async setupAmqp(channel: Channel): Promise<void> {
-        await channel.assertExchange("nezu-gateway.cache", "direct", { durable: false });
-        const { queue } = await channel.assertQueue("", { exclusive: true });
+        await channel.prefetch(1);
+        const { queue } = await channel.assertQueue("kanao-cache.receive", { durable: true });
 
-        await channel.bindQueue(queue, "nezu-gateway.cache", clientId);
-
-        this.logger.info("Successfully bind to gateway exchange !");
+        this.logger.info("Successfully bind to cache queue!");
 
         await channel.consume(queue, message => {
-            if (message) {
+            if (message && message.properties.replyTo === clientId) {
                 channel.ack(message);
                 this.emit("dispatch", JSON.parse(message.content.toString()));
             }
