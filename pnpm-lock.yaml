@@ -173,6 +173,95 @@ importers:
         specifier: ^4.26.1
         version: 4.26.1
 
+  services/kanao-cache:
+    dependencies:
+      '@nezuchan/constants':
+        specifier: ^0.8.0
+        version: 0.8.0
+      '@nezuchan/kanao-schema':
+        specifier: workspace:^
+        version: link:../../packages/kanao-schema
+      '@nezuchan/utilities':
+        specifier: ^0.6.2
+        version: 0.6.2(amqplib@0.10.3)
+      '@sapphire/pieces':
+        specifier: ^4.2.2
+        version: 4.2.2
+      '@sapphire/result':
+        specifier: ^2.6.6
+        version: 2.6.6
+      '@sapphire/utilities':
+        specifier: ^3.15.3
+        version: 3.15.3
+      '@skyra/start-banner':
+        specifier: ^2.0.1
+        version: 2.0.1
+      amqp-connection-manager:
+        specifier: ^4.1.14
+        version: 4.1.14(amqplib@0.10.3)
+      amqplib:
+        specifier: ^0.10.3
+        version: 0.10.3
+      discord-api-types:
+        specifier: ^0.37.70
+        version: 0.37.70
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.4.5
+      drizzle-orm:
+        specifier: ^0.29.3
+        version: 0.29.3(@types/pg@8.11.0)(pg@8.11.3)(postgres@3.4.3)
+      gradient-string:
+        specifier: ^2.0.2
+        version: 2.0.2
+      pg:
+        specifier: ^8.11.3
+        version: 8.11.3
+      pino:
+        specifier: ^8.19.0
+        version: 8.19.0
+      pino-pretty:
+        specifier: ^10.3.1
+        version: 10.3.1
+      tslib:
+        specifier: ^2.6.2
+        version: 2.6.2
+    optionalDependencies:
+      ioredis:
+        specifier: ^5.3.2
+        version: 5.3.2
+      pino-loki:
+        specifier: ^2.2.1
+        version: 2.2.1
+    devDependencies:
+      '@swc/cli':
+        specifier: ^0.3.9
+        version: 0.3.9(@swc/core@1.4.2)
+      '@swc/core':
+        specifier: ^1.4.2
+        version: 1.4.2
+      '@types/amqplib':
+        specifier: ^0.10.4
+        version: 0.10.4
+      '@types/gradient-string':
+        specifier: ^1.1.5
+        version: 1.1.5
+      '@types/node':
+        specifier: ^20.11.19
+        version: 20.11.19
+      '@types/pg':
+        specifier: ^8.11.0
+        version: 8.11.0
+      drizzle-kit:
+        specifier: ^0.20.14
+        version: 0.20.14
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.5
+      typescript:
+        specifier: ^5.3.3
+        version: 5.3.3
+
   services/kanao-gateway:
     dependencies:
       '@discordjs/collection':
@@ -1622,7 +1711,7 @@ packages:
   /@types/amqplib@0.10.4:
     resolution: {integrity: sha512-Y5Sqquh/LqDxSgxYaAAFNM0M7GyONtSDCcFMJk+DQwYEjibPyW6y+Yu9H9omdkKc3epyXULmFN3GTaeBHhn2Hg==}
     dependencies:
-      '@types/node': 20.11.17
+      '@types/node': 20.11.19
     dev: true
 
   /@types/cacheable-request@6.0.3:
@@ -1682,12 +1771,6 @@ packages:
 
   /@types/node@18.19.4:
     resolution: {integrity: sha512-xNzlUhzoHotIsnFoXmJB+yWmBvFZgKCI9TtPIEdYIMM1KWfwuY8zh7wvc1u1OAXlC7dlf6mZVx/s+Y5KfFz19A==}
-    dependencies:
-      undici-types: 5.26.5
-    dev: true
-
-  /@types/node@20.11.17:
-    resolution: {integrity: sha512-QmgQZGWu1Yw9TDyAP9ZzpFJKynYNeOvwMJmaxABfieQoVoiVOS6MN1WSpqpRcbeA5+RW82kraAVxCCJg+780Qw==}
     dependencies:
       undici-types: 5.26.5
     dev: true
@@ -3372,6 +3455,7 @@ packages:
   /event-target-shim@5.0.1:
     resolution: {integrity: sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==}
     engines: {node: '>=6'}
+    requiresBuild: true
     dev: false
 
   /events@3.3.0:
@@ -3528,7 +3612,7 @@ packages:
       fast-json-stringify: 5.12.0
       find-my-way: 8.1.0
       light-my-request: 5.11.0
-      pino: 8.18.0
+      pino: 8.19.0
       process-warning: 3.0.0
       proxy-addr: 2.0.7
       rfdc: 1.3.1
@@ -4940,23 +5024,6 @@ packages:
 
   /pino-std-serializers@6.2.2:
     resolution: {integrity: sha512-cHjPPsE+vhj/tnhCy/wiMh3M3z3h/j15zHQX+S9GkTBgqJuTuJzYJ4gUyACLhDaJ7kk9ba9iRDmbH2tJU03OiA==}
-    dev: false
-
-  /pino@8.18.0:
-    resolution: {integrity: sha512-Mz/gKiRyuXu4HnpHgi1YWdHQCoWMufapzooisvFn78zl4dZciAxS+YeRkUxXl1ee/SzU80YCz1zpECCh4oC6Aw==}
-    hasBin: true
-    dependencies:
-      atomic-sleep: 1.0.0
-      fast-redact: 3.3.0
-      on-exit-leak-free: 2.1.2
-      pino-abstract-transport: 1.1.0
-      pino-std-serializers: 6.2.2
-      process-warning: 3.0.0
-      quick-format-unescaped: 4.0.4
-      real-require: 0.2.0
-      safe-stable-stringify: 2.4.3
-      sonic-boom: 3.7.0
-      thread-stream: 2.4.1
     dev: false
 
   /pino@8.19.0:
