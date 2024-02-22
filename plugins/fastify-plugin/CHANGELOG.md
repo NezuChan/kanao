@@ -1,5 +1,17 @@
 # Change Log
 
+## 0.9.0
+
+### Minor Changes
+
+- 684575e: add sharCount option to client
+
+### Patch Changes
+
+- Updated dependencies [684575e]
+  - @nezuchan/core@0.13.0
+  - @nezuchan/framework@0.13.0
+
 ## 0.8.0
 
 ### Minor Changes

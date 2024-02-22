@@ -1,5 +1,16 @@
 # Change Log
 
+## 0.13.0
+
+### Minor Changes
+
+- 684575e: add sharCount option to client
+
+### Patch Changes
+
+- Updated dependencies [684575e]
+  - @nezuchan/kanao-schema@0.5.0
+
 ## 0.12.0
 
 ### Minor Changes
