@@ -1,5 +1,6 @@
 import type { WebSocketShard } from "@discordjs/ws";
 import { WebSocketShardEvents } from "@discordjs/ws";
+import { sql } from "drizzle-orm";
 import type { ListenerContext } from "../Stores/Listener.js";
 import { Listener } from "../Stores/Listener.js";
 import { status } from "../Structures/DatabaseSchema.js";
@@ -20,9 +21,9 @@ export class ReadyListener extends Listener {
         }).onConflictDoUpdate({
             target: status.shardId,
             set: {
-                latency: payload.data.latency,
-                lastAck: Date.now().toString(),
-                status: payload.shard.status
+                latency: sql`EXCLUDED.latency`,
+                lastAck: sql`EXCLUDED.last_ack`,
+                status: sql`EXCLUDED.status`
             }
         });
         this.store.logger.debug(payload.data, `Shard ${payload.shardId} heartbeat complete`);

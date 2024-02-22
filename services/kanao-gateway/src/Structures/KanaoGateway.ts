@@ -11,7 +11,7 @@ import { RabbitMQ } from "@nezuchan/constants";
 import { Util, createAmqpChannel, RoutingKey } from "@nezuchan/utilities";
 import type { Channel } from "amqplib";
 import Database from "better-sqlite3";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import APM from "prometheus-middleware";
@@ -69,10 +69,10 @@ export class NezuGateway extends EventEmitter {
                 }).onConflictDoUpdate({
                     target: schema.sessions.id,
                     set: {
-                        resumeURL: sessionInfo.resumeURL,
-                        sequence: sessionInfo.sequence,
-                        sessionId: sessionInfo.sessionId,
-                        shardCount: sessionInfo.shardCount
+                        resumeURL: sql`EXCLUDED.resume_url`,
+                        sequence: sql`EXCLUDED.sequence`,
+                        sessionId: sql`EXCLUDED.session_id`,
+                        shardCount: sql`EXCLUDED.shard_count`
                     },
                     where: eq(schema.sessions.id, shardId)
                 })
