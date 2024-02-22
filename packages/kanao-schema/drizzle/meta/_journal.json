@@ -15,6 +15,13 @@
       "when": 1708240414963,
       "tag": "0001_oval_chronomancer",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1708588478164,
+      "tag": "0002_mighty_johnny_storm",
+      "breakpoints": true
     }
   ]
 }

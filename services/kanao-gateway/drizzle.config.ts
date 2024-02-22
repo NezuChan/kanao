@@ -6,5 +6,5 @@ export default {
     driver: "better-sqlite",
     dbCredentials: {
         url: "./storage/kanao-gateway.db"
-    },
+    }
 } satisfies Config;

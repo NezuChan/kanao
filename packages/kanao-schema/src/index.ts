@@ -5,5 +5,3 @@ export * from "./Schema/guild.js";
 export * from "./Schema/channel.js";
 export * from "./Schema/state.js";
 export * from "./Schema/message.js";
-export * from "./Schema/session.js";
-export * from "./Schema/status.js";

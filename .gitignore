@@ -129,4 +129,7 @@ dist
 # turbo cache
 .turbo
 
-storage
+# Ignore SQLITE
+*.db
+*.db-shm
+*.db-wal
