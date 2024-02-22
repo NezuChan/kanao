@@ -19,6 +19,7 @@ import type { Channel, ConsumeMessage } from "amqplib";
 import Database from "better-sqlite3";
 import type { GatewaySendPayload } from "discord-api-types/v10";
 import { drizzle } from "drizzle-orm/better-sqlite3/driver";
+import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import type { Listener } from "../../Stores/Listener.js";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
 import * as schema from "../../Structures/DatabaseSchema.js";
@@ -49,6 +50,9 @@ export class ProcessBootstrapper {
      * Bootstraps the child process with the provided options
      */
     public async bootstrap(options: Readonly<BootstrapOptions> = {}): Promise<void> {
+        await this.database.pragma("journal_mode = WAL");
+        migrate(this.drizzle, { migrationsFolder: "dist/drizzle" });
+
         this.setupAmqp(); await this.stores.load();
 
         // Start by initializing the shards
