@@ -72,7 +72,7 @@ export class NezuGateway extends EventEmitter {
                         resumeURL: sql`EXCLUDED.resume_url`,
                         sequence: sql`EXCLUDED.sequence`,
                         sessionId: sql`EXCLUDED.session_id`,
-                        shardCount: sql`EXCLUDED.shard_count`
+                        shardCount: sql`EXCLUDED.shardCount`
                     },
                     where: eq(schema.sessions.id, shardId)
                 })
