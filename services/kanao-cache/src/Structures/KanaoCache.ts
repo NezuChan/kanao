@@ -13,7 +13,7 @@ import { clientId, storeLogs, lokiHost, databaseUrl, amqp } from "../config.js";
 export class KanaoCache extends EventEmitter {
     public amqp!: ChannelWrapper;
 
-    public logger = createLogger("kanao-gateway", clientId, storeLogs, lokiHost);
+    public logger = createLogger("kanao-cache", clientId, storeLogs, lokiHost);
     public pgClient = new pg.Client({ connectionString: databaseUrl });
 
     public drizzle = drizzle(this.pgClient, { schema });
