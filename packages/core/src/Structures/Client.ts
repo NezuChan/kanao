@@ -67,9 +67,9 @@ export class Client extends EventEmitter {
     }
 
     public async setupAmqp(channel: Channel): Promise<void> {
-        await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_SEND, "direct", { durable: false });
-        const { queue } = await channel.assertQueue("", { exclusive: true });
-
+        await channel.prefetch(1);
+        await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_SEND, "direct", { durable: true });
+        const { queue } = await channel.assertQueue("clients.receive", { durable: false });
         await this.bindQueue(channel, queue, RabbitMQ.GATEWAY_QUEUE_SEND);
 
         await channel.consume(queue, message => {

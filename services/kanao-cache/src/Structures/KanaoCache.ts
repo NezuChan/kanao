@@ -34,7 +34,7 @@ export class KanaoCache extends EventEmitter {
 
     public async setupAmqp(channel: Channel): Promise<void> {
         await channel.prefetch(1);
-        await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_SEND, "direct", { durable: false });
+        await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_SEND, "direct", { durable: true });
         await channel.assertExchange("nezu-gateway.cache", "direct", { durable: true });
         const { queue } = await channel.assertQueue("kanao-cache.receive", { durable: true });
         await channel.bindQueue(queue, "nezu-gateway.cache", clientId);

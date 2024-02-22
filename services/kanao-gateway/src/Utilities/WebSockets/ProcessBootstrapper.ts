@@ -99,7 +99,7 @@ export class ProcessBootstrapper {
         const amqpChannel = createAmqpChannel(amqp, {
             setup: async (channel: Channel) => {
                 await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "direct", { durable: false });
-                const { queue } = await channel.assertQueue("", { exclusive: true });
+                const { queue } = await channel.assertQueue(RabbitMQ.GATEWAY_QUEUE_RECV, { durable: false });
 
                 for (const shard of this.data.shardIds) {
                     await channel.bindQueue(queue, RabbitMQ.GATEWAY_EXCHANGE, RoutingKey(clientId, shard));
