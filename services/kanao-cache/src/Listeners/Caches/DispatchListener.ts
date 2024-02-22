@@ -15,7 +15,6 @@ export class ReadyListener extends Listener {
     }
 
     public async run(payload: { shardId: number; data: { data: GatewayDispatchPayload; }; }): Promise<void> {
-        console.log(payload.data.data);
         switch (payload.data.data.t) {
             case GatewayDispatchEvents.GuildCreate:
             case GatewayDispatchEvents.ChannelCreate:
