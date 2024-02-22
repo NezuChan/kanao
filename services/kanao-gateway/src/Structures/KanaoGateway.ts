@@ -149,9 +149,6 @@ export class NezuGateway extends EventEmitter {
         const amqpChannel = createAmqpChannel(amqp, {
             setup: async (channel: Channel) => {
                 await channel.assertExchange("nezu-gateway.cache", "direct", { durable: true });
-                await channel.assertQueue("kanao-cache.receive", { durable: true });
-                await channel.bindQueue("kanao-cache.receive", "nezu-gateway.cache", clientId);
-
                 await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_STATS, "topic", { durable: false });
 
                 const { queue } = await channel.assertQueue("", { exclusive: true });
