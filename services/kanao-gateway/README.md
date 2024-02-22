@@ -2,7 +2,7 @@
 
 <img src="https://i.kagchi.my.id/nezuko.png" alt="Logo" width="200px" height="200px" style="border-radius:50%"/>
 
-# @nezuchan/kanao
+# @nezuchan/kanao-gateway
 
 **A standalone service for connecting to the Discord gateway.**
 
