@@ -114,7 +114,7 @@ export class GuildCreateListener extends Listener {
                     maxVideoChannelUsers: sql`EXCLUDED.max_video_channel_users`,
                     permissions: sql`EXCLUDED.permissions`,
                     premiumProgressBarEnabled: sql`EXCLUDED.premium_progress_bar_enabled`,
-                    safetyAlertChannelId: sql`EXCLUDED.safety_alerts_channel_id`,
+                    safetyAlertChannelId: sql`EXCLUDED.safety_alert_channel_id`,
                     splash: sql`EXCLUDED.splash`,
                     systemChannelFlags: sql`EXCLUDED.system_channel_flags`
                 }
