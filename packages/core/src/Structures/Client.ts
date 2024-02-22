@@ -492,23 +492,14 @@ export class Client extends EventEmitter {
                 await channel.bindQueue(queue, exchange, RoutingKey(this.clientId, i));
             }
         } else {
-            const session = await this.store.query.sessions.findFirst();
-            if (session) {
-                for (let i = 0; i < Number(session.shardCount); i++) {
-                    await channel.bindQueue(queue, exchange, RoutingKey(this.clientId, i));
-                }
+            for (let i = 0; i < this.options.shardCount; i++) {
+                await channel.bindQueue(queue, exchange, `${this.clientId}:*`);
             }
         }
     }
 
-    public async fetchShardCount(): Promise<number> {
-        const session = await this.store.query.sessions.findFirst();
-        return session ? Number(session.shardCount) : 1;
-    }
-
     public async publishExchange<T>(guildId: string, exchange: string, data: unknown, waitReply?: () => Promise<unknown>): Promise<Result<T, unknown>> {
-        const shardCount = await this.fetchShardCount();
-        const currentShardId = Number(BigInt(guildId) >> 22n) % shardCount;
+        const currentShardId = Number(BigInt(guildId) >> 22n) % this.options.shardCount;
 
         const success = await this.amqp.publish(exchange, RoutingKey(this.clientId, currentShardId), Buffer.from(JSON.stringify(data)));
 
