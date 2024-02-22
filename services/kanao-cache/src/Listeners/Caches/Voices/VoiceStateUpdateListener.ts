@@ -4,7 +4,7 @@ import { memberRoles, members, users, voiceStates } from "@nezuchan/kanao-schema
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayVoiceStateUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateMembers, stateUsers, stateVoices } from "../../../config.js";
@@ -79,17 +79,17 @@ export class VoiceStateUpdateListener extends Listener {
                 }).onConflictDoUpdate({
                     target: [voiceStates.memberId, voiceStates.guildId],
                     set: {
-                        guildId: payload.data.d.guild_id,
-                        channelId: payload.data.d.channel_id,
-                        sessionId: payload.data.d.session_id,
-                        deaf: payload.data.d.deaf,
-                        mute: payload.data.d.mute,
-                        requestToSpeakTimestamp: payload.data.d.request_to_speak_timestamp,
-                        selfDeaf: payload.data.d.self_deaf,
-                        selfMute: payload.data.d.self_mute,
-                        selfStream: payload.data.d.self_stream,
-                        selfVideo: payload.data.d.self_video,
-                        suppress: payload.data.d.suppress
+                        guildId: sql`EXCLUDED.guild_id`,
+                        channelId: sql`EXCLUDED.channel_id`,
+                        sessionId: sql`EXCLUDED.session_id`,
+                        deaf: sql`EXCLUDED.deaf`,
+                        mute: sql`EXCLUDED.mute`,
+                        requestToSpeakTimestamp: sql`EXCLUDED.request_to_speak_timestamp`,
+                        selfDeaf: sql`EXCLUDED.self_deaf`,
+                        selfMute: sql`EXCLUDED.self_mute`,
+                        selfStream: sql`EXCLUDED.self_stream`,
+                        selfVideo: sql`EXCLUDED.self_video`,
+                        suppress: sql`EXCLUDED.suppress`
                     }
                 }));
         }

@@ -4,7 +4,7 @@ import { memberRoles, members, users } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildMemberUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateMembers, stateUsers } from "../../../config.js";
@@ -19,36 +19,26 @@ export class GuildMemberUpdateListener extends Listener {
     public async run(payload: { data: GatewayGuildMemberUpdateDispatch; shardId: number; }): Promise<void> {
         if (stateUsers) {
             await this.container.client.drizzle.insert(users).values({
-                id: payload.data.d.user.id,
-                username: payload.data.d.user.username,
-                accentColor: payload.data.d.user.accent_color,
-                avatar: payload.data.d.user.avatar,
-                avatarDecoration: payload.data.d.user.avatar_decoration,
-                banner: payload.data.d.user.banner,
-                bot: payload.data.d.user.bot,
-                discriminator: payload.data.d.user.discriminator,
-                flags: payload.data.d.user.flags,
-                globalName: payload.data.d.user.global_name,
-                locale: payload.data.d.user.locale,
-                mfaEnabled: payload.data.d.user.mfa_enabled,
+                ...payload.data.d.user,
+                globalName: payload.data.d.user.global_name ?? null,
                 premiumType: payload.data.d.user.premium_type,
                 publicFlags: payload.data.d.user.public_flags
             }).onConflictDoUpdate({
                 target: users.id,
                 set: {
-                    username: payload.data.d.user.username,
-                    accentColor: payload.data.d.user.accent_color,
-                    avatar: payload.data.d.user.avatar,
-                    avatarDecoration: payload.data.d.user.avatar_decoration,
-                    banner: payload.data.d.user.banner,
-                    bot: payload.data.d.user.bot,
-                    discriminator: payload.data.d.user.discriminator,
-                    flags: payload.data.d.user.flags,
-                    globalName: payload.data.d.user.global_name,
-                    locale: payload.data.d.user.locale,
-                    mfaEnabled: payload.data.d.user.mfa_enabled,
-                    premiumType: payload.data.d.user.premium_type,
-                    publicFlags: payload.data.d.user.public_flags
+                    username: sql`EXCLUDED.username`,
+                    discriminator: sql`EXCLUDED.discriminator`,
+                    globalName: sql`EXCLUDED.global_name`,
+                    avatar: sql`EXCLUDED.avatar`,
+                    bot: sql`EXCLUDED.bot`,
+                    flags: sql`EXCLUDED.flags`,
+                    accentColor: sql`EXCLUDED.accent_color`,
+                    avatarDecoration: sql`EXCLUDED.avatar_decoration`,
+                    banner: sql`EXCLUDED.banner`,
+                    locale: sql`EXCLUDED.locale`,
+                    mfaEnabled: sql`EXCLUDED.mfa_enabled`,
+                    premiumType: sql`EXCLUDED.premium_type`,
+                    publicFlags: sql`EXCLUDED.public_flags`
                 }
             });
         }
@@ -68,15 +58,15 @@ export class GuildMemberUpdateListener extends Listener {
             }).onConflictDoUpdate({
                 target: members.id,
                 set: {
-                    avatar: payload.data.d.avatar,
-                    communicationDisabledUntil: payload.data.d.premium_since,
-                    deaf: payload.data.d.deaf,
-                    flags: payload.data.d.flags,
-                    joinedAt: payload.data.d.joined_at,
-                    mute: payload.data.d.mute,
-                    nick: payload.data.d.nick,
-                    pending: payload.data.d.pending,
-                    premiumSince: payload.data.d.premium_since
+                    avatar: sql`EXCLUDED.avatar`,
+                    flags: sql`EXCLUDED.flags`,
+                    communicationDisabledUntil: sql`EXCLUDED.communication_disabled_until`,
+                    deaf: sql`EXCLUDED.deaf`,
+                    joinedAt: sql`EXCLUDED.joined_at`,
+                    mute: sql`EXCLUDED.mute`,
+                    nick: sql`EXCLUDED.nick`,
+                    pending: sql`EXCLUDED.pending`,
+                    premiumSince: sql`EXCLUDED.premium_since`
                 }
             });
 

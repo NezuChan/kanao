@@ -4,6 +4,7 @@ import { channels, channelsOverwrite } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayChannelCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
+import { sql } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateChannels } from "../../../config.js";
@@ -29,12 +30,12 @@ export class ChannelCreateListener extends Listener {
             }).onConflictDoUpdate({
                 target: channels.id,
                 set: {
-                    name: payload.data.d.name,
-                    type: payload.data.d.type,
-                    position: "position" in payload.data.d ? payload.data.d.position : null,
-                    topic: "topic" in payload.data.d ? payload.data.d.topic : null,
-                    nsfw: "nsfw" in payload.data.d ? payload.data.d.nsfw : null,
-                    lastMessageId: "last_message_id" in payload.data.d ? payload.data.d.last_message_id : undefined
+                    name: sql`EXCLUDED.name`,
+                    type: sql`EXCLUDED.type`,
+                    position: sql`EXCLUDED.position`,
+                    topic: sql`EXCLUDED.topic`,
+                    nsfw: sql`EXCLUDED.nsfw`,
+                    lastMessageId: sql`EXCLUDED.last_message_id`
                 }
             })
                 .returning({ id: channels.id })

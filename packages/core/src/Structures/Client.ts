@@ -15,7 +15,7 @@ import type { ChannelWrapper } from "amqp-connection-manager";
 import type { Channel } from "amqplib";
 import type { APIChannel, APIGuild, APIGuildMember, APIMessage, APIUser, RESTPostAPIChannelMessageJSONBody } from "discord-api-types/v10";
 import { ChannelType, Routes } from "discord-api-types/v10";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
@@ -118,15 +118,15 @@ export class Client extends EventEmitter {
                     }).onConflictDoUpdate({
                         target: schema.members.id,
                         set: {
-                            avatar: member.avatar,
-                            flags: member.flags,
-                            communicationDisabledUntil: member.communication_disabled_until,
-                            deaf: member.deaf,
-                            joinedAt: member.joined_at,
-                            mute: member.mute,
-                            nick: member.nick,
-                            pending: member.pending,
-                            premiumSince: member.premium_since
+                            avatar: sql`EXCLUDED.avatar`,
+                            flags: sql`EXCLUDED.flags`,
+                            communicationDisabledUntil: sql`EXCLUDED.communication_disabled_until`,
+                            deaf: sql`EXCLUDED.deaf`,
+                            joinedAt: sql`EXCLUDED.joined_at`,
+                            mute: sql`EXCLUDED.mute`,
+                            nick: sql`EXCLUDED.nick`,
+                            pending: sql`EXCLUDED.pending`,
+                            premiumSince: sql`EXCLUDED.premium_since`
                         }
                     });
                 }
@@ -262,41 +262,41 @@ export class Client extends EventEmitter {
                     }).onConflictDoUpdate({
                         target: schema.guilds.id,
                         set: {
-                            name: guild.name,
-                            banner: guild.banner,
-                            owner: guild.owner,
-                            ownerId: guild.owner_id,
-                            afkChannelId: guild.afk_channel_id,
-                            afkTimeout: guild.afk_timeout,
-                            defaultMessageNotifications: guild.default_message_notifications,
-                            explicitContentFilter: guild.explicit_content_filter,
-                            icon: guild.icon,
-                            mfaLevel: guild.mfa_level,
-                            region: guild.region,
-                            systemChannelId: guild.system_channel_id,
-                            verificationLevel: guild.verification_level,
-                            widgetChannelId: guild.widget_channel_id,
-                            widgetEnabled: guild.widget_enabled,
-                            approximateMemberCount: guild.approximate_member_count,
-                            approximatePresenceCount: guild.approximate_presence_count,
-                            description: guild.description,
-                            discoverySplash: guild.discovery_splash,
-                            iconHash: guild.icon_hash,
-                            maxMembers: guild.max_members,
-                            maxPresences: guild.max_presences,
-                            premiumSubscriptionCount: guild.premium_subscription_count,
-                            premiumTier: guild.premium_tier,
-                            vanityUrlCode: guild.vanity_url_code,
-                            nsfwLevel: guild.nsfw_level,
-                            rulesChannelId: guild.rules_channel_id,
-                            publicUpdatesChannelId: guild.public_updates_channel_id,
-                            preferredLocale: guild.preferred_locale,
-                            maxVideoChannelUsers: guild.max_video_channel_users,
-                            permissions: guild.permissions,
-                            premiumProgressBarEnabled: guild.premium_progress_bar_enabled,
-                            safetyAlertChannelId: guild.safety_alerts_channel_id,
-                            splash: guild.splash,
-                            systemChannelFlags: guild.system_channel_flags
+                            name: sql`EXCLIDED.name`,
+                            banner: sql`EXCLUDED.banner`,
+                            owner: sql`EXCLUDED.owner`,
+                            ownerId: sql`EXCLUDED.owner_id`,
+                            afkChannelId: sql`EXCLUDED.afk_channel_id`,
+                            afkTimeout: sql`EXCLUDED.afk_timeout`,
+                            defaultMessageNotifications: sql`EXCLUDED.default_message_notifications`,
+                            explicitContentFilter: sql`EXCLUDED.explicit_content_filter`,
+                            icon: sql`EXCLUDED.icon`,
+                            mfaLevel: sql`EXCLUDED.mfa_level`,
+                            region: sql`EXCLUDED.region`,
+                            systemChannelId: sql`EXCLUDED.system_channel_id`,
+                            verificationLevel: sql`EXCLUDED.verification_level`,
+                            widgetChannelId: sql`EXCLUDED.widget_channel_id`,
+                            widgetEnabled: sql`EXCLUDED.widget_enabled`,
+                            approximateMemberCount: sql`EXCLUDED.approximate_member_count`,
+                            approximatePresenceCount: sql`EXCLUDED.approximate_presence_count`,
+                            description: sql`EXCLUDED.description`,
+                            discoverySplash: sql`EXCLUDED.discovery_splash`,
+                            iconHash: sql`EXCLUDED.icon_hash`,
+                            maxMembers: sql`EXCLUDED.max_members`,
+                            maxPresences: sql`EXCLUDED.max_presences`,
+                            premiumSubscriptionCount: sql`EXCLUDED.premium_subscription_count`,
+                            premiumTier: sql`EXCLUDED.premium_tier`,
+                            vanityUrlCode: sql`EXCLUDED.vanity_url_code`,
+                            nsfwLevel: sql`EXCLUDED.nsfw_level`,
+                            rulesChannelId: sql`EXCLUDED.rules_channel_id`,
+                            publicUpdatesChannelId: sql`EXCLUDED.public_updates_channel_id`,
+                            preferredLocale: sql`EXCLUDED.preferred_locale`,
+                            maxVideoChannelUsers: sql`EXCLUDED.max_video_channel_users`,
+                            permissions: sql`EXCLUDED.permissions`,
+                            premiumProgressBarEnabled: sql`EXCLUDED.premium_progress_bar_enabled`,
+                            safetyAlertChannelId: sql`EXCLUDED.safety_alerts_channel_id`,
+                            splash: sql`EXCLUDED.splash`,
+                            systemChannelFlags: sql`EXCLUDED.system_channel_flags`
                         }
                     });
                 }
@@ -396,12 +396,12 @@ export class Client extends EventEmitter {
                     }).onConflictDoUpdate({
                         target: schema.channels.id,
                         set: {
-                            name: channel.name,
-                            type: channel.type,
-                            position: "position" in channel ? channel.position : null,
-                            topic: "topic" in channel ? channel.topic : null,
-                            nsfw: "nsfw" in channel ? channel.nsfw : null,
-                            lastMessageId: "last_message_id" in channel ? channel.last_message_id : undefined
+                            name: sql`EXCLUDED.name`,
+                            type: sql`EXCLUDED.type`,
+                            position: sql`EXCLUDED.position`,
+                            topic: sql`EXCLUDED.topic`,
+                            nsfw: sql`EXCLUDED.nsfw`,
+                            lastMessageId: sql`EXCLUDED.last_message_id`
                         }
                     });
 
@@ -417,9 +417,9 @@ export class Client extends EventEmitter {
                             }).onConflictDoUpdate({
                                 target: [schema.channelsOverwrite.userOrRole, schema.channelsOverwrite.channelId],
                                 set: {
-                                    type: overwrite.type,
-                                    allow: overwrite.allow,
-                                    deny: overwrite.deny
+                                    type: sql`EXCLUDED.type`,
+                                    allow: sql`EXCLUDED.allow`,
+                                    deny: sql`EXCLUDED.deny`
                                 }
                             });
                         }

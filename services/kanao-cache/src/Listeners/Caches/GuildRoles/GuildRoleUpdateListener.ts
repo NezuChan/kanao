@@ -4,6 +4,7 @@ import { roles } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildRoleUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
+import { sql } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateRoles } from "../../../config.js";
@@ -27,11 +28,11 @@ export class GuildRoleUpdateListener extends Listener {
             }).onConflictDoUpdate({
                 target: roles.id,
                 set: {
-                    name: payload.data.d.role.name,
-                    permissions: payload.data.d.role.permissions,
-                    position: payload.data.d.role.position,
-                    color: payload.data.d.role.color,
-                    hoist: payload.data.d.role.hoist
+                    name: sql`EXCLUDED.name`,
+                    permissions: sql`EXCLUDED.permissions`,
+                    position: sql`EXCLUDED.position`,
+                    color: sql`EXCLUDED.color`,
+                    hoist: sql`EXCLUDED.hoist`
                 }
             });
         }

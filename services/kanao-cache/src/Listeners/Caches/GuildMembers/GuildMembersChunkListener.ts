@@ -24,21 +24,11 @@ export class GuildMembersChunkListener extends Listener {
             if (stateUsers) {
                 await this.container.client.drizzle.insert(users)
                     .values(
-                        memberChunk.map(member => ({
-                            id: member.user!.id,
-                            username: member.user!.username,
-                            discriminator: member.user?.discriminator ?? null,
-                            globalName: member.user?.global_name ?? null,
-                            avatar: member.user?.avatar ?? null,
-                            bot: member.user?.bot ?? false,
-                            flags: member.user?.flags,
-                            accentColor: member.user?.accent_color,
-                            avatarDecoration: member.user?.avatar_decoration,
-                            banner: member.user?.banner,
-                            locale: member.user?.locale,
-                            mfaEnabled: member.user?.mfa_enabled,
-                            premiumType: member.user?.premium_type,
-                            publicFlags: member.user?.public_flags
+                        memberChunk.filter(x => x.user !== undefined).map(member => ({
+                            ...member.user!,
+                            globalName: member.user!.global_name ?? null,
+                            premiumType: member.user!.premium_type,
+                            publicFlags: member.user!.public_flags
                         }))
                     ).onConflictDoUpdate({
                         target: users.id,

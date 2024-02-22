@@ -4,6 +4,7 @@ import { memberRoles, members, users } from "@nezuchan/kanao-schema";
 import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildMemberAddDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
+import { sql } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, stateUsers } from "../../../config.js";
@@ -16,23 +17,30 @@ export class GuildMemberAddListener extends Listener {
     }
 
     public async run(payload: { data: GatewayGuildMemberAddDispatch; shardId: number; }): Promise<void> {
-        if (stateUsers) {
+        if (stateUsers && payload.data.d.user) {
             await this.container.client.drizzle.insert(users).values({
-                id: payload.data.d.user!.id,
-                username: payload.data.d.user!.username,
-                discriminator: payload.data.d.user?.discriminator ?? null,
-                globalName: payload.data.d.user?.global_name ?? null,
-                avatar: payload.data.d.user?.avatar ?? null,
-                bot: payload.data.d.user?.bot ?? false,
-                flags: payload.data.d.user?.flags,
-                accentColor: payload.data.d.user?.accent_color,
-                avatarDecoration: payload.data.d.user?.avatar_decoration,
-                banner: payload.data.d.user?.banner,
-                locale: payload.data.d.user?.locale,
-                mfaEnabled: payload.data.d.user?.mfa_enabled,
-                premiumType: payload.data.d.user?.premium_type,
-                publicFlags: payload.data.d.user?.public_flags
-            }).onConflictDoNothing({ target: users.id });
+                ...payload.data.d.user,
+                globalName: payload.data.d.user.global_name ?? null,
+                premiumType: payload.data.d.user.premium_type,
+                publicFlags: payload.data.d.user.public_flags
+            }).onConflictDoUpdate({
+                target: users.id,
+                set: {
+                    username: sql`EXCLUDED.username`,
+                    discriminator: sql`EXCLUDED.discriminator`,
+                    globalName: sql`EXCLUDED.global_name`,
+                    avatar: sql`EXCLUDED.avatar`,
+                    bot: sql`EXCLUDED.bot`,
+                    flags: sql`EXCLUDED.flags`,
+                    accentColor: sql`EXCLUDED.accent_color`,
+                    avatarDecoration: sql`EXCLUDED.avatar_decoration`,
+                    banner: sql`EXCLUDED.banner`,
+                    locale: sql`EXCLUDED.locale`,
+                    mfaEnabled: sql`EXCLUDED.mfa_enabled`,
+                    premiumType: sql`EXCLUDED.premium_type`,
+                    publicFlags: sql`EXCLUDED.public_flags`
+                }
+            });
         }
 
         await this.container.client.drizzle.insert(members).values({
@@ -50,15 +58,15 @@ export class GuildMemberAddListener extends Listener {
         }).onConflictDoUpdate({
             target: members.id,
             set: {
-                avatar: payload.data.d.avatar,
-                flags: payload.data.d.flags,
-                communicationDisabledUntil: payload.data.d.communication_disabled_until,
-                deaf: payload.data.d.deaf,
-                joinedAt: payload.data.d.joined_at,
-                mute: payload.data.d.mute,
-                nick: payload.data.d.nick,
-                pending: payload.data.d.pending,
-                premiumSince: payload.data.d.premium_since
+                avatar: sql`EXCLUDED.avatar`,
+                flags: sql`EXCLUDED.flags`,
+                communicationDisabledUntil: sql`EXCLUDED.communication_disabled_until`,
+                deaf: sql`EXCLUDED.deaf`,
+                joinedAt: sql`EXCLUDED.joined_at`,
+                mute: sql`EXCLUDED.mute`,
+                nick: sql`EXCLUDED.nick`,
+                pending: sql`EXCLUDED.pending`,
+                premiumSince: sql`EXCLUDED.premium_since`
             }
         });
 
