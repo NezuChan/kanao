@@ -1,5 +1,11 @@
 # @nezuchan/kanao-cache
 
+## 1.2.0
+
+### Minor Changes
+
+- 54a3c61: stability changes
+
 ## 1.1.0
 
 ### Minor Changes

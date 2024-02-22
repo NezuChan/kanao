@@ -1,5 +1,11 @@
 # @nezuchan/kanao-gateway
 
+## 4.4.0
+
+### Minor Changes
+
+- 54a3c61: stability changes
+
 ## 4.3.0
 
 ### Minor Changes
