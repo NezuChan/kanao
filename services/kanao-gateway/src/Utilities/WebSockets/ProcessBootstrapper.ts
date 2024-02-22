@@ -6,7 +6,6 @@
 
 import { Buffer } from "node:buffer";
 import EventEmitter from "node:events";
-import { join } from "node:path";
 import process from "node:process";
 import { setTimeout } from "node:timers";
 import { Collection } from "@discordjs/collection";
@@ -28,7 +27,7 @@ import { createLogger } from "../Logger.js";
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 
 export class ProcessBootstrapper {
-    public database = new Database(join(process.cwd(), "storage", "kanao-gateway.db"), { timeout: 30_000 });
+    public database = new Database(":memory:", { timeout: 30_000 });
     public drizzle = drizzle(this.database, { schema });
 
     /**

@@ -5,7 +5,7 @@ import { join } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { REST } from "@discordjs/rest";
-import { CompressionMethod, WebSocketManager, WebSocketShardEvents, WebSocketShardStatus } from "@discordjs/ws";
+import { CompressionMethod, WebSocketManager, WebSocketShardEvents } from "@discordjs/ws";
 import type { SessionInfo, ShardRange } from "@discordjs/ws";
 import { RabbitMQ } from "@nezuchan/constants";
 import { Util, createAmqpChannel, RoutingKey } from "@nezuchan/utilities";
@@ -118,28 +118,6 @@ export class NezuGateway extends EventEmitter {
         if (gatewayGuildPerShard && gatewayShardCount === null) {
             const { shards } = await this.ws.fetchGatewayInformation(true);
             this.ws.options.shardCount = Number(Math.ceil((shards * (1_000 / Number(gatewayGuildPerShard))) / 1));
-        }
-
-        const shardCount = await this.ws.getShardCount();
-
-        // When multiple replica is running, only reset few shards statuses
-        const shardStart = shardIds?.start ?? 0;
-        const shardEnd = shardIds?.end ?? shardCount;
-
-        for (let i = shardStart; i < shardEnd; i++) {
-            await this.drizzle.insert(schema.status).values({
-                shardId: i,
-                latency: -1,
-                lastAck: Date.now().toString(),
-                status: WebSocketShardStatus.Connecting
-            }).onConflictDoUpdate({
-                target: schema.status.shardId,
-                set: {
-                    latency: -1,
-                    lastAck: Date.now().toString(),
-                    status: WebSocketShardStatus.Connecting
-                }
-            });
         }
 
         await this.ws.connect();
