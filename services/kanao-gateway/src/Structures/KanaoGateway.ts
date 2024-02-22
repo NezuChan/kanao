@@ -109,7 +109,7 @@ export class NezuGateway extends EventEmitter {
         this.setupAmqp();
 
         await this.database.pragma("journal_mode = WAL");
-        migrate(this.drizzle, { migrationsFolder: "drizzle" });
+        migrate(this.drizzle, { migrationsFolder: "dist/drizzle" });
 
         if (enablePrometheus) this.setupPrometheus();
 

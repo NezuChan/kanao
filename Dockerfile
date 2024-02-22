@@ -48,7 +48,5 @@ COPY --from=builder /out/package.json .
 COPY --from=builder /out/node_modules ./node_modules
 COPY --from=builder /out/dist ./dist
 
-VOLUME /app/storage
-
 # Start the app with node
 CMD ["npm", "start"]

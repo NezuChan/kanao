@@ -8,7 +8,7 @@
   "main": "dist/index.js",
   "private": "true",
   "scripts": {
-    "build": "rimraf dist && swc ./src -d dist --config-file .swcrc --strip-leading-paths",
+    "build": "rimraf dist && swc ./src -d dist --config-file .swcrc --strip-leading-paths && node -p \"fs.cpSync('./drizzle', './dist/drizzle', { recursive: true })\"",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "start": "node --expose-gc -r dotenv/config dist/index.js",

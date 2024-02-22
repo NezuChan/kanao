@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 import "dotenv/config";
 
+import { access, constants, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -10,6 +11,16 @@ import { createBanner } from "@skyra/start-banner";
 import gradient from "gradient-string";
 import { NezuGateway } from "./Structures/KanaoGateway.js";
 import { getShardCount, replicaCount, replicaId } from "./config.js";
+
+try {
+    await access(join(process.cwd(), "storage"), constants.F_OK);
+} catch (error) {
+    if ((error as { code: "ENOENT"; }).code === "ENOENT") {
+        await mkdir(join(process.cwd(), "storage"));
+    } else {
+        throw error;
+    }
+}
 
 const gateway = new NezuGateway();
 const packageJson = Util.loadJSON<{ version: string; }>(`file://${join(fileURLToPath(import.meta.url), "../../package.json")}`);
