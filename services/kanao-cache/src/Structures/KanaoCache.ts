@@ -4,13 +4,11 @@ import * as schema from "@nezuchan/kanao-schema";
 import { createAmqpChannel } from "@nezuchan/utilities";
 import { StoreRegistry, container } from "@sapphire/pieces";
 import type { Channel } from "amqplib";
-import { GatewayDispatchEvents } from "discord-api-types/v10";
-import type { GatewayDispatchPayload } from "discord-api-types/v10.js";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { ListenerStore } from "../Stores/ListenerStore.js";
 import { createLogger } from "../Utilities/Logger.js";
-import { clientId, storeLogs, lokiHost, databaseUrl, amqp, databaseConnectionLimit, guildCreateGcEvery, disableGuildCreateGcThrottle } from "../config.js";
+import { clientId, storeLogs, lokiHost, databaseUrl, amqp, databaseConnectionLimit } from "../config.js";
 
 export class KanaoCache extends EventEmitter {
     public amqp = createAmqpChannel(amqp, {
@@ -47,16 +45,8 @@ export class KanaoCache extends EventEmitter {
 
         await channel.consume(queue, message => {
             if (message && message.properties.replyTo === clientId) {
-                const payload = JSON.parse(message.content.toString()) as { shardId: number; data: { data: GatewayDispatchPayload; }; };
-
-                if (payload.data.data.t === GatewayDispatchEvents.GuildCreate && !disableGuildCreateGcThrottle) {
-                    if (this.guildsCreateThrottle++ % guildCreateGcEvery === 0) return;
-                    channel.ack(message);
-                    this.emit("dispatch", payload);
-                } else {
-                    channel.ack(message);
-                    this.emit("dispatch", payload);
-                }
+                channel.ack(message);
+                this.emit("dispatch", JSON.parse(message.content.toString()));
             }
         });
     }
