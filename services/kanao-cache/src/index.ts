@@ -46,7 +46,7 @@ console.log(
                 String.raw`   ______           __       `,
                 String.raw`  / ____/___ ______/ /_  ___ `,
                 String.raw` / /   / __ '/ ___/ __ \/ _ \ `,
-                String.raw`/ /___/ /_/ / /__/ / / /  __/`,
+                String.raw`/ /___/ /_/ / /__/ / / /  __/ `,
                 String.raw`\____/\__,_/\___/_/ /_/\___/ `
             ],
             extra: [
