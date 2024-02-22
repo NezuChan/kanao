@@ -2,7 +2,6 @@ import EventEmitter from "node:events";
 import * as schema from "@nezuchan/kanao-schema";
 import { createAmqpChannel } from "@nezuchan/utilities";
 import { StoreRegistry, container } from "@sapphire/pieces";
-import type { ChannelWrapper } from "amqp-connection-manager";
 import type { Channel } from "amqplib";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
@@ -11,7 +10,9 @@ import { createLogger } from "../Utilities/Logger.js";
 import { clientId, storeLogs, lokiHost, databaseUrl, amqp } from "../config.js";
 
 export class KanaoCache extends EventEmitter {
-    public amqp!: ChannelWrapper;
+    public amqp = createAmqpChannel(amqp, {
+        setup: async (channel: Channel) => this.setupAmqp(channel)
+    });
 
     public logger = createLogger("kanao-cache", clientId, storeLogs, lokiHost);
     public pgClient = new pg.Client({ connectionString: databaseUrl });
@@ -22,9 +23,6 @@ export class KanaoCache extends EventEmitter {
 
     public async connect(): Promise<void> {
         container.client = this;
-        this.amqp = createAmqpChannel(amqp, {
-            setup: async (channel: Channel) => this.setupAmqp(channel)
-        });
         await this.pgClient.connect();
         this.pgClient.on("error", e => this.logger.error(e, "Postgres emitted error"));
 
