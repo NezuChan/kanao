@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.15.0
+
+### Minor Changes
+
+- 6439e2f: deps upgrade
+
 ## 0.14.1
 
 ### Patch Changes

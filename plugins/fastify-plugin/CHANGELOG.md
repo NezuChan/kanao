@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.10.2
+
+### Patch Changes
+
+- Updated dependencies [6439e2f]
+  - @nezuchan/framework@0.15.0
+
 ## 0.10.1
 
 ### Patch Changes
