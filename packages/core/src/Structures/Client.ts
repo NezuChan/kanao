@@ -33,7 +33,7 @@ import { VoiceState } from "./VoiceState.js";
 
 export class Client extends EventEmitter {
     public store: NodePgDatabase<typeof schema>;
-    public storeBackend: pg.Client;
+    public storeBackend: pg.Pool;
     public clientId: string;
     public rest = new REST({
         api: process.env.HTTP_PROXY ?? process.env.PROXY ?? process.env.NIRN_PROXY ?? "https://discord.com/api",
@@ -51,7 +51,7 @@ export class Client extends EventEmitter {
             this.rest.options.api = options.rest;
         }
 
-        this.storeBackend = new pg.Client(options.databaseUrl);
+        this.storeBackend = new pg.Pool({ connectionString: options.databaseUrl, max: options.databaseConnectionLimit ?? 10 });
         this.store = drizzle(this.storeBackend, { schema });
 
         options.token ??= process.env.DISCORD_TOKEN;

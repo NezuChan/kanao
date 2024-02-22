@@ -8,7 +8,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { ListenerStore } from "../Stores/ListenerStore.js";
 import { createLogger } from "../Utilities/Logger.js";
-import { clientId, storeLogs, lokiHost, databaseUrl, amqp } from "../config.js";
+import { clientId, storeLogs, lokiHost, databaseUrl, amqp, databaseConnectionLimit } from "../config.js";
 
 export class KanaoCache extends EventEmitter {
     public amqp = createAmqpChannel(amqp, {
@@ -16,7 +16,7 @@ export class KanaoCache extends EventEmitter {
     });
 
     public logger = createLogger("kanao-cache", clientId, storeLogs, lokiHost);
-    public pgClient = new pg.Client({ connectionString: databaseUrl });
+    public pgClient = new pg.Pool({ connectionString: databaseUrl, max: databaseConnectionLimit });
 
     public drizzle = drizzle(this.pgClient, { schema });
 
