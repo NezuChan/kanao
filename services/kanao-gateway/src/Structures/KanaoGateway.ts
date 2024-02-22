@@ -27,7 +27,7 @@ export class NezuGateway extends EventEmitter {
     public rest = new REST({ api: proxy, rejectOnRateLimit: proxy === "https://discord.com/api" ? null : () => false });
     public logger = createLogger("kanao-gateway", clientId, storeLogs, lokiHost);
 
-    public database = new Database(join(process.cwd(), "storage", "kanao-gateway.db"));
+    public database = new Database(join(process.cwd(), "storage", "kanao-gateway.db"), { timeout: 30_000 });
     public drizzle = drizzle(this.database, { schema });
 
     public prometheus = new APM({

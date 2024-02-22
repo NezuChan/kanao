@@ -28,7 +28,7 @@ import { createLogger } from "../Logger.js";
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 
 export class ProcessBootstrapper {
-    public database = new Database(join(process.cwd(), "storage", "kanao-gateway.db"));
+    public database = new Database(join(process.cwd(), "storage", "kanao-gateway.db"), { timeout: 30_000 });
     public drizzle = drizzle(this.database, { schema });
 
     /**
