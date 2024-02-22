@@ -1,5 +1,11 @@
 # @nezuchan/kanao-schema
 
+## 0.6.0
+
+### Minor Changes
+
+- bcb8e97: stability updates
+
 ## 0.5.0
 
 ### Minor Changes

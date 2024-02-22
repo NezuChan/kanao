@@ -1,5 +1,17 @@
 # Change Log
 
+## 0.10.0
+
+### Minor Changes
+
+- bcb8e97: stability updates
+
+### Patch Changes
+
+- Updated dependencies [bcb8e97]
+  - @nezuchan/core@0.14.0
+  - @nezuchan/framework@0.14.0
+
 ## 0.9.0
 
 ### Minor Changes
