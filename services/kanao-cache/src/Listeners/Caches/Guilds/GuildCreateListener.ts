@@ -1,13 +1,11 @@
-import { Buffer } from "node:buffer";
-import { RabbitMQ } from "@nezuchan/constants";
 import { channels, channelsOverwrite, guilds, memberRoles, members, roles, users, voiceStates } from "@nezuchan/kanao-schema";
-import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayGuildCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import { sql } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, guildCreateGcEvery, stateChannels, stateRoles } from "../../../config.js";
+import { DispatchListener } from "../DispatchListener.js";
 
 export class GuildCreateListener extends Listener {
     public count = 0;
@@ -297,11 +295,7 @@ export class GuildCreateListener extends Listener {
         // eslint-disable-next-line require-atomic-updates
         payload.data.d.voice_states = null;
 
-        await this.container.client.amqp.publish(
-            RabbitMQ.GATEWAY_QUEUE_SEND,
-            RoutingKey(clientId, payload.shardId),
-            Buffer.from(JSON.stringify(payload.data))
-        );
+        await DispatchListener.dispatch(payload);
 
         this.count++;
 

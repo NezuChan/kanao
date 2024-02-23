@@ -1,13 +1,11 @@
-import { Buffer } from "node:buffer";
-import { RabbitMQ } from "@nezuchan/constants";
 import { memberRoles, members, messages, users } from "@nezuchan/kanao-schema";
-import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayMessageCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import { sql } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
-import { clientId, stateMembers, stateMessages, stateUsers } from "../../../config.js";
+import { stateMembers, stateMessages, stateUsers } from "../../../config.js";
+import { DispatchListener } from "../DispatchListener.js";
 
 export class MessageCreateListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -110,6 +108,6 @@ export class MessageCreateListener extends Listener {
             }).onConflictDoNothing({ target: messages.id });
         }
 
-        await this.container.client.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
+        await DispatchListener.dispatch(payload);
     }
 }

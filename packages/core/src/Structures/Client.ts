@@ -7,7 +7,6 @@ import EventEmitter from "node:events";
 import process from "node:process";
 import { URLSearchParams } from "node:url";
 import { REST } from "@discordjs/rest";
-import { RabbitMQ } from "@nezuchan/constants";
 import * as schema from "@nezuchan/kanao-schema";
 import { RoutingKey, createAmqpChannel } from "@nezuchan/utilities";
 import { Result } from "@sapphire/result";
@@ -19,6 +18,7 @@ import { and, eq, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
+import { GatewayExchangeRoutes, RabbitMQ, RoutedQueue } from "../Enums/Amqp.js";
 import { Events } from "../Enums/Events.js";
 import type { ClientOptions } from "../Typings/index.js";
 import type { BaseChannel } from "./Channels/BaseChannel.js";
@@ -68,11 +68,12 @@ export class Client extends EventEmitter {
 
     public async setupAmqp(channel: Channel): Promise<void> {
         await channel.prefetch(1);
-        await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_SEND, "direct", { durable: true });
+        await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "topic", { durable: false });
 
-        // TODO [2024-03-01]: Round-robin with clients.receive queue.
-        const { queue } = await channel.assertQueue("", { exclusive: true });
-        await this.bindQueue(channel, queue, RabbitMQ.GATEWAY_QUEUE_SEND);
+        const routing = new RoutedQueue(GatewayExchangeRoutes.DISPATCH, this.clientId, this.options.instanceName);
+
+        const { queue } = await channel.assertQueue(routing.queue);
+        await this.bindQueue(channel, RabbitMQ.GATEWAY_EXCHANGE, routing);
 
         await channel.consume(queue, message => {
             if (message) {
@@ -485,18 +486,18 @@ export class Client extends EventEmitter {
         }).then(x => new Message(x as APIMessage, this));
     }
 
-    public async bindQueue(channel: Channel, queue: string, exchange: string): Promise<void> {
+    public async bindQueue(channel: Channel, exchange: string, route: RoutedQueue): Promise<void> {
         if (Array.isArray(this.options.shardIds)) {
             for (const shard of this.options.shardIds) {
-                await channel.bindQueue(queue, exchange, RoutingKey(this.clientId, shard));
+                await channel.bindQueue(route.queue, exchange, route.shard(shard).key);
             }
         } else if (this.options.shardIds && this.options.shardIds.start >= 0 && this.options.shardIds.end >= 1) {
             for (let i = this.options.shardIds.start; i < this.options.shardIds.end; i++) {
-                await channel.bindQueue(queue, exchange, RoutingKey(this.clientId, i));
+                await channel.bindQueue(route.queue, exchange, route.shard(i).key);
             }
         } else {
             for (let i = 0; i < this.options.shardCount; i++) {
-                await channel.bindQueue(queue, exchange, `${this.clientId}:*`);
+                await channel.bindQueue(route.queue, exchange, route.shard(i).key);
             }
         }
     }

@@ -1,13 +1,11 @@
-import { Buffer } from "node:buffer";
-import { RabbitMQ } from "@nezuchan/constants";
 import { channels, channelsOverwrite } from "@nezuchan/kanao-schema";
-import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayChannelUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import { eq, sql } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
-import { clientId, stateChannels } from "../../../config.js";
+import { stateChannels } from "../../../config.js";
+import { DispatchListener } from "../DispatchListener.js";
 
 export class ChannelUpdateListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -60,6 +58,6 @@ export class ChannelUpdateListener extends Listener {
                 });
         }
 
-        await this.container.client.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
+        await DispatchListener.dispatch(payload);
     }
 }

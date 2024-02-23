@@ -11,8 +11,8 @@ import { setTimeout } from "node:timers";
 import { Collection } from "@discordjs/collection";
 import type { BootstrapOptions, WorkerReceivePayload, WorkerSendPayload, WorkerData, WebSocketShardDestroyOptions } from "@discordjs/ws";
 import { WebSocketShardEvents, WebSocketShard, WorkerReceivePayloadOp, WorkerSendPayloadOp } from "@discordjs/ws";
-import { RabbitMQ, ShardOp } from "@nezuchan/constants";
-import { RoutingKey, RoutingKeyToId, createAmqpChannel } from "@nezuchan/utilities";
+import { ShardOp } from "@nezuchan/constants";
+import { createAmqpChannel } from "@nezuchan/utilities";
 import { StoreRegistry } from "@sapphire/pieces";
 import { Result } from "@sapphire/result";
 import type { Channel, ConsumeMessage } from "amqplib";
@@ -25,6 +25,7 @@ import { ListenerStore } from "../../Stores/ListenerStore.js";
 import * as schema from "../../Structures/DatabaseSchema.js";
 import { discordToken, storeLogs, lokiHost, amqp, clientId } from "../../config.js";
 import { createLogger } from "../Logger.js";
+import { GatewayExchangeRoutes, RoutedQueue, ShardedRoutedQueue, RabbitMQ } from "../amqp.js";
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 
 export class ProcessBootstrapper {
@@ -98,11 +99,13 @@ export class ProcessBootstrapper {
     public setupAmqp(): void {
         const amqpChannel = createAmqpChannel(amqp, {
             setup: async (channel: Channel) => {
-                await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "direct", { durable: false });
-                const { queue } = await channel.assertQueue(RabbitMQ.GATEWAY_QUEUE_RECV, { durable: false });
+                await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "topic", { durable: false });
+
+                const routing = new RoutedQueue(GatewayExchangeRoutes.SEND, clientId, `gateway-${this.data.processId}`);
+                const { queue } = await channel.assertQueue(routing.queue, { durable: false });
 
                 for (const shard of this.data.shardIds) {
-                    await channel.bindQueue(queue, RabbitMQ.GATEWAY_EXCHANGE, RoutingKey(clientId, shard));
+                    await channel.bindQueue(queue, RabbitMQ.GATEWAY_EXCHANGE, routing.shard(shard).key);
                 }
 
                 await channel.consume(queue, async m => this.onConsumeMessage(channel, m));
@@ -127,7 +130,7 @@ export class ProcessBootstrapper {
         if (!message) return;
         channel.ack(message);
         const content = JSON.parse(message.content.toString()) as { op: ShardOp; data: unknown; };
-        const shardId = RoutingKeyToId(clientId, message.fields.routingKey);
+        const shardId = ShardedRoutedQueue.routingKeyToShardId(message.fields.routingKey);
         switch (content.op) {
             case ShardOp.SEND: {
                 const shard = this.shards.get(shardId);

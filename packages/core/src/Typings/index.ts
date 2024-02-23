@@ -6,4 +6,5 @@ export interface ClientOptions {
     databaseConnectionLimit?: number;
     rest?: string;
     databaseUrl: string;
+    instanceName: string;
 }

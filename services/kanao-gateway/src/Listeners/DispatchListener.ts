@@ -3,6 +3,7 @@ import { WebSocketShardEvents } from "@discordjs/ws";
 import type { GatewayDispatchPayload } from "discord-api-types/v10";
 import type { ListenerContext } from "../Stores/Listener.js";
 import { Listener } from "../Stores/Listener.js";
+import { GatewayExchangeRoutes, RabbitMQ, RoutedQueue } from "../Utilities/amqp.js";
 import { clientId } from "../config.js";
 
 export class DispatchListener extends Listener {
@@ -13,6 +14,8 @@ export class DispatchListener extends Listener {
     }
 
     public async run(payload: { shardId: number; data: { data: GatewayDispatchPayload; }; }): Promise<void> {
-        await this.store.amqp.publish("nezu-gateway.cache", clientId, Buffer.from(JSON.stringify({ data: payload.data, shardId: payload.shardId })), { replyTo: clientId });
+        const routing = new RoutedQueue(GatewayExchangeRoutes.RECEIVE, clientId);
+
+        await this.store.amqp.publish(RabbitMQ.GATEWAY_EXCHANGE, routing.key, Buffer.from(JSON.stringify({ data: payload.data, shardId: payload.shardId })), { replyTo: clientId });
     }
 }
