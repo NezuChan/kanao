@@ -69,7 +69,7 @@ export class KanaoCache extends EventEmitter {
 
                 channel.ack(message);
                 await this.amqp.sendToQueue(content.replyTo, Buffer.from(
-                    JSON.stringify({ request: content.request, guilds, users, channels })
+                    JSON.stringify({ request: content.request, clientId, guilds, users, channels })
                 ), { correlationId: message.properties.correlationId as string });
             }
         });
