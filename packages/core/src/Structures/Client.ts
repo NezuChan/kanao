@@ -7,8 +7,9 @@ import EventEmitter from "node:events";
 import process from "node:process";
 import { URLSearchParams } from "node:url";
 import { REST } from "@discordjs/rest";
+import { RabbitMQ, GatewayExchangeRoutes } from "@nezuchan/constants";
 import * as schema from "@nezuchan/kanao-schema";
-import { RoutingKey, createAmqpChannel } from "@nezuchan/utilities";
+import { createAmqpChannel, RoutedQueue } from "@nezuchan/utilities";
 import { Result } from "@sapphire/result";
 import type { ChannelWrapper } from "amqp-connection-manager";
 import type { Channel } from "amqplib";
@@ -18,7 +19,6 @@ import { and, eq, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
-import { GatewayExchangeRoutes, RabbitMQ, RoutedQueue } from "../Enums/Amqp.js";
 import { Events } from "../Enums/Events.js";
 import type { ClientOptions } from "../Typings/index.js";
 import type { BaseChannel } from "./Channels/BaseChannel.js";
@@ -505,7 +505,8 @@ export class Client extends EventEmitter {
     public async publishExchange<T>(guildId: string, exchange: string, data: unknown, waitReply?: () => Promise<unknown>): Promise<Result<T, unknown>> {
         const currentShardId = Number(BigInt(guildId) >> 22n) % this.options.shardCount;
 
-        const success = await this.amqp.publish(exchange, RoutingKey(this.clientId, currentShardId), Buffer.from(JSON.stringify(data)));
+        const route = new RoutedQueue(GatewayExchangeRoutes.SEND, this.clientId, this.options.instanceName);
+        const success = await this.amqp.publish(exchange, route.shard(currentShardId).key, Buffer.from(JSON.stringify(data)));
 
         if (waitReply) {
             return Result.fromAsync<T>(() => waitReply() as T);

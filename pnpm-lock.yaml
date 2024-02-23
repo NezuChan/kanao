@@ -37,17 +37,17 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0
       '@nezuchan/constants':
-        specifier: ^0.8.0
-        version: 0.8.0
+        specifier: ^0.9.0
+        version: 0.9.0
       '@nezuchan/decorators':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
       '@nezuchan/kanao-schema':
         specifier: workspace:^
         version: link:../kanao-schema
       '@nezuchan/utilities':
-        specifier: ^0.6.2
-        version: 0.6.2(amqplib@0.10.3)
+        specifier: ^0.7.0
+        version: 0.7.0(amqplib@0.10.3)
       '@sapphire/pieces':
         specifier: ^4.2.2
         version: 4.2.2
@@ -172,14 +172,14 @@ importers:
   services/kanao-cache:
     dependencies:
       '@nezuchan/constants':
-        specifier: ^0.8.0
-        version: 0.8.0
+        specifier: ^0.9.0
+        version: 0.9.0
       '@nezuchan/kanao-schema':
         specifier: workspace:^
         version: link:../../packages/kanao-schema
       '@nezuchan/utilities':
-        specifier: ^0.6.2
-        version: 0.6.2(amqplib@0.10.3)
+        specifier: ^0.7.0
+        version: 0.7.0(amqplib@0.10.3)
       '@sapphire/pieces':
         specifier: ^4.2.2
         version: 4.2.2
@@ -270,11 +270,11 @@ importers:
         specifier: ^1.0.2
         version: 1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.3)
       '@nezuchan/constants':
-        specifier: ^0.8.0
-        version: 0.8.0
+        specifier: ^0.9.0
+        version: 0.9.0
       '@nezuchan/utilities':
-        specifier: ^0.6.2
-        version: 0.6.2(amqplib@0.10.3)
+        specifier: ^0.7.0
+        version: 0.7.0(amqplib@0.10.3)
       '@sapphire/pieces':
         specifier: ^4.2.2
         version: 4.2.2
@@ -1338,19 +1338,19 @@ packages:
       os-filter-obj: 2.0.0
     dev: true
 
-  /@nezuchan/constants@0.8.0:
-    resolution: {integrity: sha512-h0Yc82W/PakS1CLgdDw2xxiCdJrZr0JFxfRlXj7dooG0kAnbEec9ivMHPlgiWtbqqiK4HRol+79iRkBD3ADYxQ==}
+  /@nezuchan/constants@0.9.0:
+    resolution: {integrity: sha512-Xd6ighAa8YhJGXNnn4sHbpmjSFWZR88FDoCdkrEHc1vIiiZtzN0ZmR7b0uF8MOERrDIQpAinSfYeIu0DdVYvUQ==}
     dev: false
 
-  /@nezuchan/decorators@0.2.0:
-    resolution: {integrity: sha512-AeTk7sqlQNv4qb+HHgzmYtQB65TxeIe1/Tibvi8Tq3n1209x98G5Jh+mLtOQ2gDZ1hfSBeqiFKrwVXJIjtnuIw==}
+  /@nezuchan/decorators@0.3.0:
+    resolution: {integrity: sha512-XepLK7QXRhxqbwTO0ZgtS5Rch9NbRY2rd5OsBer4E+tOXnEHLYcpIzGZEEs6h4YWuXxZ28GlRwqNBopHb/jf7Q==}
     dependencies:
       '@sapphire/pieces': 4.2.2
       '@sapphire/utilities': 3.15.3
     dev: false
 
-  /@nezuchan/utilities@0.6.2(amqplib@0.10.3):
-    resolution: {integrity: sha512-1Nsf9SCzVlCvG61SvwJI9KUwJtXqt8/KGdDVHlPeoQuzo66Kfu1Vr1a/aKKFWArJTocqQ7i70e1quYXn2Tog0g==}
+  /@nezuchan/utilities@0.7.0(amqplib@0.10.3):
+    resolution: {integrity: sha512-/ZZaiWGdmNTWWVEKjpzNvxc7jPx/cz4BoJs950hoQnBzMv6vuLUHakAH71qeTi8Y8gvLPykufiAbojkiTXdbmQ==}
     dependencies:
       '@sapphire/snowflake': 3.5.3
       amqp-connection-manager: 4.1.14(amqplib@0.10.3)

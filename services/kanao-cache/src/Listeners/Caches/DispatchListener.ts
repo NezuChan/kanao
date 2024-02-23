@@ -1,10 +1,11 @@
 import { Buffer } from "node:buffer";
+import { GatewayExchangeRoutes, RabbitMQ } from "@nezuchan/constants";
+import { RoutedQueue } from "@nezuchan/utilities";
 import { container } from "@sapphire/pieces";
 import type { GatewayDispatchPayload } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import type { ListenerContext } from "../../Stores/Listener.js";
 import { Listener } from "../../Stores/Listener.js";
-import { GatewayExchangeRoutes, RoutedQueue, RabbitMQ } from "../../Utilities/amqp.js";
 import { clientId } from "../../config.js";
 
 export class DispatchListener extends Listener {

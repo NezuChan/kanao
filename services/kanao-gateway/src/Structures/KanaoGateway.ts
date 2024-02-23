@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, WebSocketManager, WebSocketShardEvents } from "@discordjs/ws";
 import type { SessionInfo, ShardRange } from "@discordjs/ws";
+import { RabbitMQ } from "@nezuchan/constants";
 import { Util, createAmqpChannel } from "@nezuchan/utilities";
 import type { Channel } from "amqplib";
 import Database from "better-sqlite3";
@@ -15,7 +16,6 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import APM from "prometheus-middleware";
 import { createLogger } from "../Utilities/Logger.js";
 import { ProcessShardingStrategy } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
-import { RabbitMQ } from "../Utilities/amqp.js";
 import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, replicaId, storeLogs } from "../config.js";
 import * as schema from "./DatabaseSchema.js";
 

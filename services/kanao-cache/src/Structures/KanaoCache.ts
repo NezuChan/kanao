@@ -1,13 +1,13 @@
 import EventEmitter from "node:events";
+import { GatewayExchangeRoutes, RabbitMQ } from "@nezuchan/constants";
 import * as schema from "@nezuchan/kanao-schema";
-import { createAmqpChannel } from "@nezuchan/utilities";
+import { RoutedQueue, createAmqpChannel } from "@nezuchan/utilities";
 import { StoreRegistry, container } from "@sapphire/pieces";
 import type { Channel } from "amqplib";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { ListenerStore } from "../Stores/ListenerStore.js";
 import { createLogger } from "../Utilities/Logger.js";
-import { GatewayExchangeRoutes, RabbitMQ, RoutedQueue } from "../Utilities/amqp.js";
 import { clientId, storeLogs, lokiHost, databaseUrl, amqp, databaseConnectionLimit } from "../config.js";
 
 export class KanaoCache extends EventEmitter {

@@ -11,8 +11,8 @@ import { setTimeout } from "node:timers";
 import { Collection } from "@discordjs/collection";
 import type { BootstrapOptions, WorkerReceivePayload, WorkerSendPayload, WorkerData, WebSocketShardDestroyOptions } from "@discordjs/ws";
 import { WebSocketShardEvents, WebSocketShard, WorkerReceivePayloadOp, WorkerSendPayloadOp } from "@discordjs/ws";
-import { ShardOp } from "@nezuchan/constants";
-import { createAmqpChannel } from "@nezuchan/utilities";
+import { GatewayExchangeRoutes, RabbitMQ, ShardOp } from "@nezuchan/constants";
+import { RoutedQueue, ShardedRoutedQueue, createAmqpChannel } from "@nezuchan/utilities";
 import { StoreRegistry } from "@sapphire/pieces";
 import { Result } from "@sapphire/result";
 import type { Channel, ConsumeMessage } from "amqplib";
@@ -25,7 +25,6 @@ import { ListenerStore } from "../../Stores/ListenerStore.js";
 import * as schema from "../../Structures/DatabaseSchema.js";
 import { discordToken, storeLogs, lokiHost, amqp, clientId } from "../../config.js";
 import { createLogger } from "../Logger.js";
-import { GatewayExchangeRoutes, RoutedQueue, ShardedRoutedQueue, RabbitMQ } from "../amqp.js";
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 
 export class ProcessBootstrapper {
