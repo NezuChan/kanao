@@ -67,7 +67,6 @@ export class Client extends EventEmitter {
     }
 
     public async setupAmqp(channel: Channel): Promise<void> {
-        await channel.prefetch(1);
         await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "topic", { durable: false });
 
         const routing = new RoutedQueue(GatewayExchangeRoutes.DISPATCH, this.clientId, this.options.instanceName);
