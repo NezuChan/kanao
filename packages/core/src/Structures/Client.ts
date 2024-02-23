@@ -72,7 +72,7 @@ export class Client extends EventEmitter {
 
         const routing = new RoutedQueue(GatewayExchangeRoutes.DISPATCH, this.clientId, this.options.instanceName);
 
-        const { queue } = await channel.assertQueue(routing.queue);
+        const { queue } = await channel.assertQueue(routing.queue, { durable: false });
         await this.bindQueue(channel, RabbitMQ.GATEWAY_EXCHANGE, routing);
 
         await channel.consume(queue, message => {

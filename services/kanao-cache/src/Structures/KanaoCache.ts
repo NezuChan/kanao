@@ -42,7 +42,7 @@ export class KanaoCache extends EventEmitter {
 
         // Used for receiving receive events from the gateway
         const routingKey = new RoutedQueue(GatewayExchangeRoutes.RECEIVE, clientId, "cache");
-        const { queue } = await channel.assertQueue(routingKey.queue);
+        const { queue } = await channel.assertQueue(routingKey.queue, { durable: false });
         await channel.bindQueue(queue, "kanao-gateway", routingKey.key);
         await channel.consume(queue, message => {
             if (message) {
