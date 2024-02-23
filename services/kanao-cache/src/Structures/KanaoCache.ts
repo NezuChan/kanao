@@ -60,7 +60,7 @@ export class KanaoCache extends EventEmitter {
 
         await channel.consume(routing.queue, async message => {
             if (message) {
-                const content = JSON.parse(message.content.toString()) as { route: string; request: "counts" | "stats"; };
+                const content = JSON.parse(message.content.toString()) as { replyTo: string; request: "counts" | "stats"; };
                 if (content.request !== "counts") return;
 
                 const guilds = await this.drizzle.select({ count: count(schema.guilds.id) }).from(schema.guilds).execute();
@@ -68,7 +68,7 @@ export class KanaoCache extends EventEmitter {
                 const channels = await this.drizzle.select({ count: count(schema.channels.id) }).from(schema.channels).execute();
 
                 channel.ack(message);
-                await this.amqp.publish(RabbitMQ.GATEWAY_EXCHANGE, content.route, Buffer.from(
+                await this.amqp.sendToQueue(content.replyTo, Buffer.from(
                     JSON.stringify({ guilds, users, channels })
                 ), { correlationId: message.properties.correlationId as string });
             }

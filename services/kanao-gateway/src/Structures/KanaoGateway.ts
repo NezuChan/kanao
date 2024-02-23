@@ -135,7 +135,7 @@ export class NezuGateway extends EventEmitter {
 
                 await channel.consume(routing.queue, async message => {
                     if (message) {
-                        const content = JSON.parse(message.content.toString()) as { route: string; request: "counts" | "stats"; };
+                        const content = JSON.parse(message.content.toString()) as { replyTo: string; request: "counts" | "stats"; };
                         if (content.request !== "stats") return;
 
                         const stats = [];
@@ -146,7 +146,7 @@ export class NezuGateway extends EventEmitter {
                             stats.push({ shardId, status, latency: stat?.latency ?? -1 });
                         }
                         channel.ack(message);
-                        await amqpChannel.publish(RabbitMQ.GATEWAY_EXCHANGE, content.route, Buffer.from(
+                        await amqpChannel.sendToQueue(content.replyTo, Buffer.from(
                             JSON.stringify({
                                 shards: stats,
                                 replicaId,
