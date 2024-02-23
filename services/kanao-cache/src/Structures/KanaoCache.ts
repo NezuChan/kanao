@@ -56,22 +56,20 @@ export class KanaoCache extends EventEmitter {
         this.logger.info(`Successfully bind queue ${queue} to exchange kanao-gateway with routing key ${routingKey.key}`);
 
         // Used for Counts RPC
-        const rpc = new RoutedQueue(GatewayExchangeRoutes.REQUEST, clientId, "cache-rpc");
+        const rpc = new RoutedQueue(`${GatewayExchangeRoutes.REQUEST}.stats`, clientId, "cache-rpc");
         await channel.assertQueue(rpc.queue, { durable: false });
         await channel.bindQueue(rpc.queue, RabbitMQ.GATEWAY_EXCHANGE, rpc.key);
 
         await channel.consume(rpc.queue, async message => {
             if (message) {
-                const content = JSON.parse(message.content.toString()) as { replyTo: string; request: "counts" | "stats"; };
-                if (content.request !== "counts") return;
-
+                const content = JSON.parse(message.content.toString()) as { replyTo: string; };
                 const guilds = await this.drizzle.select({ count: count(schema.guilds.id) }).from(schema.guilds).execute();
                 const users = await this.drizzle.select({ count: count(schema.users.id) }).from(schema.users).execute();
                 const channels = await this.drizzle.select({ count: count(schema.channels.id) }).from(schema.channels).execute();
 
                 channel.ack(message);
                 await this.amqp.sendToQueue(content.replyTo, Buffer.from(
-                    JSON.stringify({ request: content.request, clientId, guilds, users, channels })
+                    JSON.stringify({ route: rpc.key, clientId, guilds, users, channels })
                 ), { correlationId: message.properties.correlationId as string });
             }
         });
