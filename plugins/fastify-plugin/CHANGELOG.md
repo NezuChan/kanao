@@ -1,5 +1,17 @@
 # Change Log
 
+## 0.11.0
+
+### Minor Changes
+
+- 7cc6cd1: AMQP queues revamp
+
+### Patch Changes
+
+- Updated dependencies [7cc6cd1]
+  - @nezuchan/core@0.16.0
+  - @nezuchan/framework@0.16.0
+
 ## 0.10.2
 
 ### Patch Changes

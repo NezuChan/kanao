@@ -1,5 +1,16 @@
 # Change Log
 
+## 0.16.0
+
+### Minor Changes
+
+- 7cc6cd1: AMQP queues revamp
+
+### Patch Changes
+
+- Updated dependencies [7cc6cd1]
+  - @nezuchan/kanao-schema@0.7.0
+
 ## 0.15.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@nezuchan/fastify-plugin",
-  "version": "0.10.2",
+  "version": "0.11.0",
   "description": "A Fastify API Plugins for NezuChan Framework",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
