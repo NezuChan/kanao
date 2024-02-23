@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { container } from "@sapphire/pieces";
-import type { GatewayDispatchPayload, GatewayMessageCreateDispatch } from "discord-api-types/v10";
+import type { GatewayDispatchPayload } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import type { ListenerContext } from "../../Stores/Listener.js";
 import { Listener } from "../../Stores/Listener.js";
@@ -47,9 +47,6 @@ export class DispatchListener extends Listener {
         const routing = new RoutedQueue(GatewayExchangeRoutes.DISPATCH, clientId)
             .shard(payload.shardId);
 
-        console.log(clientId, (payload.data.d as GatewayMessageCreateDispatch["d"]).guild_id);
-        console.log(routing.key); // dispatch.982891490445525063.0
-
-        await container.client.amqp.publish(RabbitMQ.GATEWAY_EXCHANGE, routing.key, Buffer.from(JSON.stringify(payload.data.d)));
+        await container.client.amqp.publish(RabbitMQ.GATEWAY_EXCHANGE, routing.key, Buffer.from(JSON.stringify(payload.data)));
     }
 }
