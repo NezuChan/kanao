@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
+import { Buffer } from "node:buffer";
 import EventEmitter from "node:events";
 import { join } from "node:path";
 import process from "node:process";
@@ -6,8 +7,8 @@ import { fileURLToPath } from "node:url";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, WebSocketManager, WebSocketShardEvents } from "@discordjs/ws";
 import type { SessionInfo, ShardRange } from "@discordjs/ws";
-import { RabbitMQ } from "@nezuchan/constants";
-import { Util, createAmqpChannel } from "@nezuchan/utilities";
+import { GatewayExchangeRoutes, RabbitMQ } from "@nezuchan/constants";
+import { RoutedQueue, Util, createAmqpChannel } from "@nezuchan/utilities";
 import type { Channel } from "amqplib";
 import Database from "better-sqlite3";
 import { eq, sql } from "drizzle-orm";
@@ -127,38 +128,39 @@ export class NezuGateway extends EventEmitter {
             setup: async (channel: Channel) => {
                 await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "topic", { durable: false });
 
-                // await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_STATS, "topic", { durable: false });
-                // const { queue } = await channel.assertQueue(RabbitMQ.GATEWAY_QUEUE_RECV, { durable: false });
+                // Used for Stats API
+                const routing = new RoutedQueue(GatewayExchangeRoutes.REQUEST, clientId, `gateway-${replicaId}`);
+                await channel.assertQueue(routing.queue, { durable: false });
+                await channel.bindQueue(routing.queue, RabbitMQ.GATEWAY_EXCHANGE, routing.key);
 
-                // for (const route of [RoutingKey(clientId, "*"), RoutingKey(clientId, replicaId)]) {
-                //     await channel.bindQueue(queue, RabbitMQ.GATEWAY_QUEUE_STATS, route);
-                // }
+                await channel.consume(routing.queue, async message => {
+                    if (message) {
+                        const content = JSON.parse(message.content.toString()) as { route: string; request: "counts" | "stats"; };
+                        if (content.request !== "stats") return;
 
-                // await channel.consume(queue, async message => {
-                //     if (!message) return;
-                //     const content = JSON.parse(message.content.toString()) as { route: string; };
-                //     const stats = [];
-                //     for (const [shardId, status] of await this.ws.fetchStatus()) {
-                //         const stat = await this.drizzle.query.status.findFirst({
-                //             where: () => eq(schema.status.shardId, shardId)
-                //         });
-                //         stats.push({ shardId, status, latency: stat?.latency ?? -1 });
-                //     }
-                //     channel.ack(message);
-                //     await amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, content.route, Buffer.from(
-                //         JSON.stringify({
-                //             shards: stats,
-                //             replicaId,
-                //             clientId,
-                //             memoryUsage: process.memoryUsage(),
-                //             cpuUsage: process.cpuUsage(),
-                //             uptime: process.uptime(),
-                //             shardCount: stats.length
-                //         })
-                //     ), {
-                //         correlationId: message.properties.correlationId as string
-                //     });
-                // });
+                        const stats = [];
+                        for (const [shardId, status] of await this.ws.fetchStatus()) {
+                            const stat = await this.drizzle.query.status.findFirst({
+                                where: () => eq(schema.status.shardId, shardId)
+                            });
+                            stats.push({ shardId, status, latency: stat?.latency ?? -1 });
+                        }
+                        channel.ack(message);
+                        await amqpChannel.publish(RabbitMQ.GATEWAY_EXCHANGE, content.route, Buffer.from(
+                            JSON.stringify({
+                                shards: stats,
+                                replicaId,
+                                clientId,
+                                memoryUsage: process.memoryUsage(),
+                                cpuUsage: process.cpuUsage(),
+                                uptime: process.uptime(),
+                                shardCount: stats.length
+                            })
+                        ), {
+                            correlationId: message.properties.correlationId as string
+                        });
+                    }
+                });
             }
         });
 
