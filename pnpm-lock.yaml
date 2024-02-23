@@ -37,8 +37,8 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0
       '@nezuchan/constants':
-        specifier: ^0.9.0
-        version: 0.9.0
+        specifier: ^0.9.1
+        version: 0.9.1
       '@nezuchan/decorators':
         specifier: ^0.3.0
         version: 0.3.0
@@ -172,8 +172,8 @@ importers:
   services/kanao-cache:
     dependencies:
       '@nezuchan/constants':
-        specifier: ^0.9.0
-        version: 0.9.0
+        specifier: ^0.9.1
+        version: 0.9.1
       '@nezuchan/kanao-schema':
         specifier: workspace:^
         version: link:../../packages/kanao-schema
@@ -270,8 +270,8 @@ importers:
         specifier: ^1.0.2
         version: 1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.3)
       '@nezuchan/constants':
-        specifier: ^0.9.0
-        version: 0.9.0
+        specifier: ^0.9.1
+        version: 0.9.1
       '@nezuchan/utilities':
         specifier: ^0.7.0
         version: 0.7.0(amqplib@0.10.3)
@@ -1338,8 +1338,8 @@ packages:
       os-filter-obj: 2.0.0
     dev: true
 
-  /@nezuchan/constants@0.9.0:
-    resolution: {integrity: sha512-Xd6ighAa8YhJGXNnn4sHbpmjSFWZR88FDoCdkrEHc1vIiiZtzN0ZmR7b0uF8MOERrDIQpAinSfYeIu0DdVYvUQ==}
+  /@nezuchan/constants@0.9.1:
+    resolution: {integrity: sha512-aRv0Ew9z7NnVOcQV9Q9m6Q5ofWOOiOH7yPfVzSL/kXN+0zgUr8ni+C66Ri9rZNsr3tQGfyvg0+ChLwj1A6XK9A==}
     dev: false
 
   /@nezuchan/decorators@0.3.0:

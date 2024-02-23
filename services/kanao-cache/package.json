@@ -20,7 +20,7 @@
     "pino-loki": "^2.2.1"
   },
   "dependencies": {
-    "@nezuchan/constants": "^0.9.0",
+    "@nezuchan/constants": "^0.9.1",
     "@nezuchan/kanao-schema": "workspace:^",
     "@nezuchan/utilities": "^0.7.0",
     "@sapphire/pieces": "^4.2.2",
