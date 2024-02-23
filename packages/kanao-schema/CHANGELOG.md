@@ -1,5 +1,11 @@
 # @nezuchan/kanao-schema
 
+## 0.7.0
+
+### Minor Changes
+
+- 7cc6cd1: AMQP queues revamp
+
 ## 0.6.0
 
 ### Minor Changes
