@@ -129,15 +129,13 @@ export class NezuGateway extends EventEmitter {
                 await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "topic", { durable: false });
 
                 // Used for Stats RPC
-                const routing = new RoutedQueue(GatewayExchangeRoutes.REQUEST, clientId, `gateway-rpc-${replicaId}`);
-                await channel.assertQueue(routing.queue, { durable: false });
-                await channel.bindQueue(routing.queue, RabbitMQ.GATEWAY_EXCHANGE, routing.key);
+                const rpc = new RoutedQueue(`${GatewayExchangeRoutes.REQUEST}.stats`, clientId, `gateway-rpc-${replicaId}`);
+                await channel.assertQueue(rpc.queue, { durable: false });
+                await channel.bindQueue(rpc.queue, RabbitMQ.GATEWAY_EXCHANGE, rpc.key);
 
-                await channel.consume(routing.queue, async message => {
+                await channel.consume(rpc.queue, async message => {
                     if (message) {
-                        const content = JSON.parse(message.content.toString()) as { replyTo: string; request: "counts" | "stats"; };
-                        if (content.request !== "stats") return;
-
+                        const content = JSON.parse(message.content.toString()) as { replyTo: string; };
                         const stats = [];
                         for (const [shardId, status] of await this.ws.fetchStatus()) {
                             const stat = await this.drizzle.query.status.findFirst({
@@ -148,7 +146,7 @@ export class NezuGateway extends EventEmitter {
                         channel.ack(message);
                         await amqpChannel.sendToQueue(content.replyTo, Buffer.from(
                             JSON.stringify({
-                                request: content.request,
+                                request: rpc.key,
                                 shards: stats,
                                 replicaId,
                                 clientId,
