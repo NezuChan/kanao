@@ -38,7 +38,6 @@ export class KanaoCache extends EventEmitter {
 
     public async setupAmqp(channel: Channel): Promise<void> {
         await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "topic", { durable: false });
-        await channel.prefetch(1);
 
         // Used for receiving receive events from the gateway
         const routingKey = new RoutedQueue(GatewayExchangeRoutes.RECEIVE, clientId, "cache");
