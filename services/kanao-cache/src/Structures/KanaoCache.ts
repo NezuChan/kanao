@@ -56,7 +56,7 @@ export class KanaoCache extends EventEmitter {
         this.logger.info(`Successfully bind queue ${queue} to exchange kanao-gateway with routing key ${routingKey.key}`);
 
         // Used for Counts RPC
-        const rpc = new RoutedQueue(`${GatewayExchangeRoutes.REQUEST}.stats`, clientId, "cache-rpc");
+        const rpc = new RoutedQueue(`${GatewayExchangeRoutes.REQUEST}.counts`, clientId, "cache-rpc");
         await channel.assertQueue(rpc.queue, { durable: false });
         await channel.bindQueue(rpc.queue, RabbitMQ.GATEWAY_EXCHANGE, rpc.key);
 
