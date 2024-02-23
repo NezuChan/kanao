@@ -148,6 +148,7 @@ export class NezuGateway extends EventEmitter {
                         channel.ack(message);
                         await amqpChannel.sendToQueue(content.replyTo, Buffer.from(
                             JSON.stringify({
+                                request: content.request,
                                 shards: stats,
                                 replicaId,
                                 clientId,
