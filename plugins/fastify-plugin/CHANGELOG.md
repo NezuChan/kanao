@@ -1,5 +1,16 @@
 # Change Log
 
+## 0.11.2
+
+### Patch Changes
+
+- 22df4b3: Don't assert durable queue
+- 3224a69: don't prefetch
+- Updated dependencies [22df4b3]
+- Updated dependencies [3224a69]
+  - @nezuchan/core@0.16.2
+  - @nezuchan/framework@0.16.2
+
 ## 0.11.1
 
 ### Patch Changes
