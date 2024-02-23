@@ -44,7 +44,6 @@ export class KanaoCache extends EventEmitter {
         this.logger.info("Successfully bind to cache queue!");
 
         await channel.consume(queue, message => {
-            console.log(JSON.parse(message!.content.toString()));
             if (message && message.properties.replyTo === clientId) {
                 channel.ack(message);
                 this.emit("dispatch", JSON.parse(message.content.toString()));
