@@ -1,5 +1,14 @@
 # Change Log
 
+## 0.11.1
+
+### Patch Changes
+
+- cddc478: bump @nezuchan/constants
+- Updated dependencies [cddc478]
+  - @nezuchan/core@0.16.1
+  - @nezuchan/framework@0.16.1
+
 ## 0.11.0
 
 ### Minor Changes
