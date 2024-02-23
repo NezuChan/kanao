@@ -53,12 +53,14 @@ export class KanaoCache extends EventEmitter {
             }
         });
 
-        // Used for Counts RPC
-        const routing = new RoutedQueue(GatewayExchangeRoutes.REQUEST, clientId, "cache");
-        await channel.assertQueue(routing.queue, { durable: false });
-        await channel.bindQueue(routing.queue, RabbitMQ.GATEWAY_EXCHANGE, routing.key);
+        this.logger.info(`Successfully bind queue ${queue} to exchange kanao-gateway with routing key ${routingKey.key}`);
 
-        await channel.consume(routing.queue, async message => {
+        // Used for Counts RPC
+        const rpc = new RoutedQueue(GatewayExchangeRoutes.REQUEST, clientId, "cache-rpc");
+        await channel.assertQueue(rpc.queue, { durable: false });
+        await channel.bindQueue(rpc.queue, RabbitMQ.GATEWAY_EXCHANGE, rpc.key);
+
+        await channel.consume(rpc.queue, async message => {
             if (message) {
                 const content = JSON.parse(message.content.toString()) as { replyTo: string; request: "counts" | "stats"; };
                 if (content.request !== "counts") return;
@@ -73,8 +75,6 @@ export class KanaoCache extends EventEmitter {
                 ), { correlationId: message.properties.correlationId as string });
             }
         });
-
-        this.logger.info(`Successfully bind queue ${queue} to exchange kanao-gateway with routing key ${routingKey.key}`);
     }
 }
 
