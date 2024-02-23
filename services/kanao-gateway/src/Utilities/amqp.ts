@@ -1,4 +1,4 @@
-// Move to @nezuchan/constants and @nezuchan/utilities
+// TODO [2024-03-01]: Move to @nezuchan/constants and @nezuchan/utilities
 
 export enum RabbitMQ {
     GATEWAY_EXCHANGE = "kanao-gateway"
