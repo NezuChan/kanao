@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
-import { Buffer } from "node:buffer";
 import EventEmitter from "node:events";
 import { join } from "node:path";
 import process from "node:process";
@@ -7,8 +6,7 @@ import { fileURLToPath } from "node:url";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, WebSocketManager, WebSocketShardEvents } from "@discordjs/ws";
 import type { SessionInfo, ShardRange } from "@discordjs/ws";
-import { RabbitMQ } from "@nezuchan/constants";
-import { Util, createAmqpChannel, RoutingKey } from "@nezuchan/utilities";
+import { Util, createAmqpChannel } from "@nezuchan/utilities";
 import type { Channel } from "amqplib";
 import Database from "better-sqlite3";
 import { eq, sql } from "drizzle-orm";
@@ -17,6 +15,7 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import APM from "prometheus-middleware";
 import { createLogger } from "../Utilities/Logger.js";
 import { ProcessShardingStrategy } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
+import { RabbitMQ } from "../Utilities/amqp.js";
 import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, replicaId, storeLogs } from "../config.js";
 import * as schema from "./DatabaseSchema.js";
 
@@ -126,40 +125,40 @@ export class NezuGateway extends EventEmitter {
     public setupAmqp(): void {
         const amqpChannel = createAmqpChannel(amqp, {
             setup: async (channel: Channel) => {
-                await channel.assertExchange("nezu-gateway.cache", "direct", { durable: true });
+                await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "topic", { durable: false });
 
-                await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_STATS, "topic", { durable: false });
-                const { queue } = await channel.assertQueue(RabbitMQ.GATEWAY_QUEUE_RECV, { durable: false });
+                // await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_STATS, "topic", { durable: false });
+                // const { queue } = await channel.assertQueue(RabbitMQ.GATEWAY_QUEUE_RECV, { durable: false });
 
-                for (const route of [RoutingKey(clientId, "*"), RoutingKey(clientId, replicaId)]) {
-                    await channel.bindQueue(queue, RabbitMQ.GATEWAY_QUEUE_STATS, route);
-                }
+                // for (const route of [RoutingKey(clientId, "*"), RoutingKey(clientId, replicaId)]) {
+                //     await channel.bindQueue(queue, RabbitMQ.GATEWAY_QUEUE_STATS, route);
+                // }
 
-                await channel.consume(queue, async message => {
-                    if (!message) return;
-                    const content = JSON.parse(message.content.toString()) as { route: string; };
-                    const stats = [];
-                    for (const [shardId, status] of await this.ws.fetchStatus()) {
-                        const stat = await this.drizzle.query.status.findFirst({
-                            where: () => eq(schema.status.shardId, shardId)
-                        });
-                        stats.push({ shardId, status, latency: stat?.latency ?? -1 });
-                    }
-                    channel.ack(message);
-                    await amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, content.route, Buffer.from(
-                        JSON.stringify({
-                            shards: stats,
-                            replicaId,
-                            clientId,
-                            memoryUsage: process.memoryUsage(),
-                            cpuUsage: process.cpuUsage(),
-                            uptime: process.uptime(),
-                            shardCount: stats.length
-                        })
-                    ), {
-                        correlationId: message.properties.correlationId as string
-                    });
-                });
+                // await channel.consume(queue, async message => {
+                //     if (!message) return;
+                //     const content = JSON.parse(message.content.toString()) as { route: string; };
+                //     const stats = [];
+                //     for (const [shardId, status] of await this.ws.fetchStatus()) {
+                //         const stat = await this.drizzle.query.status.findFirst({
+                //             where: () => eq(schema.status.shardId, shardId)
+                //         });
+                //         stats.push({ shardId, status, latency: stat?.latency ?? -1 });
+                //     }
+                //     channel.ack(message);
+                //     await amqpChannel.publish(RabbitMQ.GATEWAY_QUEUE_STATS, content.route, Buffer.from(
+                //         JSON.stringify({
+                //             shards: stats,
+                //             replicaId,
+                //             clientId,
+                //             memoryUsage: process.memoryUsage(),
+                //             cpuUsage: process.cpuUsage(),
+                //             uptime: process.uptime(),
+                //             shardCount: stats.length
+                //         })
+                //     ), {
+                //         correlationId: message.properties.correlationId as string
+                //     });
+                // });
             }
         });
 

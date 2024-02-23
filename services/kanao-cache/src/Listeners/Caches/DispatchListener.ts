@@ -1,13 +1,13 @@
 import { Buffer } from "node:buffer";
-import { RabbitMQ } from "@nezuchan/constants";
-import { RoutingKey } from "@nezuchan/utilities";
-import type { GatewayDispatchPayload } from "discord-api-types/v10";
+import { container } from "@sapphire/pieces";
+import type { GatewayDispatchPayload, GatewayMessageCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import type { ListenerContext } from "../../Stores/Listener.js";
 import { Listener } from "../../Stores/Listener.js";
+import { GatewayExchangeRoutes, RoutedQueue, RabbitMQ } from "../../Utilities/amqp.js";
 import { clientId } from "../../config.js";
 
-export class ReadyListener extends Listener {
+export class DispatchListener extends Listener {
     public constructor(context: ListenerContext) {
         super(context, {
             event: "dispatch"
@@ -38,8 +38,18 @@ export class ReadyListener extends Listener {
                 this.container.client.emit(payload.data.data.t, { shardId: payload.shardId, data: payload.data.data });
                 break;
             default:
-                await this.container.client.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data.data)));
+                await DispatchListener.dispatch({ shardId: payload.shardId, data: payload.data.data });
                 break;
         }
+    }
+
+    public static async dispatch(payload: { shardId: number; data: GatewayDispatchPayload; }): Promise<void> {
+        const routing = new RoutedQueue(GatewayExchangeRoutes.DISPATCH, clientId)
+            .shard(payload.shardId);
+
+        console.log(clientId, (payload.data.d as GatewayMessageCreateDispatch["d"]).guild_id);
+        console.log(routing.key); // dispatch.982891490445525063.0
+
+        await container.client.amqp.publish(RabbitMQ.GATEWAY_EXCHANGE, routing.key, Buffer.from(JSON.stringify(payload.data.d)));
     }
 }

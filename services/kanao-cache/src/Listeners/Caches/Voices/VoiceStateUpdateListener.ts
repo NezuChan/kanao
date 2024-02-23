@@ -1,13 +1,11 @@
-import { Buffer } from "node:buffer";
-import { RabbitMQ } from "@nezuchan/constants";
 import { memberRoles, members, users, voiceStates } from "@nezuchan/kanao-schema";
-import { RoutingKey } from "@nezuchan/utilities";
 import type { GatewayVoiceStateUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import { and, eq, sql } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
-import { clientId, stateMembers, stateUsers, stateVoices } from "../../../config.js";
+import { stateMembers, stateUsers, stateVoices } from "../../../config.js";
+import { DispatchListener } from "../DispatchListener.js";
 
 export class VoiceStateUpdateListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -94,6 +92,6 @@ export class VoiceStateUpdateListener extends Listener {
                 }));
         }
 
-        await this.container.client.amqp.publish(RabbitMQ.GATEWAY_QUEUE_SEND, RoutingKey(clientId, payload.shardId), Buffer.from(JSON.stringify(payload.data)));
+        await DispatchListener.dispatch(payload);
     }
 }

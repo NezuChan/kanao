@@ -1,5 +1,4 @@
 import EventEmitter from "node:events";
-import { RabbitMQ } from "@nezuchan/constants";
 import * as schema from "@nezuchan/kanao-schema";
 import { createAmqpChannel } from "@nezuchan/utilities";
 import { StoreRegistry, container } from "@sapphire/pieces";
@@ -8,6 +7,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { ListenerStore } from "../Stores/ListenerStore.js";
 import { createLogger } from "../Utilities/Logger.js";
+import { GatewayExchangeRoutes, RabbitMQ, RoutedQueue } from "../Utilities/amqp.js";
 import { clientId, storeLogs, lokiHost, databaseUrl, amqp, databaseConnectionLimit } from "../config.js";
 
 export class KanaoCache extends EventEmitter {
@@ -35,20 +35,23 @@ export class KanaoCache extends EventEmitter {
     }
 
     public async setupAmqp(channel: Channel): Promise<void> {
-        // await channel.prefetch(1);
-        await channel.assertExchange(RabbitMQ.GATEWAY_QUEUE_SEND, "direct", { durable: true });
-        await channel.assertExchange("nezu-gateway.cache", "direct", { durable: true });
-        const { queue } = await channel.assertQueue("kanao-cache.receive", { durable: true });
-        await channel.bindQueue(queue, "nezu-gateway.cache", clientId);
+        await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "topic", { durable: false });
+        await channel.prefetch(1);
 
-        this.logger.info("Successfully bind to cache queue!");
-
+        // Used for receiving receive events from the gateway
+        const routingKey = new RoutedQueue(GatewayExchangeRoutes.RECEIVE, clientId, "cache");
+        const { queue } = await channel.assertQueue(routingKey.queue);
+        await channel.bindQueue(queue, "kanao-gateway", routingKey.key);
         await channel.consume(queue, message => {
-            if (message && message.properties.replyTo === clientId) {
+            if (message) {
                 channel.ack(message);
+
+                // This will emit the dispatch event on the cache service
                 this.emit("dispatch", JSON.parse(message.content.toString()));
             }
         });
+
+        this.logger.info(`Successfully bind queue ${queue} to exchange kanao-gateway with routing key ${routingKey.key}`);
     }
 }
 
