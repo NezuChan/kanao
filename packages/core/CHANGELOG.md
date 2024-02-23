@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.16.1
+
+### Patch Changes
+
+- cddc478: bump @nezuchan/constants
+- Updated dependencies [cddc478]
+  - @nezuchan/kanao-schema@0.7.1
+
 ## 0.16.0
 
 ### Minor Changes
