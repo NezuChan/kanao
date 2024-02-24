@@ -1,5 +1,11 @@
 # @nezuchan/kanao-cache
 
+## 1.4.0
+
+### Minor Changes
+
+- dc5ab27: RPC fixes
+
 ## 1.3.0
 
 ### Minor Changes
