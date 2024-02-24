@@ -20,7 +20,7 @@ jobs:
         id: scope
         run: |
           TAG=${{ steps.tag.outputs.tag }}
-          SERVICE_NAME=$(echo $TAG | cut -d'@' -f2)
+          SERVICE_NAME=$(echo $TAG | cut -d'@' -f2 | cut -d'/' -f2)
           VERSION=$(echo $TAG | cut -d'@' -f3)
           echo "service=${SERVICE_NAME}" >> $GITHUB_OUTPUT
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
