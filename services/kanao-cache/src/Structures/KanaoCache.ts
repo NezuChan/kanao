@@ -24,8 +24,6 @@ export class KanaoCache extends EventEmitter {
 
     public stores = new StoreRegistry();
 
-    public guildsCreateThrottle = 0;
-
     public async connect(): Promise<void> {
         container.client = this;
         await this.pgClient.connect();
