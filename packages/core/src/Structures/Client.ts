@@ -15,7 +15,7 @@ import type { ChannelWrapper } from "amqp-connection-manager";
 import type { Channel } from "amqplib";
 import type { APIChannel, APIGuild, APIGuildMember, APIMessage, APIUser, RESTPostAPIChannelMessageJSONBody } from "discord-api-types/v10";
 import { ChannelType, Routes } from "discord-api-types/v10";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, not, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
@@ -408,8 +408,25 @@ export class Client extends EventEmitter {
                     });
 
                     if ("permission_overwrites" in channel && channel.permission_overwrites !== undefined) {
-                        // TODO [2024-03-01]: Avoid delete all, intelligently delete only the ones that are not in the new payload
-                        await this.store.delete(schema.channelsOverwrite).where(eq(schema.channelsOverwrite.channelId, channel.id));
+                        const toBeDeleted = await this.store
+                            .select({ id: schema.channelsOverwrite.channelId })
+                            .from(schema.channelsOverwrite)
+                            .where(
+                                and(
+                                    eq(schema.channelsOverwrite.channelId, channel.id),
+                                    not(inArray(schema.channelsOverwrite.userOrRole, channel.permission_overwrites.map(x => x.id)))
+                                )
+                            );
+
+                        if (toBeDeleted.length > 0) {
+                            await this.store.delete(schema.channelsOverwrite).where(
+                                and(
+                                    eq(schema.channelsOverwrite.channelId, channel.id),
+                                    inArray(schema.channelsOverwrite.userOrRole, toBeDeleted.map(x => x.id) as string[])
+                                )
+                            );
+                        }
+
                         for (const overwrite of channel.permission_overwrites) {
                             // @ts-expect-error Intended to avoid .map
                             overwrite.channelId = channel.id;
