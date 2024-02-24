@@ -1,5 +1,11 @@
 # @nezuchan/kanao-cache
 
+## 1.4.1
+
+### Patch Changes
+
+- b4ea9bb: fix notInArray
+
 ## 1.4.0
 
 ### Minor Changes
