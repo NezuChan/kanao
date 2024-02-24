@@ -1,7 +1,7 @@
 import { channels, channelsOverwrite } from "@nezuchan/kanao-schema";
 import type { GatewayChannelUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { and, eq, inArray, not, sql } from "drizzle-orm";
+import { and, eq, notInArray, sql } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { stateChannels } from "../../../config.js";
@@ -38,24 +38,12 @@ export class ChannelUpdateListener extends Listener {
         });
 
         if ("permission_overwrites" in payload.data.d && payload.data.d.permission_overwrites !== undefined) {
-            const toBeDeleted = await this.container.client.drizzle
-                .select({ id: channelsOverwrite.channelId })
-                .from(channelsOverwrite)
-                .where(
-                    and(
-                        eq(channelsOverwrite.channelId, payload.data.d.id),
-                        not(inArray(channelsOverwrite.userOrRole, payload.data.d.permission_overwrites.map(x => x.id)))
-                    )
-                );
-
-            if (toBeDeleted.length > 0) {
-                await this.container.client.drizzle.delete(channelsOverwrite).where(
-                    and(
-                        eq(channelsOverwrite.channelId, payload.data.d.id),
-                        inArray(channelsOverwrite.userOrRole, toBeDeleted.map(x => x.id) as string[])
-                    )
-                );
-            }
+            await this.container.client.drizzle.delete(channelsOverwrite).where(
+                and(
+                    eq(channelsOverwrite.channelId, payload.data.d.id),
+                    notInArray(channelsOverwrite.userOrRole, payload.data.d.permission_overwrites.map(x => x.id))
+                )
+            );
 
             if (payload.data.d.permission_overwrites.length > 0) {
                 for (const overwrite of payload.data.d.permission_overwrites) {
