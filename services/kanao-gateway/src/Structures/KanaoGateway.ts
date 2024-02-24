@@ -4,11 +4,13 @@ import EventEmitter from "node:events";
 import { join } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import type { Collection } from "@discordjs/collection";
 import { REST } from "@discordjs/rest";
 import { CompressionMethod, WebSocketManager, WebSocketShardEvents } from "@discordjs/ws";
 import type { SessionInfo, ShardRange } from "@discordjs/ws";
 import { GatewayExchangeRoutes, RabbitMQ } from "@nezuchan/constants";
 import { RoutedQueue, Util, createAmqpChannel } from "@nezuchan/utilities";
+import type { Awaitable } from "@sapphire/utilities";
 import type { Channel } from "amqplib";
 import Database from "better-sqlite3";
 import { eq, sql } from "drizzle-orm";
@@ -16,6 +18,7 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import APM from "prometheus-middleware";
 import { createLogger } from "../Utilities/Logger.js";
+import type { Status } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
 import { ProcessShardingStrategy } from "../Utilities/WebSockets/ProcessShardingStrategy.js";
 import { amqp, clientId, discordToken, enablePrometheus, gatewayCompression, gatewayGuildPerShard, gatewayHandShakeTimeout, gatewayHelloTimeout, gatewayIntents, gatewayLargeThreshold, gatewayPresenceName, gatewayPresenceStatus, gatewayPresenceType, gatewayReadyTimeout, gatewayResume, gatewayShardCount, gatewayShardsPerWorkers, getShardCount, lokiHost, prometheusPath, prometheusPort, proxy, replicaId, storeLogs } from "../config.js";
 import * as schema from "./DatabaseSchema.js";
@@ -137,11 +140,10 @@ export class NezuGateway extends EventEmitter {
                     if (message) {
                         const content = JSON.parse(message.content.toString()) as { replyTo: string; };
                         const stats = [];
-                        for (const [shardId, status] of await this.ws.fetchStatus()) {
-                            const stat = await this.drizzle.query.status.findFirst({
-                                where: () => eq(schema.status.shardId, shardId)
-                            });
-                            stats.push({ shardId, status, latency: stat?.latency ?? -1 });
+
+                        // @ts-expect-error Override
+                        for (const [shardId, status] of await this.ws.fetchStatus() as Awaitable<Collection<number, Status>>) {
+                            stats.push({ shardId, ...status });
                         }
                         channel.ack(message);
                         await amqpChannel.sendToQueue(content.replyTo, Buffer.from(

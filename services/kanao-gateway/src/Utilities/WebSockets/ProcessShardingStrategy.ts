@@ -24,6 +24,8 @@ import { createLogger } from "../Logger.js";
 
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
+export type Status = { status: WebSocketShardStatus; latency: number; };
+
 /**
  * Strategy used to spawn threads in child_process
  */
@@ -37,7 +39,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
 
     private readonly destroyPromises = new Collection<number, () => void>();
 
-    private readonly fetchStatusPromises = new Collection<number, (status: WebSocketShardStatus) => void>();
+    private readonly fetchStatusPromises = new Collection<number, (status: Status) => void>();
 
     private readonly waitForIdentifyControllers = new Collection<number, AbortController>();
 
@@ -142,7 +144,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
      * {@inheritDoc IShardingStrategy.fetchStatus}
      */
     public async fetchStatus(): Promise<Collection<number, WebSocketShardStatus>> {
-        const statuses = new Collection<number, WebSocketShardStatus>();
+        const statuses = new Collection<number, Status>();
 
         for (const [shardId, worker] of this.#workerByShardId.entries()) {
             const nonce = Math.random();
@@ -152,7 +154,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
                 nonce
             } satisfies WorkerSendPayload;
 
-            const promise = new Promise<WebSocketShardStatus>(resolve => this.fetchStatusPromises.set(nonce, resolve));
+            const promise = new Promise<Status>(resolve => this.fetchStatusPromises.set(nonce, resolve));
             try {
                 if (worker.connected) worker.send(payload);
             } catch {
@@ -163,7 +165,8 @@ export class ProcessShardingStrategy implements IShardingStrategy {
             statuses.set(shardId, status);
         }
 
-        return statuses;
+        // @ts-expect-error - Override
+        return statuses as Collection<number, WebSocketShardStatus>;
     }
 
     private async setupWorker(workerData: WorkerData): Promise<void> {
@@ -332,7 +335,7 @@ export class ProcessShardingStrategy implements IShardingStrategy {
             }
 
             case WorkerReceivePayloadOp.FetchStatusResponse: {
-                this.fetchStatusPromises.get(payload.nonce)?.(payload.status);
+                this.fetchStatusPromises.get(payload.nonce)?.({ status: payload.status, latency: (payload as unknown as { latency: number; }).latency });
                 this.fetchStatusPromises.delete(payload.nonce);
                 break;
             }

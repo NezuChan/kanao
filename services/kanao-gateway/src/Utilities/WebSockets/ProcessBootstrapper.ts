@@ -18,6 +18,7 @@ import { Result } from "@sapphire/result";
 import type { Channel, ConsumeMessage } from "amqplib";
 import Database from "better-sqlite3";
 import type { GatewaySendPayload } from "discord-api-types/v10";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/better-sqlite3/driver";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import type { Listener } from "../../Stores/Listener.js";
@@ -249,10 +250,15 @@ export class ProcessBootstrapper {
                         throw new Error(`Shard ${payload.shardId} does not exist`);
                     }
 
+                    const status = await this.drizzle.query.status.findFirst({
+                        where: eq(schema.status.shardId, payload.shardId)
+                    });
+
                     const response = {
                         op: WorkerReceivePayloadOp.FetchStatusResponse,
                         status: shard.status,
-                        nonce: payload.nonce
+                        nonce: payload.nonce,
+                        latency: status?.latency ?? -1
                     };
 
                     try {
