@@ -130,6 +130,7 @@ export class ProcessBootstrapper {
         const content = JSON.parse(message.content.toString()) as { op: ShardOp; data: unknown; };
         const shardId = ShardedRoutedQueue.routingKeyToShardId(message.fields.routingKey);
         this.logger.debug(content, `Received message from AMQP to shard ${shardId}`);
+        this.logger.debug(`Shard ${[...this.shards.keys()].join(", ")}`);
         if (shardId === null) return;
         if (!this.shards.has(shardId)) return;
         channel.ack(message);
