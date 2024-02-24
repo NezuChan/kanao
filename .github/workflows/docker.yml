@@ -17,6 +17,10 @@ on:
         description: "Scope of the image (e.g. 'bot')"
         type: string
         required: true
+      VERSION:
+        description: "Version of the image (e.g. 'v1.0.0')"
+        type: string
+        required: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -50,11 +54,6 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract tag name
-        id: tags
-        if: ${{ github.event_name == 'release' }}
-        run: echo ::set-output name=name::${GITHUB_REF##*/}
-
       - name: Extract flavor
         id: flavor
         if: ${{ inputs.ADD_FLAVOR == true }}
@@ -69,7 +68,7 @@ jobs:
             suffix=${{ steps.flavor.outputs.name }}
           images: ghcr.io/nezuchan/${{ matrix.scope }}
           tags: |
-            ${{ steps.tags.outputs.name }}
+            ${{ inputs.VERSION }}
             latest
 
       - name: Build and push

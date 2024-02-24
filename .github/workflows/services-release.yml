@@ -5,8 +5,29 @@ on:
     types: [created]
 
 jobs:
+  scope:
+    runs-on: ubuntu-latest
+    outputs:
+      service: ${{ steps.scope.outputs.service }}
+      version: ${{ steps.scope.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Get tag name
+        id: tag
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      - name: Get scope
+        id: scope
+        run: |
+          TAG=${{ steps.tag.outputs.tag }}
+          SERVICE_NAME=$(echo $TAG | cut -d'@' -f2 | cut -d'-' -f2)
+          VERSION=$(echo $TAG | cut -d'@' -f3)
+          echo "service=${SERVICE_NAME}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
   docker:
     uses: ./.github/workflows/docker.yml
+    needs: scope
     with:
-      scope: '["kanao-gateway"]'
+      scope: ${{ needs.scope.outputs.service }}
+      version: ${{ needs.scope.outputs.version }}
     secrets: inherit
