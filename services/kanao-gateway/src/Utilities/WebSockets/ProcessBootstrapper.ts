@@ -100,7 +100,7 @@ export class ProcessBootstrapper {
             setup: async (channel: Channel) => {
                 await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "topic", { durable: false });
 
-                const routing = new RoutedQueue(GatewayExchangeRoutes.SEND, clientId, `gateway-${replicaId}}`);
+                const routing = new RoutedQueue(GatewayExchangeRoutes.SEND, clientId, `gateway-${replicaId}`);
                 const { queue } = await channel.assertQueue(routing.queue, { durable: false });
 
                 for (const shard of this.data.shardIds) {
