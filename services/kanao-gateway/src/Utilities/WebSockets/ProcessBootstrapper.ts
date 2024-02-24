@@ -23,7 +23,7 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import type { Listener } from "../../Stores/Listener.js";
 import { ListenerStore } from "../../Stores/ListenerStore.js";
 import * as schema from "../../Structures/DatabaseSchema.js";
-import { discordToken, storeLogs, lokiHost, amqp, clientId } from "../../config.js";
+import { discordToken, storeLogs, lokiHost, amqp, clientId, replicaId } from "../../config.js";
 import { createLogger } from "../Logger.js";
 import { ProcessContextFetchingStrategy } from "./ProcessContextFetchingStrategy.js";
 
@@ -100,7 +100,7 @@ export class ProcessBootstrapper {
             setup: async (channel: Channel) => {
                 await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "topic", { durable: false });
 
-                const routing = new RoutedQueue(GatewayExchangeRoutes.SEND, clientId, `gateway-${this.data.processId}`);
+                const routing = new RoutedQueue(GatewayExchangeRoutes.SEND, clientId, `gateway-${replicaId}}`);
                 const { queue } = await channel.assertQueue(routing.queue, { durable: false });
 
                 for (const shard of this.data.shardIds) {
@@ -127,9 +127,11 @@ export class ProcessBootstrapper {
 
     public async onConsumeMessage(channel: Channel, message: ConsumeMessage | null): Promise<void> {
         if (!message) return;
-        channel.ack(message);
         const content = JSON.parse(message.content.toString()) as { op: ShardOp; data: unknown; };
         const shardId = ShardedRoutedQueue.routingKeyToShardId(message.fields.routingKey);
+        if (shardId === null) return;
+        if (!this.shards.has(shardId)) return;
+        channel.ack(message);
         switch (content.op) {
             case ShardOp.SEND: {
                 const shard = this.shards.get(shardId);
