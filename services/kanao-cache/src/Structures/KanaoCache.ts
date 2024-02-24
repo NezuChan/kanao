@@ -60,9 +60,12 @@ export class KanaoCache extends EventEmitter {
         await channel.consume(rpc.queue, async message => {
             if (message) {
                 const content = JSON.parse(message.content.toString()) as { replyTo: string; };
-                const guilds = await this.drizzle.select({ count: count(schema.guilds.id) }).from(schema.guilds).execute();
-                const users = await this.drizzle.select({ count: count(schema.users.id) }).from(schema.users).execute();
-                const channels = await this.drizzle.select({ count: count(schema.channels.id) }).from(schema.channels).execute();
+                const guilds = await this.drizzle.select({ count: count(schema.guilds.id) }).from(schema.guilds).execute()
+                    .then(rows => rows[0].count);
+                const users = await this.drizzle.select({ count: count(schema.users.id) }).from(schema.users).execute()
+                    .then(rows => rows[0].count);
+                const channels = await this.drizzle.select({ count: count(schema.channels.id) }).from(schema.channels).execute()
+                    .then(rows => rows[0].count);
 
                 channel.ack(message);
                 await this.amqp.sendToQueue(content.replyTo, Buffer.from(
