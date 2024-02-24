@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.16.3
+
+### Patch Changes
+
+- 20ea155: Intellegent delete and other updates
+
 ## 0.16.2
 
 ### Patch Changes
