@@ -1,7 +1,7 @@
 import { channels, channelsOverwrite, guilds, memberRoles, members, roles, users, voiceStates } from "@nezuchan/kanao-schema";
 import type { GatewayGuildCreateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { sql } from "drizzle-orm";
+import { and, eq, notInArray, sql } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { clientId, guildCreateGcEvery, stateChannels, stateRoles } from "../../../config.js";
@@ -239,14 +239,22 @@ export class GuildCreateListener extends Listener {
             for (const ch of payload.data.d.channels) {
                 if (
                     "permission_overwrites" in ch &&
-                    ch.permission_overwrites !== undefined &&
-                    ch.permission_overwrites.length > 0
+                    ch.permission_overwrites !== undefined
                 ) {
-                    await this.container.client.drizzle.insert(channelsOverwrite)
-                        .values(ch.permission_overwrites)
-                        .onConflictDoNothing({
-                            target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
-                        });
+                    await this.container.client.drizzle.delete(channelsOverwrite).where(
+                        and(
+                            eq(channelsOverwrite.channelId, ch.id),
+                            notInArray(channelsOverwrite.userOrRole, ch.permission_overwrites.map(x => x.id))
+                        )
+                    );
+
+                    if (ch.permission_overwrites.length > 0) {
+                        await this.container.client.drizzle.insert(channelsOverwrite)
+                            .values(ch.permission_overwrites)
+                            .onConflictDoNothing({
+                                target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
+                            });
+                    }
                 }
             }
         }

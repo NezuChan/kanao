@@ -15,7 +15,7 @@ import type { ChannelWrapper } from "amqp-connection-manager";
 import type { Channel } from "amqplib";
 import type { APIChannel, APIGuild, APIGuildMember, APIMessage, APIUser, RESTPostAPIChannelMessageJSONBody } from "discord-api-types/v10";
 import { ChannelType, Routes } from "discord-api-types/v10";
-import { and, eq, inArray, not, sql } from "drizzle-orm";
+import { and, eq, notInArray, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
@@ -408,41 +408,31 @@ export class Client extends EventEmitter {
                     });
 
                     if ("permission_overwrites" in channel && channel.permission_overwrites !== undefined) {
-                        const toBeDeleted = await this.store
-                            .select({ id: schema.channelsOverwrite.channelId })
-                            .from(schema.channelsOverwrite)
-                            .where(
-                                and(
-                                    eq(schema.channelsOverwrite.channelId, channel.id),
-                                    not(inArray(schema.channelsOverwrite.userOrRole, channel.permission_overwrites.map(x => x.id)))
-                                )
-                            );
+                        await this.store.delete(schema.channelsOverwrite).where(
+                            and(
+                                eq(schema.channelsOverwrite.channelId, channel.id),
+                                notInArray(schema.channelsOverwrite.userOrRole, channel.permission_overwrites.map(x => x.id))
+                            )
+                        );
 
-                        if (toBeDeleted.length > 0) {
-                            await this.store.delete(schema.channelsOverwrite).where(
-                                and(
-                                    eq(schema.channelsOverwrite.channelId, channel.id),
-                                    inArray(schema.channelsOverwrite.userOrRole, toBeDeleted.map(x => x.id) as string[])
-                                )
-                            );
+                        if (channel.permission_overwrites.length > 0) {
+                            for (const overwrite of channel.permission_overwrites) {
+                                // @ts-expect-error Intended to avoid .map
+                                overwrite.channelId = channel.id;
+
+                                // @ts-expect-error Intended to avoid .map
+                                overwrite.userOrRole = overwrite.id;
+                            }
+                            await this.store.insert(schema.channelsOverwrite).values(channel.permission_overwrites)
+                                .onConflictDoUpdate({
+                                    target: [schema.channelsOverwrite.userOrRole, schema.channelsOverwrite.channelId],
+                                    set: {
+                                        type: sql`EXCLUDED.type`,
+                                        allow: sql`EXCLUDED.allow`,
+                                        deny: sql`EXCLUDED.deny`
+                                    }
+                                });
                         }
-
-                        for (const overwrite of channel.permission_overwrites) {
-                            // @ts-expect-error Intended to avoid .map
-                            overwrite.channelId = channel.id;
-
-                            // @ts-expect-error Intended to avoid .map
-                            overwrite.userOrRole = overwrite.id;
-                        }
-                        await this.store.insert(schema.channelsOverwrite).values(channel.permission_overwrites)
-                            .onConflictDoUpdate({
-                                target: [schema.channelsOverwrite.userOrRole, schema.channelsOverwrite.channelId],
-                                set: {
-                                    type: sql`EXCLUDED.type`,
-                                    allow: sql`EXCLUDED.allow`,
-                                    deny: sql`EXCLUDED.deny`
-                                }
-                            });
                     }
                 }
 
