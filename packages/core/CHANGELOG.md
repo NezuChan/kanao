@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.16.4
+
+### Patch Changes
+
+- d4d0e48: fix notInArray
+
 ## 0.16.3
 
 ### Patch Changes
