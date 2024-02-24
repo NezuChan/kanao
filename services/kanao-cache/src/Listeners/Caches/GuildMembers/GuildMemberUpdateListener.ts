@@ -68,11 +68,14 @@ export class GuildMemberUpdateListener extends Listener {
                 }
             });
 
+            const lists = payload.data.d.roles;
             await this.container.client.drizzle.delete(memberRoles).where(
-                and(
-                    eq(memberRoles.memberId, payload.data.d.user.id),
-                    notInArray(memberRoles.roleId, payload.data.d.roles)
-                )
+                lists.length > 0
+                    ? and(
+                        eq(memberRoles.memberId, payload.data.d.user.id),
+                        notInArray(memberRoles.roleId, lists)
+                    )
+                    : eq(memberRoles.memberId, payload.data.d.user.id)
             );
 
             if (payload.data.d.roles.length > 0) {

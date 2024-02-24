@@ -408,11 +408,14 @@ export class Client extends EventEmitter {
                     });
 
                     if ("permission_overwrites" in channel && channel.permission_overwrites !== undefined) {
+                        const lists = channel.permission_overwrites.map(x => x.id);
                         await this.store.delete(schema.channelsOverwrite).where(
-                            and(
-                                eq(schema.channelsOverwrite.channelId, channel.id),
-                                notInArray(schema.channelsOverwrite.userOrRole, channel.permission_overwrites.map(x => x.id))
-                            )
+                            lists.length > 0
+                                ? and(
+                                    eq(schema.channelsOverwrite.channelId, channel.id),
+                                    notInArray(schema.channelsOverwrite.userOrRole, lists)
+                                )
+                                : eq(schema.channelsOverwrite.channelId, channel.id)
                         );
 
                         if (channel.permission_overwrites.length > 0) {

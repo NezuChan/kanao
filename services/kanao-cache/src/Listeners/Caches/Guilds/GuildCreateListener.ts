@@ -241,11 +241,14 @@ export class GuildCreateListener extends Listener {
                     "permission_overwrites" in ch &&
                     ch.permission_overwrites !== undefined
                 ) {
+                    const lists = ch.permission_overwrites.map(x => x.id);
                     await this.container.client.drizzle.delete(channelsOverwrite).where(
-                        and(
-                            eq(channelsOverwrite.channelId, ch.id),
-                            notInArray(channelsOverwrite.userOrRole, ch.permission_overwrites.map(x => x.id))
-                        )
+                        lists.length > 0
+                            ? and(
+                                eq(channelsOverwrite.channelId, ch.id),
+                                notInArray(channelsOverwrite.userOrRole, lists)
+                            )
+                            : eq(channelsOverwrite.channelId, ch.id)
                     );
 
                     if (ch.permission_overwrites.length > 0) {

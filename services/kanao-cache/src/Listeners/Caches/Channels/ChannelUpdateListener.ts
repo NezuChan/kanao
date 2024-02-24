@@ -38,11 +38,14 @@ export class ChannelUpdateListener extends Listener {
         });
 
         if ("permission_overwrites" in payload.data.d && payload.data.d.permission_overwrites !== undefined) {
+            const lists = payload.data.d.permission_overwrites.map(x => x.id);
             await this.container.client.drizzle.delete(channelsOverwrite).where(
-                and(
-                    eq(channelsOverwrite.channelId, payload.data.d.id),
-                    notInArray(channelsOverwrite.userOrRole, payload.data.d.permission_overwrites.map(x => x.id))
-                )
+                lists.length > 0
+                    ? and(
+                        eq(channelsOverwrite.channelId, payload.data.d.id),
+                        notInArray(channelsOverwrite.userOrRole, lists)
+                    )
+                    : eq(channelsOverwrite.channelId, payload.data.d.id)
             );
 
             if (payload.data.d.permission_overwrites.length > 0) {
