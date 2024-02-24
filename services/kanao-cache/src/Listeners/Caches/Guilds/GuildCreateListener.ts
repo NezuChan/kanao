@@ -117,7 +117,7 @@ export class GuildCreateListener extends Listener {
                 }
             });
 
-        if (stateRoles) {
+        if (stateRoles && payload.data.d.roles.length > 0) {
             for (const role of payload.data.d.roles) {
                 // @ts-expect-error Intended to avoid .map
                 role.guildId = payload.data.d.id;
