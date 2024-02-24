@@ -1,7 +1,7 @@
 import { channels, channelsOverwrite } from "@nezuchan/kanao-schema";
 import type { GatewayChannelUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, inArray, not, sql } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { stateChannels } from "../../../config.js";
@@ -35,27 +35,43 @@ export class ChannelUpdateListener extends Listener {
                 nsfw: sql`EXCLUDED.nsfw`,
                 lastMessageId: sql`EXCLUDED.last_message_id`
             }
-        })
-            .returning({ id: channels.id })
-            .then(c => c[0]);
+        });
 
-        // TODO [2024-03-01]: Avoid delete all, intelligently delete only the ones that are not in the new payload
-        await this.container.client.drizzle.delete(channelsOverwrite).where(eq(channelsOverwrite.channelId, payload.data.d.id));
+        if ("permission_overwrites" in payload.data.d && payload.data.d.permission_overwrites !== undefined) {
+            const toBeDeleted = await this.container.client.drizzle
+                .select({ id: channelsOverwrite.channelId })
+                .from(channelsOverwrite)
+                .where(
+                    and(
+                        eq(channelsOverwrite.channelId, payload.data.d.id),
+                        not(inArray(channelsOverwrite.userOrRole, payload.data.d.permission_overwrites.map(x => x.id)))
+                    )
+                );
 
-        if ("permission_overwrites" in payload.data.d && payload.data.d.permission_overwrites !== undefined && payload.data.d.permission_overwrites.length > 0) {
-            for (const overwrite of payload.data.d.permission_overwrites) {
-                // @ts-expect-error Intended to avoid .map
-                overwrite.channelId = payload.data.d.id;
-
-                // @ts-expect-error Intended to avoid .map
-                overwrite.userOrRole = overwrite.id;
+            if (toBeDeleted.length > 0) {
+                await this.container.client.drizzle.delete(channelsOverwrite).where(
+                    and(
+                        eq(channelsOverwrite.channelId, payload.data.d.id),
+                        inArray(channelsOverwrite.userOrRole, toBeDeleted.map(x => x.id) as string[])
+                    )
+                );
             }
 
-            await this.container.client.drizzle.insert(channelsOverwrite)
-                .values(payload.data.d.permission_overwrites)
-                .onConflictDoNothing({
-                    target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
-                });
+            if (payload.data.d.permission_overwrites.length > 0) {
+                for (const overwrite of payload.data.d.permission_overwrites) {
+                // @ts-expect-error Intended to avoid .map
+                    overwrite.channelId = payload.data.d.id;
+
+                    // @ts-expect-error Intended to avoid .map
+                    overwrite.userOrRole = overwrite.id;
+                }
+
+                await this.container.client.drizzle.insert(channelsOverwrite)
+                    .values(payload.data.d.permission_overwrites)
+                    .onConflictDoNothing({
+                        target: [channelsOverwrite.userOrRole, channelsOverwrite.channelId]
+                    });
+            }
         }
 
         await DispatchListener.dispatch(payload);

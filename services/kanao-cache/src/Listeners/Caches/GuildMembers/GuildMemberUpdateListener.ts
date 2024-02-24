@@ -1,7 +1,7 @@
 import { memberRoles, members, users } from "@nezuchan/kanao-schema";
 import type { GatewayGuildMemberUpdateDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, not, sql } from "drizzle-orm";
 import type { ListenerContext } from "../../../Stores/Listener.js";
 import { Listener } from "../../../Stores/Listener.js";
 import { stateMembers, stateUsers } from "../../../config.js";
@@ -68,8 +68,24 @@ export class GuildMemberUpdateListener extends Listener {
                 }
             });
 
-            // TODO [2024-03-01]: Avoid delete all, intelligently delete only the ones that are not in the new payload
-            await this.container.client.drizzle.delete(memberRoles).where(and(eq(memberRoles.memberId, payload.data.d.user.id), eq(memberRoles.guildId, payload.data.d.guild_id)));
+            const toBeDeleted = await this.container.client.drizzle
+                .select({ id: memberRoles.roleId })
+                .from(memberRoles)
+                .where(
+                    and(
+                        eq(memberRoles.memberId, payload.data.d.user.id),
+                        not(inArray(memberRoles.roleId, payload.data.d.roles))
+                    )
+                );
+
+            if (toBeDeleted.length > 0) {
+                await this.container.client.drizzle.delete(memberRoles).where(
+                    and(
+                        eq(memberRoles.memberId, payload.data.d.user.id),
+                        inArray(memberRoles.roleId, toBeDeleted.map(x => x.id) as string[])
+                    )
+                );
+            }
 
             if (payload.data.d.roles.length > 0) {
                 await this.container.client.drizzle.insert(memberRoles).values(payload.data.d.roles.map(role => ({
