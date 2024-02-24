@@ -129,26 +129,25 @@ export class ProcessBootstrapper {
         if (!message) return;
         const content = JSON.parse(message.content.toString()) as { op: ShardOp; data: unknown; };
         const shardId = ShardedRoutedQueue.routingKeyToShardId(message.fields.routingKey);
+        this.logger.debug(content, `Received message from AMQP to shard ${shardId}`);
         if (shardId === null) return;
         if (!this.shards.has(shardId)) return;
         channel.ack(message);
+        this.logger.debug(content, `Processing message from AMQP to shard ${shardId}`);
         switch (content.op) {
             case ShardOp.SEND: {
                 const shard = this.shards.get(shardId);
-                this.logger.debug(content, `Received message from AMQP to send to shard ${shardId}`);
                 if (shard) {
                     await shard.send(content.data as GatewaySendPayload);
                 }
                 break;
             }
             case ShardOp.CONNECT: {
-                this.logger.debug(content, `Received message from AMQP to connect shard ${shardId}`);
                 await this.connect(shardId);
                 break;
             }
             case ShardOp.RESTART: {
                 const shard = this.shards.get(shardId);
-                this.logger.debug(content, `Received message from AMQP to restart shard ${shardId}`);
                 if (shard) {
                     await this.destroy(shardId, content.data as WebSocketShardDestroyOptions);
                     await this.connect(shardId);
