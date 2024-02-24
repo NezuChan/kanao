@@ -1,5 +1,11 @@
 # @nezuchan/kanao-gateway
 
+## 5.0.0
+
+### Major Changes
+
+- 5810bf0: Major overhaul of gateway. It uses kanao-cache now
+
 ## 4.4.0
 
 ### Minor Changes
