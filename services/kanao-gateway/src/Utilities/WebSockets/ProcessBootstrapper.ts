@@ -103,7 +103,7 @@ export class ProcessBootstrapper {
         const amqpChannel = createAmqpChannel(amqp, {
             setup: async (channel: Channel) => {
                 await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "topic", { durable: false });
-                await channel.assertQueue(routing.queue, { durable: false });
+                await channel.assertQueue(routing.queue, { durable: false, autoDelete: true });
                 await channel.consume(routing.queue, async m => this.onConsumeMessage(channel, m));
             }
         });

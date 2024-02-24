@@ -130,7 +130,7 @@ export class NezuGateway extends EventEmitter {
 
                 // Used for Stats RPC
                 const rpc = new RoutedQueue(`${GatewayExchangeRoutes.REQUEST}.stats`, clientId, `gateway-rpc-${replicaId}`);
-                await channel.assertQueue(rpc.queue, { durable: false });
+                await channel.assertQueue(rpc.queue, { durable: false, autoDelete: true });
                 await channel.bindQueue(rpc.queue, RabbitMQ.GATEWAY_EXCHANGE, rpc.key);
 
                 await channel.consume(rpc.queue, async message => {
