@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.16.3
+
+### Patch Changes
+
+- 20ea155: Intellegent delete and other updates
+- Updated dependencies [20ea155]
+  - @nezuchan/core@0.16.3
+
 ## 0.16.2
 
 ### Patch Changes
