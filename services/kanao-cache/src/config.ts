@@ -21,4 +21,4 @@ export const stateMessages = process.env.STATE_MESSAGE === "true";
 
 export const guildCreateGcEvery = Number(process.env.GUILD_CREATE_GC_EVERY ?? 150);
 
-export const prefetchCount = Number(process.env.PREFETCH_COUNT ?? 50);
+export const prefetchCount = Number(process.env.PREFETCH_COUNT ?? 500);
