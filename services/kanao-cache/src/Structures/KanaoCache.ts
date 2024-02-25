@@ -18,7 +18,7 @@ export class KanaoCache extends EventEmitter {
     });
 
     public rpcQueue = createAmqpChannel(amqp, {
-        setup: async (channel: Channel) => this.setupAmqp(channel)
+        setup: async (channel: Channel) => this.setupRpc(channel)
     });
 
     public logger = createLogger("kanao-cache", clientId, storeLogs, lokiHost);
@@ -59,7 +59,7 @@ export class KanaoCache extends EventEmitter {
         this.logger.info(`Successfully bind queue ${queue} to exchange kanao-gateway with routing key ${routingKey.key}`);
     }
 
-    public async setupAmqp(channel: Channel): Promise<void> {
+    public async setupRpc(channel: Channel): Promise<void> {
         // Used for Counts RPC
         const rpc = new RoutedQueue(`${GatewayExchangeRoutes.REQUEST}.counts`, clientId, "cache-rpc");
         await channel.assertQueue(rpc.queue, { durable: false });
