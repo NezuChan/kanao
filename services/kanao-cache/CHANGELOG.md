@@ -1,5 +1,11 @@
 # @nezuchan/kanao-cache
 
+## 1.4.2
+
+### Patch Changes
+
+- 24feca2: seperate channel for cache and rpc
+
 ## 1.4.1
 
 ### Patch Changes

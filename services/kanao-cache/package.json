@@ -1,6 +1,6 @@
 {
   "name": "@nezuchan/kanao-cache",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "A standalone caching service for kanao gateway.",
   "main": "dist/index.js",
   "scripts": {
