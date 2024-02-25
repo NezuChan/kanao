@@ -10,7 +10,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { ListenerStore } from "../Stores/ListenerStore.js";
 import { createLogger } from "../Utilities/Logger.js";
-import { clientId, storeLogs, lokiHost, databaseUrl, amqp, databaseConnectionLimit } from "../config.js";
+import { clientId, storeLogs, lokiHost, databaseUrl, amqp, databaseConnectionLimit, prefetchCount } from "../config.js";
 
 export class KanaoCache extends EventEmitter {
     public cacheQueue = createAmqpChannel(amqp, {
@@ -45,7 +45,7 @@ export class KanaoCache extends EventEmitter {
         const routingKey = new RoutedQueue(GatewayExchangeRoutes.RECEIVE, clientId, "cache");
         const { queue } = await channel.assertQueue(routingKey.queue, { durable: false });
 
-        await channel.prefetch(1);
+        await channel.prefetch(prefetchCount);
         await channel.bindQueue(queue, "kanao-gateway", routingKey.key);
         await channel.consume(queue, message => {
             if (message) {
