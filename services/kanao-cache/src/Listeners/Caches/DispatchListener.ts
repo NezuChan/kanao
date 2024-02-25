@@ -48,6 +48,6 @@ export class DispatchListener extends Listener {
         const routing = new RoutedQueue(GatewayExchangeRoutes.DISPATCH, clientId)
             .shard(payload.shardId);
 
-        await container.client.amqp.publish(RabbitMQ.GATEWAY_EXCHANGE, routing.key, Buffer.from(JSON.stringify(payload.data)));
+        await container.client.cacheQueue.publish(RabbitMQ.GATEWAY_EXCHANGE, routing.key, Buffer.from(JSON.stringify(payload.data)));
     }
 }

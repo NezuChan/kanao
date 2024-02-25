@@ -13,7 +13,11 @@ import { createLogger } from "../Utilities/Logger.js";
 import { clientId, storeLogs, lokiHost, databaseUrl, amqp, databaseConnectionLimit } from "../config.js";
 
 export class KanaoCache extends EventEmitter {
-    public amqp = createAmqpChannel(amqp, {
+    public cacheQueue = createAmqpChannel(amqp, {
+        setup: async (channel: Channel) => this.setupCacheQueue(channel)
+    });
+
+    public rpcQueue = createAmqpChannel(amqp, {
         setup: async (channel: Channel) => this.setupAmqp(channel)
     });
 
@@ -34,12 +38,14 @@ export class KanaoCache extends EventEmitter {
         await this.stores.load();
     }
 
-    public async setupAmqp(channel: Channel): Promise<void> {
+    public async setupCacheQueue(channel: Channel): Promise<void> {
         await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "topic", { durable: false });
 
         // Used for receiving receive events from the gateway
         const routingKey = new RoutedQueue(GatewayExchangeRoutes.RECEIVE, clientId, "cache");
         const { queue } = await channel.assertQueue(routingKey.queue, { durable: false });
+
+        await channel.prefetch(1);
         await channel.bindQueue(queue, "kanao-gateway", routingKey.key);
         await channel.consume(queue, message => {
             if (message) {
@@ -51,7 +57,9 @@ export class KanaoCache extends EventEmitter {
         });
 
         this.logger.info(`Successfully bind queue ${queue} to exchange kanao-gateway with routing key ${routingKey.key}`);
+    }
 
+    public async setupAmqp(channel: Channel): Promise<void> {
         // Used for Counts RPC
         const rpc = new RoutedQueue(`${GatewayExchangeRoutes.REQUEST}.counts`, clientId, "cache-rpc");
         await channel.assertQueue(rpc.queue, { durable: false });
@@ -68,7 +76,7 @@ export class KanaoCache extends EventEmitter {
                     .then(rows => rows[0].count);
 
                 channel.ack(message);
-                await this.amqp.sendToQueue(content.replyTo, Buffer.from(
+                await this.cacheQueue.sendToQueue(content.replyTo, Buffer.from(
                     JSON.stringify({ route: rpc.key, clientId, guilds, users, channels })
                 ), { correlationId: message.properties.correlationId as string });
             }
