@@ -30,8 +30,8 @@
   "author": "KagChi",
   "license": "GPL-3.0",
   "devDependencies": {
-    "@types/amqplib": "^0.10.4",
-    "@types/pg": "^8.11.1"
+    "@types/amqplib": "^0.10.5",
+    "@types/pg": "^8.11.2"
   },
   "dependencies": {
     "@cordis/bitfield": "^1.2.0",
@@ -45,7 +45,7 @@
     "@sapphire/snowflake": "^3.5.3",
     "@sapphire/utilities": "^3.15.3",
     "amqp-connection-manager": "^4.1.14",
-    "discord-api-types": "^0.37.70",
+    "discord-api-types": "^0.37.71",
     "drizzle-orm": "^0.29.4",
     "pg": "^8.11.3",
     "postgres": "^3.4.3",
