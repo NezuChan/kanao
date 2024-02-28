@@ -264,7 +264,7 @@ export class Client extends EventEmitter {
                     }).onConflictDoUpdate({
                         target: schema.guilds.id,
                         set: {
-                            name: sql`EXCLIDED.name`,
+                            name: sql`EXCLUDED.name`,
                             banner: sql`EXCLUDED.banner`,
                             owner: sql`EXCLUDED.owner`,
                             ownerId: sql`EXCLUDED.owner_id`,
