@@ -29,7 +29,7 @@
     "@skyra/start-banner": "^2.0.1",
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.3",
-    "discord-api-types": "^0.37.70",
+    "discord-api-types": "^0.37.71",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.29.4",
     "gradient-string": "^2.0.2",
@@ -39,12 +39,12 @@
     "tslib": "^2.6.2"
   },
   "devDependencies": {
-    "@swc/cli": "^0.3.9",
+    "@swc/cli": "^0.3.10",
     "@swc/core": "^1.4.2",
-    "@types/amqplib": "^0.10.4",
+    "@types/amqplib": "^0.10.5",
     "@types/gradient-string": "^1.1.5",
-    "@types/node": "^20.11.20",
-    "@types/pg": "^8.11.1",
+    "@types/node": "^20.11.21",
+    "@types/pg": "^8.11.2",
     "drizzle-kit": "^0.20.14",
     "rimraf": "^5.0.5",
     "typescript": "^5.3.3"
