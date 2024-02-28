@@ -1,5 +1,11 @@
 # @nezuchan/kanao-schema
 
+## 0.7.2
+
+### Patch Changes
+
+- b0d6ebc: bump deps
+
 ## 0.7.1
 
 ### Patch Changes
