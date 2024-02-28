@@ -43,7 +43,7 @@
     "@swc/core": "^1.4.2",
     "@types/amqplib": "^0.10.5",
     "@types/gradient-string": "^1.1.5",
-    "@types/node": "^20.11.21",
+    "@types/node": "^20.11.22",
     "@types/pg": "^8.11.2",
     "drizzle-kit": "^0.20.14",
     "rimraf": "^5.0.5",
