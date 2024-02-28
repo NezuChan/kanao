@@ -1,5 +1,11 @@
 # @nezuchan/kanao-gateway
 
+## 5.1.1
+
+### Patch Changes
+
+- b0d6ebc: bump deps
+
 ## 5.1.0
 
 ### Minor Changes

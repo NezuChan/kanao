@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.16.5
+
+### Patch Changes
+
+- b0d6ebc: bump deps
+- Updated dependencies [b0d6ebc]
+  - @nezuchan/core@0.16.5
+
 ## 0.16.4
 
 ### Patch Changes
