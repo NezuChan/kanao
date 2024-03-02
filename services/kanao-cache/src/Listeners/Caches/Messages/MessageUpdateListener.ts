@@ -52,7 +52,7 @@ export class MessageUpdateListener extends Listener {
             });
         }
 
-        if (stateMembers && payload.data.d.member !== undefined && payload.data.d.author !== undefined) {
+        if (stateMembers && payload.data.d.member !== undefined && payload.data.d.author !== undefined && payload.data.d.guild_id) {
             await this.container.client.drizzle.insert(members).values({
                 id: payload.data.d.author.id,
                 guildId: payload.data.d.guild_id,
@@ -84,7 +84,7 @@ export class MessageUpdateListener extends Listener {
                 await this.container.client.drizzle.insert(memberRoles).values(payload.data.d.member.roles.map(role => ({
                     memberId: payload.data.d.author!.id,
                     roleId: role,
-                    guildId: payload.data.d.guild_id
+                    guildId: payload.data.d.guild_id!
                 }))).onConflictDoNothing({ target: [memberRoles.memberId, memberRoles.roleId] });
             }
         }
@@ -95,7 +95,7 @@ export class MessageUpdateListener extends Listener {
                 channelId: payload.data.d.channel_id,
                 content: payload.data.d.content,
                 applicationId: payload.data.d.application_id,
-                authorId: payload.data.d.author?.id,
+                authorId: payload.data.d.author!.id,
                 editedTimestamp: payload.data.d.edited_timestamp,
                 flags: payload.data.d.flags,
                 type: payload.data.d.type,

@@ -43,6 +43,13 @@
       "when": 1709348529932,
       "tag": "0005_living_silvermane",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1709349065405,
+      "tag": "0006_even_genesis",
+      "breakpoints": true
     }
   ]
 }

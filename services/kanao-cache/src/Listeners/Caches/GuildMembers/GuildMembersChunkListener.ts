@@ -62,7 +62,8 @@ export class GuildMembersChunkListener extends Listener {
                             mute: member.mute,
                             nick: member.nick,
                             pending: member.pending,
-                            premiumSince: member.premium_since
+                            premiumSince: member.premium_since,
+                            guildId: payload.data.d.guild_id
                         }))
                     ).onConflictDoUpdate({
                         target: members.id,

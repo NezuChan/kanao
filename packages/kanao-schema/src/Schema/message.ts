@@ -5,6 +5,7 @@ export const messages = pgTable("messages", {
 
     channelId: text("channel_id").notNull(),
     authorId: text("author_id").notNull(),
+    guildId: text("guild_id"),
 
     content: text("content"),
     timestamp: text("timestamp"),
