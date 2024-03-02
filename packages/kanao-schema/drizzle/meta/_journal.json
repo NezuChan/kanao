@@ -22,6 +22,13 @@
       "when": 1708588478164,
       "tag": "0002_mighty_johnny_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1709347542837,
+      "tag": "0003_outgoing_bruce_banner",
+      "breakpoints": true
     }
   ]
 }

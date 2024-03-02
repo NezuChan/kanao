@@ -1,5 +1,4 @@
 import { pgTable, text, integer, boolean, primaryKey } from "drizzle-orm/pg-core";
-import { guilds } from "./guild.js";
 
 export const channels = pgTable("channels", {
     id: text("id").primaryKey(),
@@ -22,12 +21,12 @@ export const channels = pgTable("channels", {
     defaultAutoArchiveDuration: integer("default_auto_archive_duration"),
     flags: integer("flags"),
 
-    guildId: text("guild_id").references(() => guilds.id, { onDelete: "cascade" })
+    guildId: text("guild_id").notNull()
 });
 
 export const channelsOverwrite = pgTable("channels_overwrite", {
     userOrRole: text("user_or_role"),
-    channelId: text("channel_id").references(() => channels.id, { onDelete: "cascade" }),
+    channelId: text("channel_id").notNull(),
 
     type: integer("type"),
     allow: text("allow"),

@@ -1,12 +1,9 @@
 import { pgTable, text, boolean, primaryKey } from "drizzle-orm/pg-core";
-import { channels } from "./channel.js";
-import { guilds } from "./guild.js";
-import { members } from "./member.js";
 
 export const voiceStates = pgTable("voice_states", {
-    memberId: text("member_id").notNull().references(() => members.id, { onDelete: "cascade" }),
-    guildId: text("guild_id").notNull().references(() => guilds.id, { onDelete: "cascade" }),
-    channelId: text("channel_id").notNull().references(() => channels.id, { onDelete: "cascade" }),
+    memberId: text("member_id").notNull(),
+    guildId: text("guild_id").notNull(),
+    channelId: text("channel_id").notNull(),
     sessionId: text("session_id"),
 
     deaf: boolean("deaf"),
