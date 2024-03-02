@@ -10,7 +10,7 @@ export const amqp = process.env.AMQP_HOST ?? process.env.AMQP_URL ?? "amqp://loc
 export const clientId = process.env.CLIENT_ID ?? Buffer.from(discordToken.split(".")[0], "base64").toString();
 export const production = process.env.NODE_ENV === "production";
 export const databaseUrl = process.env.DATABASE_GATEWAY_URL ?? process.env.DATABASE_URL!;
-export const databaseConnectionLimit = Number(process.env.DATABASE_CONNECTION_LIMIT ?? 10);
+export const databaseConnectionLimit = Number(process.env.DATABASE_CONNECTION_LIMIT ?? 15);
 
 export const stateMembers = process.env.STATE_MEMBER === "true";
 export const stateUsers = process.env.STATE_USER === "true";
