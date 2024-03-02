@@ -2,6 +2,7 @@ import { pgTable, text, boolean, integer } from "drizzle-orm/pg-core";
 
 export const guilds = pgTable("guilds", {
     id: text("id").primaryKey(),
+
     unavailable: boolean("unavailable"),
     name: text("name"),
     icon: text("icon"),
