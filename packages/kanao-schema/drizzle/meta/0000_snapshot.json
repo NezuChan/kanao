@@ -1,5 +1,5 @@
 {
-  "id": "dff2f68c-be88-4c13-ad05-ff82a69b0db6",
+  "id": "4882b47c-3c42-49a4-bdba-74babb63547b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -11,14 +11,14 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": true,
+          "primaryKey": false,
           "notNull": true
         },
         "guild_id": {
           "name": "guild_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "nick": {
           "name": "nick",
@@ -76,34 +76,7 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "members_id_users_id_fk": {
-          "name": "members_id_users_id_fk",
-          "tableFrom": "members",
-          "tableTo": "users",
-          "columnsFrom": [
-            "id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "members_guild_id_guilds_id_fk": {
-          "name": "members_guild_id_guilds_id_fk",
-          "tableFrom": "members",
-          "tableTo": "guilds",
-          "columnsFrom": [
-            "guild_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
@@ -209,63 +182,23 @@
           "name": "member_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "role_id": {
           "name": "role_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "guild_id": {
           "name": "guild_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "member_roles_member_id_members_id_fk": {
-          "name": "member_roles_member_id_members_id_fk",
-          "tableFrom": "member_roles",
-          "tableTo": "members",
-          "columnsFrom": [
-            "member_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "member_roles_role_id_roles_id_fk": {
-          "name": "member_roles_role_id_roles_id_fk",
-          "tableFrom": "member_roles",
-          "tableTo": "roles",
-          "columnsFrom": [
-            "role_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "member_roles_guild_id_guilds_id_fk": {
-          "name": "member_roles_guild_id_guilds_id_fk",
-          "tableFrom": "member_roles",
-          "tableTo": "guilds",
-          "columnsFrom": [
-            "guild_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {
         "voice_states_member_id_role_id_guild_id": {
           "name": "voice_states_member_id_role_id_guild_id",
@@ -687,21 +620,7 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "channels_guild_id_guilds_id_fk": {
-          "name": "channels_guild_id_guilds_id_fk",
-          "tableFrom": "channels",
-          "tableTo": "guilds",
-          "columnsFrom": [
-            "guild_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
@@ -741,21 +660,7 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "channels_overwrite_channel_id_channels_id_fk": {
-          "name": "channels_overwrite_channel_id_channels_id_fk",
-          "tableFrom": "channels_overwrite",
-          "tableTo": "channels",
-          "columnsFrom": [
-            "channel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {
         "channels_overwrite_user_or_role_channel_id": {
           "name": "channels_overwrite_user_or_role_channel_id",
@@ -845,47 +750,7 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "voice_states_member_id_members_id_fk": {
-          "name": "voice_states_member_id_members_id_fk",
-          "tableFrom": "voice_states",
-          "tableTo": "members",
-          "columnsFrom": [
-            "member_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "voice_states_guild_id_guilds_id_fk": {
-          "name": "voice_states_guild_id_guilds_id_fk",
-          "tableFrom": "voice_states",
-          "tableTo": "guilds",
-          "columnsFrom": [
-            "guild_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "voice_states_channel_id_channels_id_fk": {
-          "name": "voice_states_channel_id_channels_id_fk",
-          "tableFrom": "voice_states",
-          "tableTo": "channels",
-          "columnsFrom": [
-            "channel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {
         "voice_states_member_id_guild_id": {
           "name": "voice_states_member_id_guild_id",
@@ -911,10 +776,16 @@
           "name": "channel_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "author_id": {
           "name": "author_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "guild_id": {
+          "name": "guild_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -987,115 +858,6 @@
         },
         "position": {
           "name": "position",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "messages_channel_id_channels_id_fk": {
-          "name": "messages_channel_id_channels_id_fk",
-          "tableFrom": "messages",
-          "tableTo": "channels",
-          "columnsFrom": [
-            "channel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "messages_author_id_users_id_fk": {
-          "name": "messages_author_id_users_id_fk",
-          "tableFrom": "messages",
-          "tableTo": "users",
-          "columnsFrom": [
-            "author_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "sessions": {
-      "name": "sessions",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "resume_url": {
-          "name": "resume_url",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "sequence": {
-          "name": "sequence",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "session_id": {
-          "name": "session_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "shardCount": {
-          "name": "shardCount",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "sessions_session_id_unique": {
-          "name": "sessions_session_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "session_id"
-          ]
-        }
-      }
-    },
-    "status": {
-      "name": "status",
-      "schema": "",
-      "columns": {
-        "shard_id": {
-          "name": "shard_id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "latency": {
-          "name": "latency",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "last_ack": {
-          "name": "last_ack",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "status": {
-          "name": "status",
           "type": "integer",
           "primaryKey": false,
           "notNull": false
