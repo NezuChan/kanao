@@ -52,7 +52,8 @@ export class GuildMemberUpdateListener extends Listener {
                 mute: payload.data.d.mute,
                 nick: payload.data.d.nick,
                 pending: payload.data.d.pending,
-                premiumSince: payload.data.d.premium_since
+                premiumSince: payload.data.d.premium_since,
+                guildId: payload.data.d.guild_id
             }).onConflictDoUpdate({
                 target: [members.id, members.guildId],
                 set: {
