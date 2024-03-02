@@ -66,7 +66,7 @@ export class GuildMembersChunkListener extends Listener {
                             guildId: payload.data.d.guild_id
                         }))
                     ).onConflictDoUpdate({
-                        target: members.id,
+                        target: [members.id, members.guildId],
                         set: {
                             avatar: sql`EXCLUDED.avatar`,
                             communicationDisabledUntil: sql`EXCLUDED.premium_since`,

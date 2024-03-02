@@ -47,7 +47,7 @@ export class VoiceStateUpdateListener extends Listener {
                 nick: payload.data.d.member.nick,
                 pending: payload.data.d.member.pending,
                 premiumSince: payload.data.d.member.premium_since
-            }).onConflictDoNothing({ target: members.id });
+            }).onConflictDoNothing({ target: [members.id, members.guildId] });
 
             if (payload.data.d.member.roles.length > 0) {
                 await this.container.client.drizzle.insert(memberRoles).values(payload.data.d.member.roles.map(role => ({

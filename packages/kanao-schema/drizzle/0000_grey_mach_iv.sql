@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS "members" (
-	"id" text NOT NULL,
-	"guild_id" text NOT NULL,
+	"id" text,
+	"guild_id" text,
 	"nick" text,
 	"avatar" text,
 	"flags" integer,
@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS "members" (
 	"deaf" boolean,
 	"mute" boolean,
 	"pending" boolean,
-	"communication_disabled_until" text
+	"communication_disabled_until" text,
+	CONSTRAINT "members_id_guild_id" PRIMARY KEY("id","guild_id")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "users" (
@@ -33,7 +34,7 @@ CREATE TABLE IF NOT EXISTS "member_roles" (
 	"member_id" text NOT NULL,
 	"role_id" text NOT NULL,
 	"guild_id" text NOT NULL,
-	CONSTRAINT "voice_states_member_id_role_id_guild_id" PRIMARY KEY("member_id","role_id")
+	CONSTRAINT "voice_states_member_id_role_id" PRIMARY KEY("member_id","role_id")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "roles" (

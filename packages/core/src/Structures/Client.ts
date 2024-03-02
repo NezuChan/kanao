@@ -118,7 +118,7 @@ export class Client extends EventEmitter {
                         pending: member.pending,
                         premiumSince: member.premium_since
                     }).onConflictDoUpdate({
-                        target: schema.members.id,
+                        target: [schema.members.id, schema.members.guildId],
                         set: {
                             avatar: sql`EXCLUDED.avatar`,
                             flags: sql`EXCLUDED.flags`,

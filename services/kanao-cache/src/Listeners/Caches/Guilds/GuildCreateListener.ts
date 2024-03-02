@@ -173,7 +173,7 @@ export class GuildCreateListener extends Listener {
                 joinedAt: bot.joined_at,
                 premiumSince: bot.premium_since
             }).onConflictDoUpdate({
-                target: members.id,
+                target: [members.id, members.guildId],
                 set: {
                     avatar: sql`EXCLUDED.avatar`,
                     flags: sql`EXCLUDED.flags`,

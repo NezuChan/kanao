@@ -65,7 +65,7 @@ export class MessageCreateListener extends Listener {
                 pending: payload.data.d.member.pending,
                 premiumSince: payload.data.d.member.premium_since
             }).onConflictDoUpdate({
-                target: members.id,
+                target: [members.id, members.guildId],
                 set: {
                     avatar: sql`EXCLUDED.avatar`,
                     flags: sql`EXCLUDED.flags`,

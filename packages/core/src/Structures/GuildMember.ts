@@ -10,7 +10,7 @@ import type { VoiceState } from "./VoiceState.js";
 
 export class GuildMember extends Base<InferSelectModel<typeof members>> {
     public get id(): string {
-        return this.data.id;
+        return this.data.id as unknown as string;
     }
 
     public get guildId(): string | null {

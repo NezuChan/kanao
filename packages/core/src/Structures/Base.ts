@@ -3,7 +3,7 @@ import type { Client } from "./Client.js";
 
 export class Base<RawType> {
     public constructor(
-        protected readonly data: RawType & { id?: Snowflake; },
+        protected readonly data: RawType & { id?: Snowflake | null; },
         public client: Client
     ) {}
 

@@ -1,5 +1,5 @@
 {
-  "id": "4882b47c-3c42-49a4-bdba-74babb63547b",
+  "id": "f7401341-0beb-4c78-a112-bf04a92a185f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -12,13 +12,13 @@
           "name": "id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "guild_id": {
           "name": "guild_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "nick": {
           "name": "nick",
@@ -77,7 +77,15 @@
       },
       "indexes": {},
       "foreignKeys": {},
-      "compositePrimaryKeys": {},
+      "compositePrimaryKeys": {
+        "members_id_guild_id": {
+          "name": "members_id_guild_id",
+          "columns": [
+            "id",
+            "guild_id"
+          ]
+        }
+      },
       "uniqueConstraints": {}
     },
     "users": {
@@ -200,8 +208,8 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "voice_states_member_id_role_id_guild_id": {
-          "name": "voice_states_member_id_role_id_guild_id",
+        "voice_states_member_id_role_id": {
+          "name": "voice_states_member_id_role_id",
           "columns": [
             "member_id",
             "role_id"

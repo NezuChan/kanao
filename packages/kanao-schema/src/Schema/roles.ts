@@ -16,7 +16,7 @@ export const memberRoles = pgTable("member_roles", {
     roleId: text("role_id").notNull(),
     guildId: text("guild_id").notNull()
 }, table => ({
-    pkWithCustomName: primaryKey({ name: "voice_states_member_id_role_id_guild_id", columns: [table.memberId, table.roleId] })
+    pkWithCustomName: primaryKey({ name: "voice_states_member_id_role_id", columns: [table.memberId, table.roleId] })
 }));
 
 export const memberRolesRelations = relations(memberRoles, ({ one }) => ({
