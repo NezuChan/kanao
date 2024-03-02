@@ -29,6 +29,20 @@
       "when": 1709347542837,
       "tag": "0003_outgoing_bruce_banner",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1709348380906,
+      "tag": "0004_lame_ken_ellis",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1709348529932,
+      "tag": "0005_living_silvermane",
+      "breakpoints": true
     }
   ]
 }

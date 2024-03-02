@@ -1,0 +1,1 @@
+ALTER TABLE "channels" ALTER COLUMN "guild_id" DROP NOT NULL;

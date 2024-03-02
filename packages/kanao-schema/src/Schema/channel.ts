@@ -21,12 +21,12 @@ export const channels = pgTable("channels", {
     defaultAutoArchiveDuration: integer("default_auto_archive_duration"),
     flags: integer("flags"),
 
-    guildId: text("guild_id").notNull()
+    guildId: text("guild_id")
 });
 
 export const channelsOverwrite = pgTable("channels_overwrite", {
     userOrRole: text("user_or_role"),
-    channelId: text("channel_id").notNull(),
+    channelId: text("channel_id"),
 
     type: integer("type"),
     allow: text("allow"),

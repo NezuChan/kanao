@@ -1,0 +1,1 @@
+ALTER TABLE "channels_overwrite" ALTER COLUMN "channel_id" DROP NOT NULL;
