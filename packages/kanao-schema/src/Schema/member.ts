@@ -1,7 +1,7 @@
 import { pgTable, integer, text, boolean } from "drizzle-orm/pg-core";
 
 export const members = pgTable("members", {
-    id: text("id").notNull(),
+    id: text("id").primaryKey(),
     guildId: text("guild_id").notNull(),
 
     nick: text("nick"),
