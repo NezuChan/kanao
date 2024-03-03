@@ -1,4 +1,4 @@
-import { members } from "@nezuchan/kanao-schema";
+import { memberRoles, members } from "@nezuchan/kanao-schema";
 import type { GatewayGuildMemberRemoveDispatch } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import { eq } from "drizzle-orm";
@@ -15,6 +15,7 @@ export class GuildMemberRemoveListener extends Listener {
 
     public async run(payload: { data: GatewayGuildMemberRemoveDispatch; shardId: number; }): Promise<void> {
         await this.container.client.drizzle.delete(members).where(eq(members.id, payload.data.d.user.id));
+        await this.container.client.drizzle.delete(memberRoles).where(eq(memberRoles.memberId, payload.data.d.user.id));
 
         await DispatchListener.dispatch(payload);
     }
