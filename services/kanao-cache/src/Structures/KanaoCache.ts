@@ -21,6 +21,10 @@ export class KanaoCache extends EventEmitter {
         setup: async (channel: Channel) => this.setupRpc(channel)
     });
 
+    public queryRpcQueue = createAmqpChannel(amqp, {
+        setup: async (channel: Channel) => this.setupQueryRpc(channel)
+    });
+
     public logger = createLogger("kanao-cache", clientId, storeLogs, lokiHost);
     public pgClient = new pg.Pool({ connectionString: databaseUrl, max: databaseConnectionLimit });
 
@@ -57,6 +61,37 @@ export class KanaoCache extends EventEmitter {
         });
 
         this.logger.info(`Successfully bind queue ${queue} to exchange kanao-gateway with routing key ${routingKey.key}`);
+    }
+
+    public async setupQueryRpc(channel: Channel): Promise<void> {
+        const rpc = new RoutedQueue(`${GatewayExchangeRoutes.REQUEST}.query`, clientId, "cache-query");
+        await channel.assertQueue(rpc.queue, { durable: false, autoDelete: true });
+        await channel.bindQueue(rpc.queue, RabbitMQ.GATEWAY_EXCHANGE, rpc.key);
+
+        await channel.consume(rpc.queue, async message => {
+            if (message) {
+                channel.ack(message);
+                const { sql, params, method } = JSON.parse(message.content.toString()) as { sql: string; params: any[]; method: string; };
+                const sqlBody = sql.replaceAll(";", "");
+
+                const query = {
+                    text: sqlBody,
+                    values: params,
+                    rowMode: method === "all" ? "array" : undefined
+                };
+
+                try {
+                    const result = await this.pgClient.query(query);
+                    await this.queryRpcQueue.sendToQueue(message.properties.replyTo as string, Buffer.from(
+                        JSON.stringify({ route: rpc.key, rows: result.rows, message: `Successfully querying with ${result.rowCount} results !` })
+                    ), { correlationId: message.properties.correlationId as string });
+                } catch (error) {
+                    await this.queryRpcQueue.sendToQueue(message.properties.replyTo as string, Buffer.from(
+                        JSON.stringify({ route: rpc.key, rows: [], message: (error as Error).message })
+                    ), { correlationId: message.properties.correlationId as string });
+                }
+            }
+        });
     }
 
     public async setupRpc(channel: Channel): Promise<void> {
