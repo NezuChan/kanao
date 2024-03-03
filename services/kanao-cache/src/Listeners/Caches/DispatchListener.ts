@@ -6,7 +6,7 @@ import type { GatewayDispatchPayload } from "discord-api-types/v10";
 import { GatewayDispatchEvents } from "discord-api-types/v10";
 import type { ListenerContext } from "../../Stores/Listener.js";
 import { Listener } from "../../Stores/Listener.js";
-import { clientId } from "../../config.js";
+import { clientId, dispatchMessage } from "../../config.js";
 
 export class DispatchListener extends Listener {
     public constructor(context: ListenerContext) {
@@ -45,9 +45,10 @@ export class DispatchListener extends Listener {
     }
 
     public static async dispatch(payload: { shardId: number; data: GatewayDispatchPayload; }): Promise<void> {
-        const routing = new RoutedQueue(GatewayExchangeRoutes.DISPATCH, clientId)
-            .shard(payload.shardId);
-
-        await container.client.cacheQueue.publish(RabbitMQ.GATEWAY_EXCHANGE, routing.key, Buffer.from(JSON.stringify(payload.data)));
+        if (dispatchMessage) {
+            const routing = new RoutedQueue(GatewayExchangeRoutes.DISPATCH, clientId)
+                .shard(payload.shardId);
+            await container.client.cacheQueue.publish(RabbitMQ.GATEWAY_EXCHANGE, routing.key, Buffer.from(JSON.stringify(payload.data)));
+        }
     }
 }
