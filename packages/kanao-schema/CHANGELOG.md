@@ -1,5 +1,11 @@
 # @nezuchan/kanao-schema
 
+## 0.7.3
+
+### Patch Changes
+
+- 85bf2e5: drop relation stuff
+
 ## 0.7.2
 
 ### Patch Changes
