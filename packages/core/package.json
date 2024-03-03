@@ -1,6 +1,6 @@
 {
   "name": "@nezuchan/core",
-  "version": "0.16.5",
+  "version": "0.16.6",
   "description": "A Core Low Level API for creating Discord bots using @nezuchan/nezu-gateway.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

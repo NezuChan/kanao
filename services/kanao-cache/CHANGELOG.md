@@ -1,5 +1,12 @@
 # @nezuchan/kanao-cache
 
+## 1.4.4
+
+### Patch Changes
+
+- Updated dependencies [85bf2e5]
+  - @nezuchan/kanao-schema@0.7.3
+
 ## 1.4.3
 
 ### Patch Changes

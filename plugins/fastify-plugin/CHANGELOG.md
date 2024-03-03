@@ -1,5 +1,14 @@
 # Change Log
 
+## 0.11.6
+
+### Patch Changes
+
+- 85bf2e5: drop relation stuff
+- Updated dependencies [85bf2e5]
+  - @nezuchan/core@0.16.6
+  - @nezuchan/framework@0.16.6
+
 ## 0.11.5
 
 ### Patch Changes

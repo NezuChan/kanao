@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.16.6
+
+### Patch Changes
+
+- 85bf2e5: drop relation stuff
+- Updated dependencies [85bf2e5]
+  - @nezuchan/kanao-schema@0.7.3
+
 ## 0.16.5
 
 ### Patch Changes
