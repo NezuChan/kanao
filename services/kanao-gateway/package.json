@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "@swc/cli": "^0.3.10",
-    "@swc/core": "^1.4.2",
+    "@swc/core": "^1.4.4",
     "@types/amqplib": "^0.10.5",
     "@types/dockerode": "^3.3.24",
     "@types/gradient-string": "^1.1.5",
