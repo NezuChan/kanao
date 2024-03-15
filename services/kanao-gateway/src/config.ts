@@ -9,6 +9,9 @@ import { chunk, range } from "@sapphire/utilities";
 import { PresenceUpdateStatus } from "discord-api-types/v10";
 import Dockerode from "dockerode";
 
+export const replicaId = hostname();
+export const replicaCount = Number(process.env.GATEWAY_REPLICA_COUNT ?? "1");
+
 export const getShardCount = async (): Promise<{ end: number | undefined; start: number; } | null | undefined> => {
     const replicaCount = process.env.GATEWAY_REPLICA_COUNT === undefined ? null : Number(process.env.GATEWAY_REPLICA_COUNT);
     if (replicaCount !== undefined && (replicaCount !== null) && replicaCount > 1) {
@@ -31,6 +34,23 @@ export const getShardCount = async (): Promise<{ end: number | undefined; start:
             }
         });
         if (result.isOk()) return result.unwrap();
+
+        const parts = replicaId.split("-");
+        const id = Number(parts.at(-1) ?? 0);
+
+        const gatewayShardCount = process.env.GATEWAY_SHARD_COUNT === undefined ? null : Number(process.env.GATEWAY_SHARD_COUNT);
+        const gatewayShardCountPerReplica = process.env.GATEWAY_SHARD_COUNT_PER_REPLICA === undefined ? null : Number(process.env.GATEWAY_SHARD_COUNT_PER_REPLICA);
+
+        if (gatewayShardCount !== null && gatewayShardCountPerReplica !== null) {
+            const shards = gatewayShardCount >= 2 ? range(0, gatewayShardCount, 1) : [0];
+            const chunks = chunk(shards, gatewayShardCountPerReplica);
+
+            const shardIds = chunks[id];
+            return {
+                end: shardIds.at(-1),
+                start: shardIds[0]
+            };
+        }
     }
 
     return process.env.GATEWAY_SHARD_START !== undefined && process.env.GATEWAY_SHARD_END !== undefined
@@ -74,9 +94,6 @@ export const stateVoices = process.env.STATE_VOICE === "true";
 export const stateRoles = process.env.STATE_ROLE === "true";
 export const stateChannels = process.env.STATE_CHANNEL === "true";
 export const stateMessages = process.env.STATE_MESSAGE === "true";
-
-export const replicaId = hostname();
-export const replicaCount = Number(process.env.GATEWAY_REPLICA_COUNT ?? "1");
 
 export const databaseUrl = process.env.DATABASE_GATEWAY_URL ?? process.env.DATABASE_URL!;
 
