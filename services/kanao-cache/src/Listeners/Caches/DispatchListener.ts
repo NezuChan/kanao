@@ -16,6 +16,8 @@ export class DispatchListener extends Listener {
     }
 
     public async run(payload: { shardId: number; data: { data: GatewayDispatchPayload; }; }): Promise<void> {
+        this.logger.trace({ shardId: payload.shardId, data: payload.data }, "Dispatch event received");
+
         switch (payload.data.data.t) {
             case GatewayDispatchEvents.GuildCreate:
             case GatewayDispatchEvents.ChannelCreate:

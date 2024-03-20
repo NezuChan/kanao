@@ -17,6 +17,8 @@ export class DispatchListener extends Listener {
     public async run(payload: { shardId: number; data: { data: GatewayDispatchPayload; }; }): Promise<void> {
         const routing = new RoutedQueue(GatewayExchangeRoutes.RECEIVE, clientId);
 
+        this.logger.trace({ shardId: payload.shardId, data: payload.data, routing }, "Dispatch event received");
+
         await this.store.amqp.publish(RabbitMQ.GATEWAY_EXCHANGE, routing.key, Buffer.from(JSON.stringify({ data: payload.data, shardId: payload.shardId })), { replyTo: clientId });
     }
 }
