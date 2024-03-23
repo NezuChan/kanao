@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, boolean } from "drizzle-orm/pg-core";
 
 export const voiceStates = pgTable("voice_states", {
     memberId: text("member_id").notNull(),
@@ -14,6 +14,4 @@ export const voiceStates = pgTable("voice_states", {
     selfVideo: boolean("self_video"),
     suppress: boolean("suppress"),
     requestToSpeakTimestamp: text("request_to_speak_timestamp")
-}, table => ({
-    pkWithCustomName: primaryKey({ name: "voice_states_member_id_guild_id", columns: [table.memberId, table.guildId] })
-}));
+});

@@ -1,4 +1,4 @@
-import { pgTable, text, integer, boolean, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, boolean } from "drizzle-orm/pg-core";
 
 export const channels = pgTable("channels", {
     id: text("id").primaryKey(),
@@ -31,6 +31,4 @@ export const channelsOverwrite = pgTable("channels_overwrite", {
     type: integer("type"),
     allow: text("allow"),
     deny: text("deny")
-}, table => ({
-    pkWithCustomName: primaryKey({ name: "channels_overwrite_user_or_role_channel_id", columns: [table.userOrRole, table.channelId] })
-}));
+});

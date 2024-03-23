@@ -1,7 +1,7 @@
-import { pgTable, integer, text, boolean, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, integer, text, boolean } from "drizzle-orm/pg-core";
 
 export const members = pgTable("members", {
-    id: text("id"),
+    id: text("id").primaryKey(),
     guildId: text("guild_id"),
 
     nick: text("nick"),
@@ -13,6 +13,4 @@ export const members = pgTable("members", {
     mute: boolean("mute"),
     pending: boolean("pending"),
     communicationDisabledUntil: text("communication_disabled_until")
-}, table => ({
-    pkWithCustomName: primaryKey({ name: "members_id_guild_id", columns: [table.id, table.guildId] })
-}));
+});
