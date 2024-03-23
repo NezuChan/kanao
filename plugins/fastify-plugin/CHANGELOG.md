@@ -1,5 +1,17 @@
 # Change Log
 
+## 0.12.0
+
+### Minor Changes
+
+- 60b55ce: remove constraint
+
+### Patch Changes
+
+- Updated dependencies [60b55ce]
+  - @nezuchan/core@0.17.0
+  - @nezuchan/framework@0.17.0
+
 ## 0.11.7
 
 ### Patch Changes
