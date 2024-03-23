@@ -31,7 +31,7 @@
   "license": "GPL-3.0",
   "devDependencies": {
     "@types/amqplib": "^0.10.5",
-    "@types/pg": "^8.11.2"
+    "@types/pg": "^8.11.4"
   },
   "dependencies": {
     "@cordis/bitfield": "^1.2.0",
@@ -45,10 +45,10 @@
     "@sapphire/snowflake": "^3.5.3",
     "@sapphire/utilities": "^3.15.3",
     "amqp-connection-manager": "^4.1.14",
-    "discord-api-types": "^0.37.73",
-    "drizzle-orm": "^0.30.1",
+    "discord-api-types": "^0.37.76",
+    "drizzle-orm": "^0.30.4",
     "pg": "^8.11.3",
-    "postgres": "^3.4.3",
+    "postgres": "^3.4.4",
     "tslib": "^2.6.2"
   }
 }
