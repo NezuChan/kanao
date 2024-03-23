@@ -1,5 +1,11 @@
 # @nezuchan/kanao-gateway
 
+## 5.2.0
+
+### Minor Changes
+
+- 60b55ce: remove constraint
+
 ## 5.1.2
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @nezuchan/kanao-schema
 
+## 0.8.0
+
+### Minor Changes
+
+- 60b55ce: remove constraint
+
 ## 0.7.4
 
 ### Patch Changes

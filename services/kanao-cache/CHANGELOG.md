@@ -1,5 +1,16 @@
 # @nezuchan/kanao-cache
 
+## 1.5.0
+
+### Minor Changes
+
+- 60b55ce: remove constraint
+
+### Patch Changes
+
+- Updated dependencies [60b55ce]
+  - @nezuchan/kanao-schema@0.8.0
+
 ## 1.4.5
 
 ### Patch Changes
