@@ -1,5 +1,13 @@
 # @nezuchan/kanao-cache
 
+## 1.4.5
+
+### Patch Changes
+
+- d2691d8: bump deps
+- Updated dependencies [d2691d8]
+  - @nezuchan/kanao-schema@0.7.4
+
 ## 1.4.4
 
 ### Patch Changes

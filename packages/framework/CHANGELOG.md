@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.16.7
+
+### Patch Changes
+
+- d2691d8: bump deps
+- Updated dependencies [d2691d8]
+  - @nezuchan/core@0.16.7
+
 ## 0.16.6
 
 ### Patch Changes
