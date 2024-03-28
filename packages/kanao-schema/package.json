@@ -37,7 +37,7 @@
     "pg": "^8.11.3"
   },
   "dependencies": {
-    "drizzle-orm": "^0.30.4",
+    "drizzle-orm": "^0.30.5",
     "tslib": "^2.6.2"
   }
 }
