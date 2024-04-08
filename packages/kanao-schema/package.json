@@ -34,10 +34,10 @@
   "license": "GPL-3.0",
   "devDependencies": {
     "drizzle-kit": "^0.20.14",
-    "pg": "^8.11.3"
+    "pg": "^8.11.5"
   },
   "dependencies": {
-    "drizzle-orm": "^0.30.4",
+    "drizzle-orm": "^0.30.7",
     "tslib": "^2.6.2"
   }
 }

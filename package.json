@@ -16,7 +16,7 @@
     "@hazmi35/eslint-config": "^13.3.1",
     "eslint": "^8.57.0",
     "rimraf": "^5.0.5",
-    "turbo": "^1.13.0",
+    "turbo": "^1.13.2",
     "typescript": "^5.4.4"
   },
   "dependencies": {
