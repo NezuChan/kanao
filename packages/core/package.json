@@ -31,7 +31,7 @@
   "license": "GPL-3.0",
   "devDependencies": {
     "@types/amqplib": "^0.10.5",
-    "@types/pg": "^8.11.4"
+    "@types/pg": "^8.11.5"
   },
   "dependencies": {
     "@cordis/bitfield": "^1.2.0",
