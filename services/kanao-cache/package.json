@@ -47,6 +47,6 @@
     "@types/pg": "^8.11.5",
     "drizzle-kit": "^0.20.14",
     "rimraf": "^5.0.5",
-    "typescript": "^5.4.4"
+    "typescript": "^5.4.5"
   }
 }
