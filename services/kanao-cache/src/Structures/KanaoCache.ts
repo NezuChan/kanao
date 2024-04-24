@@ -7,10 +7,11 @@ import { StoreRegistry, container } from "@sapphire/pieces";
 import type { Channel } from "amqplib";
 import { count } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { withReplicas } from "drizzle-orm/pg-core";
 import pg from "pg";
 import { ListenerStore } from "../Stores/ListenerStore.js";
 import { createLogger } from "../Utilities/Logger.js";
-import { clientId, storeLogs, lokiHost, databaseUrl, amqp, databaseConnectionLimit, prefetchCount } from "../config.js";
+import { clientId, storeLogs, lokiHost, databaseUrl, amqp, databaseConnectionLimit, prefetchCount, databaseReadUrls } from "../config.js";
 
 export class KanaoCache extends EventEmitter {
     public cacheQueue = createAmqpChannel(amqp, {
@@ -26,16 +27,18 @@ export class KanaoCache extends EventEmitter {
     });
 
     public logger = createLogger("kanao-cache", clientId, storeLogs, lokiHost);
-    public pgClient = new pg.Pool({ connectionString: databaseUrl, max: databaseConnectionLimit });
 
-    public drizzle = drizzle(this.pgClient, { schema });
+    public drizzle = withReplicas(
+        drizzle(new pg.Pool({ connectionString: databaseUrl, max: databaseConnectionLimit }), { schema }),
+
+        // @ts-expect-error Drizzle typings doesnt seem right.
+        databaseReadUrls.map(x => drizzle(new pg.Pool({ connectionString: x, max: databaseConnectionLimit }), { schema }))
+    );
 
     public stores = new StoreRegistry();
 
     public async connect(): Promise<void> {
         container.client = this;
-        await this.pgClient.connect();
-        this.pgClient.on("error", e => this.logger.error(e, "Postgres emitted error"));
 
         this.stores.register(new ListenerStore());
 
@@ -81,10 +84,17 @@ export class KanaoCache extends EventEmitter {
                 };
 
                 try {
-                    const result = await this.pgClient.query(query);
-                    await this.queryRpcQueue.sendToQueue(message.properties.replyTo as string, Buffer.from(
-                        JSON.stringify({ route: rpc.key, rows: result.rows, message: `Successfully querying with ${result.rowCount} results !` })
-                    ), { correlationId: message.properties.correlationId as string });
+                    if (query.text.includes("SELECT")) {
+                        const result = await this.drizzle(query);
+                        await this.queryRpcQueue.sendToQueue(message.properties.replyTo as string, Buffer.from(
+                            JSON.stringify({ route: rpc.key, rows: result.rows, message: `Successfully querying with ${result.rowCount} results !` })
+                        ), { correlationId: message.properties.correlationId as string });
+                    } else {
+                        const result = await this.drizzle.execute(query);
+                        await this.queryRpcQueue.sendToQueue(message.properties.replyTo as string, Buffer.from(
+                            JSON.stringify({ route: rpc.key, rows: result.rows, message: `Successfully querying with ${result.rowCount} results !` })
+                        ), { correlationId: message.properties.correlationId as string });
+                    }
                 } catch (error) {
                     await this.queryRpcQueue.sendToQueue(message.properties.replyTo as string, Buffer.from(
                         JSON.stringify({ route: rpc.key, rows: [], message: (error as Error).message })
