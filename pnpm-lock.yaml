@@ -68,7 +68,7 @@ importers:
         version: 0.37.81
       drizzle-orm:
         specifier: ^0.30.9
-        version: 0.30.9(@opentelemetry/api@1.7.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.5)(better-sqlite3@9.5.0)(pg@8.11.5)(postgres@3.4.4)
+        version: 0.30.9(@opentelemetry/api@1.8.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.5)(better-sqlite3@9.5.0)(pg@8.11.5)(postgres@3.4.4)
       tslib:
         specifier: ^2.6.2
         version: 2.6.2
@@ -121,7 +121,7 @@ importers:
     dependencies:
       drizzle-orm:
         specifier: ^0.30.9
-        version: 0.30.9(@opentelemetry/api@1.7.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.5)(better-sqlite3@9.5.0)(pg@8.11.5)(postgres@3.4.4)
+        version: 0.30.9(@opentelemetry/api@1.8.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.5)(better-sqlite3@9.5.0)(pg@8.11.5)(postgres@3.4.4)
       tslib:
         specifier: ^2.6.2
         version: 2.6.2
@@ -197,7 +197,7 @@ importers:
         version: 16.4.5
       drizzle-orm:
         specifier: ^0.30.9
-        version: 0.30.9(@opentelemetry/api@1.7.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.5)(better-sqlite3@9.5.0)(pg@8.11.5)(postgres@3.4.4)
+        version: 0.30.9(@opentelemetry/api@1.8.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.5)(better-sqlite3@9.5.0)(pg@8.11.5)(postgres@3.4.4)
       gradient-string:
         specifier: ^2.0.2
         version: 2.0.2
@@ -205,8 +205,8 @@ importers:
         specifier: ^8.11.5
         version: 8.11.5
       pino:
-        specifier: ^8.20.0
-        version: 8.20.0
+        specifier: ^8.21.0
+        version: 8.21.0
       pino-pretty:
         specifier: ^11.0.0
         version: 11.0.0
@@ -307,13 +307,13 @@ importers:
         version: 16.4.5
       drizzle-orm:
         specifier: ^0.30.9
-        version: 0.30.9(@opentelemetry/api@1.7.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.5)(better-sqlite3@9.5.0)(pg@8.11.5)(postgres@3.4.4)
+        version: 0.30.9(@opentelemetry/api@1.8.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.5)(better-sqlite3@9.5.0)(pg@8.11.5)(postgres@3.4.4)
       gradient-string:
         specifier: ^2.0.2
         version: 2.0.2
       pino:
-        specifier: ^8.20.0
-        version: 8.20.0
+        specifier: ^8.21.0
+        version: 8.21.0
       pino-pretty:
         specifier: ^11.0.0
         version: 11.0.0
@@ -889,10 +889,6 @@ packages:
   '@nodelib/fs.walk@1.2.8':
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
-
-  '@opentelemetry/api@1.7.0':
-    resolution: {integrity: sha512-AdY5wvN0P2vXBi3b29hxZgSFvdhdxPB9+f0B6s//P9Q8nibRWeA3cHm8UmLpio9ABigkVHJ5NMPk+Mz8VCCyrw==}
-    engines: {node: '>=8.0.0'}
 
   '@opentelemetry/api@1.8.0':
     resolution: {integrity: sha512-I/s6F7yKUDdtMsoBWXJe8Qz40Tui5vsuKCWJEWVL+5q9sSWRzzx6v2KeNsOBEwd94j0eWkpWCH4yB6rZg9Mf0w==}
@@ -2959,6 +2955,9 @@ packages:
   pino-abstract-transport@1.1.0:
     resolution: {integrity: sha512-lsleG3/2a/JIWUtf9Q5gUNErBqwIu1tUKTT3dUzaf5DySw9ra1wcqKjJjLX1VTY64Wk1eEOYsVGSaGfCK85ekA==}
 
+  pino-abstract-transport@1.2.0:
+    resolution: {integrity: sha512-Guhh8EZfPCfH+PMXAb6rKOjGQEoy0xlAIn+irODG5kgfYV+BQ0rGYYWTIel3P5mmyXqkYkPmdIkywsn6QKUR1Q==}
+
   pino-loki@2.2.1:
     resolution: {integrity: sha512-NLo9INo4lOQ8PfC0i/AZBh8xh6LCCkuGRuREq69Mw25zmoISlZiYCn5FBidagu+Cjm/dvhvt19THRhc0B71NnA==}
     hasBin: true
@@ -2974,8 +2973,8 @@ packages:
     resolution: {integrity: sha512-oswmokxkav9bADfJ2ifrvfHUwad6MLp73Uat0IkQWY3iAw5xTRoznXbXksZs8oaOUMpmhVWD+PZogNzllWpJaA==}
     hasBin: true
 
-  pino@8.20.0:
-    resolution: {integrity: sha512-uhIfMj5TVp+WynVASaVEJFTncTUe4dHBq6CWplu/vBgvGHhvBvQfxz+vcOrnnBQdORH3izaGEurLfNlq3YxdFQ==}
+  pino@8.21.0:
+    resolution: {integrity: sha512-ip4qdzjkAyDDZklUaZkcRFb2iA118H9SgRh8yzTkSQK8HilsOJF7rSY8HoW5+I0M46AZgX/pxbprf2vvzQCE0Q==}
     hasBin: true
 
   piscina@4.3.1:
@@ -3492,6 +3491,9 @@ packages:
 
   thread-stream@2.4.1:
     resolution: {integrity: sha512-d/Ex2iWd1whipbT681JmTINKw0ZwOUBZm7+Gjs64DHuX34mmw8vJL2bFAaNacaW72zYiTJxSHi5abUuOi5nsfg==}
+
+  thread-stream@2.7.0:
+    resolution: {integrity: sha512-qQiRWsU/wvNolI6tbbCKd9iKaTnCXsTwVxhhKM6nctPdujTyztjlbUkUTUymidWcMnZ5pWR0ej4a0tjsW021vw==}
 
   timers-ext@0.1.7:
     resolution: {integrity: sha512-b85NUNzTSdodShTIbky6ZF02e8STtVVfD+fu4aXXShEELpozH+bCpJLYMPZbsABN2wDH7fJpqIoXxJpzbf0NqQ==}
@@ -4332,9 +4334,6 @@ snapshots:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.17.1
-
-  '@opentelemetry/api@1.7.0':
-    optional: true
 
   '@opentelemetry/api@1.8.0': {}
 
@@ -5195,9 +5194,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.30.9(@opentelemetry/api@1.7.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.5)(better-sqlite3@9.5.0)(pg@8.11.5)(postgres@3.4.4):
+  drizzle-orm@0.30.9(@opentelemetry/api@1.8.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.5)(better-sqlite3@9.5.0)(pg@8.11.5)(postgres@3.4.4):
     optionalDependencies:
-      '@opentelemetry/api': 1.7.0
+      '@opentelemetry/api': 1.8.0
       '@types/better-sqlite3': 7.6.10
       '@types/pg': 8.11.5
       better-sqlite3: 9.5.0
@@ -6565,6 +6564,11 @@ snapshots:
       readable-stream: 4.5.2
       split2: 4.2.0
 
+  pino-abstract-transport@1.2.0:
+    dependencies:
+      readable-stream: 4.5.2
+      split2: 4.2.0
+
   pino-loki@2.2.1:
     dependencies:
       commander: 10.0.1
@@ -6606,19 +6610,19 @@ snapshots:
       sonic-boom: 3.7.0
       thread-stream: 2.4.1
 
-  pino@8.20.0:
+  pino@8.21.0:
     dependencies:
       atomic-sleep: 1.0.0
       fast-redact: 3.3.0
       on-exit-leak-free: 2.1.2
-      pino-abstract-transport: 1.1.0
+      pino-abstract-transport: 1.2.0
       pino-std-serializers: 6.2.2
       process-warning: 3.0.0
       quick-format-unescaped: 4.0.4
       real-require: 0.2.0
       safe-stable-stringify: 2.4.3
       sonic-boom: 3.7.0
-      thread-stream: 2.4.1
+      thread-stream: 2.7.0
 
   piscina@4.3.1:
     optionalDependencies:
@@ -7132,6 +7136,10 @@ snapshots:
   text-table@0.2.0: {}
 
   thread-stream@2.4.1:
+    dependencies:
+      real-require: 0.2.0
+
+  thread-stream@2.7.0:
     dependencies:
       real-require: 0.2.0
 

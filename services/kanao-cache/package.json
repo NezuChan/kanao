@@ -34,7 +34,7 @@
     "drizzle-orm": "^0.30.9",
     "gradient-string": "^2.0.2",
     "pg": "^8.11.5",
-    "pino": "^8.20.0",
+    "pino": "^8.21.0",
     "pino-pretty": "^11.0.0",
     "tslib": "^2.6.2"
   },
