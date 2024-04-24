@@ -205,8 +205,8 @@ importers:
         specifier: ^8.11.5
         version: 8.11.5
       pino:
-        specifier: ^8.21.0
-        version: 8.21.0
+        specifier: ^9.0.0
+        version: 9.0.0
       pino-pretty:
         specifier: ^11.0.0
         version: 11.0.0
@@ -312,8 +312,8 @@ importers:
         specifier: ^2.0.2
         version: 2.0.2
       pino:
-        specifier: ^8.21.0
-        version: 8.21.0
+        specifier: ^9.0.0
+        version: 9.0.0
       pino-pretty:
         specifier: ^11.0.0
         version: 11.0.0
@@ -2973,8 +2973,8 @@ packages:
     resolution: {integrity: sha512-oswmokxkav9bADfJ2ifrvfHUwad6MLp73Uat0IkQWY3iAw5xTRoznXbXksZs8oaOUMpmhVWD+PZogNzllWpJaA==}
     hasBin: true
 
-  pino@8.21.0:
-    resolution: {integrity: sha512-ip4qdzjkAyDDZklUaZkcRFb2iA118H9SgRh8yzTkSQK8HilsOJF7rSY8HoW5+I0M46AZgX/pxbprf2vvzQCE0Q==}
+  pino@9.0.0:
+    resolution: {integrity: sha512-uI1ThkzTShNSwvsUM6b4ND8ANzWURk9zTELMztFkmnCQeR/4wkomJ+echHee5GMWGovoSfjwdeu80DsFIt7mbA==}
     hasBin: true
 
   piscina@4.3.1:
@@ -6610,7 +6610,7 @@ snapshots:
       sonic-boom: 3.7.0
       thread-stream: 2.4.1
 
-  pino@8.21.0:
+  pino@9.0.0:
     dependencies:
       atomic-sleep: 1.0.0
       fast-redact: 3.3.0
