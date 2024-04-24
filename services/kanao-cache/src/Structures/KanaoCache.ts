@@ -28,17 +28,30 @@ export class KanaoCache extends EventEmitter {
 
     public logger = createLogger("kanao-cache", clientId, storeLogs, lokiHost);
 
+    public postgresInstance = {
+        master: new pg.Pool({ connectionString: databaseUrl, max: databaseConnectionLimit }),
+        slaves: databaseReadUrls.map(x => new pg.Pool({ connectionString: x, max: databaseConnectionLimit }))
+    };
+
     public drizzle = withReplicas(
-        drizzle(new pg.Pool({ connectionString: databaseUrl, max: databaseConnectionLimit }), { schema }),
+        drizzle(this.postgresInstance.master, { schema }),
 
         // @ts-expect-error Drizzle typings doesnt seem right.
-        databaseReadUrls.map(x => drizzle(new pg.Pool({ connectionString: x, max: databaseConnectionLimit }), { schema }))
+        this.postgresInstance.slaves.map(x => drizzle(x, { schema }))
     );
 
     public stores = new StoreRegistry();
 
     public async connect(): Promise<void> {
         container.client = this;
+
+        await this.postgresInstance.master.connect();
+        this.postgresInstance.master.on("error", e => this.logger.error(e, "Postgres emitted error"));
+
+        for (const instance of this.postgresInstance.slaves) {
+            await instance.connect();
+            instance.on("error", e => this.logger.error(e, "Postgres slave emitted error"));
+        }
 
         this.stores.register(new ListenerStore());
 
@@ -84,13 +97,14 @@ export class KanaoCache extends EventEmitter {
                 };
 
                 try {
-                    if (query.text.includes("SELECT")) {
-                        const result = await this.drizzle(query);
+                    if (query.text.includes("INSERT") || query.text.includes("UPDATE") || query.text.includes("DELETE")) {
+                        const result = await this.postgresInstance.master.query(query);
                         await this.queryRpcQueue.sendToQueue(message.properties.replyTo as string, Buffer.from(
                             JSON.stringify({ route: rpc.key, rows: result.rows, message: `Successfully querying with ${result.rowCount} results !` })
                         ), { correlationId: message.properties.correlationId as string });
                     } else {
-                        const result = await this.drizzle.execute(query);
+                        const server = this.postgresInstance.slaves[Math.floor(Math.random() * this.postgresInstance.slaves.length)];
+                        const result = await server.query(query);
                         await this.queryRpcQueue.sendToQueue(message.properties.replyTo as string, Buffer.from(
                             JSON.stringify({ route: rpc.key, rows: result.rows, message: `Successfully querying with ${result.rowCount} results !` })
                         ), { correlationId: message.properties.correlationId as string });
