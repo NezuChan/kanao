@@ -44,7 +44,7 @@
     "@sapphire/snowflake": "^3.5.3",
     "@sapphire/utilities": "^3.15.3",
     "amqp-connection-manager": "^4.1.14",
-    "discord-api-types": "^0.37.81",
+    "discord-api-types": "^0.37.83",
     "drizzle-orm": "^0.30.9",
     "tslib": "^2.6.2"
   }

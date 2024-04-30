@@ -29,7 +29,7 @@
     "@skyra/start-banner": "^2.0.1",
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.4",
-    "discord-api-types": "^0.37.81",
+    "discord-api-types": "^0.37.83",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.30.9",
     "gradient-string": "^2.0.2",
@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@swc/cli": "^0.3.12",
-    "@swc/core": "^1.5.0",
+    "@swc/core": "^1.5.2",
     "@types/amqplib": "^0.10.5",
     "@types/gradient-string": "^1.1.6",
     "@types/node": "^20.12.7",
