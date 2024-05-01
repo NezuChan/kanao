@@ -1,5 +1,11 @@
 # @nezuchan/kanao-schema
 
+## 0.9.0
+
+### Minor Changes
+
+- 5823f1e: Use Postgres Indexes for frequent column queries and Use Postgres Proxy for client querying instead
+
 ## 0.8.0
 
 ### Minor Changes

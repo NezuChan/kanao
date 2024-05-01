@@ -1,5 +1,17 @@
 # Change Log
 
+## 0.13.0
+
+### Minor Changes
+
+- 5823f1e: Use Postgres Indexes for frequent column queries and Use Postgres Proxy for client querying instead
+
+### Patch Changes
+
+- Updated dependencies [5823f1e]
+  - @nezuchan/core@0.18.0
+  - @nezuchan/framework@0.18.0
+
 ## 0.12.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @nezuchan/kanao-gateway
 
+## 5.3.0
+
+### Minor Changes
+
+- 5823f1e: Use Postgres Indexes for frequent column queries and Use Postgres Proxy for client querying instead
+
 ## 5.2.0
 
 ### Minor Changes
