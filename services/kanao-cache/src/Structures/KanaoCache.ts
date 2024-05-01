@@ -35,7 +35,7 @@ export class KanaoCache extends EventEmitter {
 
     public drizzle = withReplicas(
         drizzle(this.postgresInstance.master, { schema }),
-        [this.postgresInstance.slaves.shift()!, this.postgresInstance.slaves]
+        [drizzle(this.postgresInstance.slaves.shift()!, { schema }), ...this.postgresInstance.slaves.map(p => drizzle(p, { schema }))]
     );
 
     public stores = new StoreRegistry();
