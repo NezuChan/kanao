@@ -1,5 +1,5 @@
 {
-  "id": "b8909ecb-c2db-4001-96d5-033f1840e500",
+  "id": "ef39418c-c6bf-47b7-8468-58ccbc774352",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -11,8 +11,8 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": true
         },
         "guild_id": {
           "name": "guild_id",
@@ -75,17 +75,17 @@
           "notNull": false
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "members_id_guild_id": {
-          "name": "members_id_guild_id",
+      "indexes": {
+        "members_guildId_idx": {
+          "name": "members_guildId_idx",
           "columns": [
-            "id",
             "guild_id"
-          ]
+          ],
+          "isUnique": false
         }
       },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
     "users": {
@@ -205,11 +205,19 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "member_roles_guildId_idx": {
+          "name": "member_roles_guildId_idx",
+          "columns": [
+            "guild_id"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "voice_states_member_id_role_id": {
-          "name": "voice_states_member_id_role_id",
+        "member_roles_member_id_role_id_pk": {
+          "name": "member_roles_member_id_role_id_pk",
           "columns": [
             "member_id",
             "role_id"
@@ -265,7 +273,15 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "roles_guildId_idx": {
+          "name": "roles_guildId_idx",
+          "columns": [
+            "guild_id"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
@@ -627,7 +643,15 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "channels_guildId_idx": {
+          "name": "channels_guildId_idx",
+          "columns": [
+            "guild_id"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
@@ -667,14 +691,22 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "channels_overwrite_actorId_idx": {
+          "name": "channels_overwrite_actorId_idx",
+          "columns": [
+            "user_or_role"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "channels_overwrite_user_or_role_channel_id": {
-          "name": "channels_overwrite_user_or_role_channel_id",
+        "channels_overwrite_channel_id_user_or_role_pk": {
+          "name": "channels_overwrite_channel_id_user_or_role_pk",
           "columns": [
-            "user_or_role",
-            "channel_id"
+            "channel_id",
+            "user_or_role"
           ]
         }
       },
@@ -684,14 +716,14 @@
       "name": "voice_states",
       "schema": "",
       "columns": {
-        "member_id": {
-          "name": "member_id",
+        "guild_id": {
+          "name": "guild_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "guild_id": {
-          "name": "guild_id",
+        "member_id": {
+          "name": "member_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -757,14 +789,29 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "voice_states_channelId_idx": {
+          "name": "voice_states_channelId_idx",
+          "columns": [
+            "channel_id"
+          ],
+          "isUnique": false
+        },
+        "voice_states_sessionId_idx": {
+          "name": "voice_states_sessionId_idx",
+          "columns": [
+            "session_id"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "voice_states_member_id_guild_id": {
-          "name": "voice_states_member_id_guild_id",
+        "voice_states_guild_id_member_id_pk": {
+          "name": "voice_states_guild_id_member_id_pk",
           "columns": [
-            "member_id",
-            "guild_id"
+            "guild_id",
+            "member_id"
           ]
         }
       },
@@ -871,7 +918,29 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "messages_guildId_idx": {
+          "name": "messages_guildId_idx",
+          "columns": [
+            "guild_id"
+          ],
+          "isUnique": false
+        },
+        "messages_channelId_idx": {
+          "name": "messages_channelId_idx",
+          "columns": [
+            "channel_id"
+          ],
+          "isUnique": false
+        },
+        "messages_authorId_idx": {
+          "name": "messages_authorId_idx",
+          "columns": [
+            "author_id"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}

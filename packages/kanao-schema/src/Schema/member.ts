@@ -1,4 +1,4 @@
-import { pgTable, integer, text, boolean } from "drizzle-orm/pg-core";
+import { pgTable, integer, text, boolean, index } from "drizzle-orm/pg-core";
 
 export const members = pgTable("members", {
     id: text("id").primaryKey(),
@@ -13,4 +13,4 @@ export const members = pgTable("members", {
     mute: boolean("mute"),
     pending: boolean("pending"),
     communicationDisabledUntil: text("communication_disabled_until")
-});
+}, table => ({ guildIdIdx: index("members_guildId_idx").on(table.guildId) }));
