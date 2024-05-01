@@ -1,5 +1,11 @@
 # @nezuchan/kanao-schema
 
+## 0.9.0
+
+### Minor Changes
+
+- 204fc1f: Use Postgres Indexes for frequent column queries
+
 ## 0.8.0
 
 ### Minor Changes

@@ -1,5 +1,17 @@
 # Change Log
 
+## 0.13.0
+
+### Minor Changes
+
+- 204fc1f: Use Postgres Indexes for frequent column queries
+
+### Patch Changes
+
+- Updated dependencies [204fc1f]
+  - @nezuchan/core@0.18.0
+  - @nezuchan/framework@0.18.0
+
 ## 0.12.0
 
 ### Minor Changes
