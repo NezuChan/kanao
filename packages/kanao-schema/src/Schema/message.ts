@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, boolean, integer, index } from "drizzle-orm/pg-core";
 
 export const messages = pgTable("messages", {
     id: text("id").primaryKey(),
@@ -19,4 +19,8 @@ export const messages = pgTable("messages", {
     applicationId: text("application_id"),
     flags: integer("flags"),
     position: integer("position")
-});
+}, table => ({
+    guildIdIdx: index("messages_guildId_idx").on(table.guildId),
+    channelIdIdx: index("messages_channelId_idx").on(table.channelId),
+    authorIdIdx: index("messages_authorId_idx").on(table.authorId)
+}));

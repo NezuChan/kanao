@@ -1,4 +1,4 @@
-import { pgTable, text, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, boolean, primaryKey, index } from "drizzle-orm/pg-core";
 
 export const channels = pgTable("channels", {
     id: text("id").primaryKey(),
@@ -22,7 +22,7 @@ export const channels = pgTable("channels", {
     flags: integer("flags"),
 
     guildId: text("guild_id")
-});
+}, table => ({ guildIdIdx: index("channels_guildId_idx").on(table.guildId) }));
 
 export const channelsOverwrite = pgTable("channels_overwrite", {
     userOrRole: text("user_or_role"),
@@ -31,4 +31,7 @@ export const channelsOverwrite = pgTable("channels_overwrite", {
     type: integer("type"),
     allow: text("allow"),
     deny: text("deny")
-});
+}, table => ({
+    primaryKey: primaryKey({ columns: [table.channelId, table.userOrRole] }),
+    actorIdx: index("channels_overwrite_actorId_idx").on(table.userOrRole)
+}));
