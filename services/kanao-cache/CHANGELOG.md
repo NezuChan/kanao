@@ -1,5 +1,16 @@
 # @nezuchan/kanao-cache
 
+## 2.0.0
+
+### Major Changes
+
+- 5823f1e: Use Postgres Indexes for frequent column queries and Use Postgres Proxy for client querying instead
+
+### Patch Changes
+
+- Updated dependencies [5823f1e]
+  - @nezuchan/kanao-schema@0.9.0
+
 ## 1.5.0
 
 ### Minor Changes
