@@ -7,10 +7,11 @@ import { StoreRegistry, container } from "@sapphire/pieces";
 import type { Channel } from "amqplib";
 import { count } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { withReplicas } from "drizzle-orm/pg-core";
 import pg from "pg";
 import { ListenerStore } from "../Stores/ListenerStore.js";
 import { createLogger } from "../Utilities/Logger.js";
-import { clientId, storeLogs, lokiHost, databaseUrl, amqp, databaseConnectionLimit, prefetchCount } from "../config.js";
+import { clientId, storeLogs, lokiHost, databaseUrl, amqp, databaseConnectionLimit, prefetchCount, databaseReadUrls } from "../config.js";
 
 export class KanaoCache extends EventEmitter {
     public cacheQueue = createAmqpChannel(amqp, {
@@ -26,16 +27,29 @@ export class KanaoCache extends EventEmitter {
     });
 
     public logger = createLogger("kanao-cache", clientId, storeLogs, lokiHost);
-    public pgClient = new pg.Pool({ connectionString: databaseUrl, max: databaseConnectionLimit });
 
-    public drizzle = drizzle(this.pgClient, { schema });
+    public postgresInstance = {
+        master: new pg.Pool({ connectionString: databaseUrl, max: databaseConnectionLimit }),
+        slaves: databaseReadUrls.map(x => new pg.Pool({ connectionString: x, max: databaseConnectionLimit }))
+    };
+
+    public drizzle = withReplicas(
+        drizzle(this.postgresInstance.master, { schema }),
+        [this.postgresInstance.slaves.shift()!, this.postgresInstance.slaves]
+    );
 
     public stores = new StoreRegistry();
 
     public async connect(): Promise<void> {
         container.client = this;
-        await this.pgClient.connect();
-        this.pgClient.on("error", e => this.logger.error(e, "Postgres emitted error"));
+
+        await this.postgresInstance.master.connect();
+        this.postgresInstance.master.on("error", e => this.logger.error(e, "Postgres emitted error"));
+
+        for (const instance of this.postgresInstance.slaves) {
+            await instance.connect();
+            instance.on("error", e => this.logger.error(e, "Postgres slave emitted error"));
+        }
 
         this.stores.register(new ListenerStore());
 
@@ -81,10 +95,18 @@ export class KanaoCache extends EventEmitter {
                 };
 
                 try {
-                    const result = await this.pgClient.query(query);
-                    await this.queryRpcQueue.sendToQueue(message.properties.replyTo as string, Buffer.from(
-                        JSON.stringify({ route: rpc.key, rows: result.rows, message: `Successfully querying with ${result.rowCount} results !` })
-                    ), { correlationId: message.properties.correlationId as string });
+                    if (query.text.includes("INSERT") || query.text.includes("UPDATE") || query.text.includes("DELETE")) {
+                        const result = await this.postgresInstance.master.query(query);
+                        await this.queryRpcQueue.sendToQueue(message.properties.replyTo as string, Buffer.from(
+                            JSON.stringify({ route: rpc.key, rows: result.rows, message: `Successfully querying with ${result.rowCount} results !` })
+                        ), { correlationId: message.properties.correlationId as string });
+                    } else {
+                        const server = this.postgresInstance.slaves[Math.floor(Math.random() * this.postgresInstance.slaves.length)];
+                        const result = await server.query(query);
+                        await this.queryRpcQueue.sendToQueue(message.properties.replyTo as string, Buffer.from(
+                            JSON.stringify({ route: rpc.key, rows: result.rows, message: `Successfully querying with ${result.rowCount} results !` })
+                        ), { correlationId: message.properties.correlationId as string });
+                    }
                 } catch (error) {
                     await this.queryRpcQueue.sendToQueue(message.properties.replyTo as string, Buffer.from(
                         JSON.stringify({ route: rpc.key, rows: [], message: (error as Error).message })
