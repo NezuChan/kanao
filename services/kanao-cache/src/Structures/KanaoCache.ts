@@ -35,9 +35,7 @@ export class KanaoCache extends EventEmitter {
 
     public drizzle = withReplicas(
         drizzle(this.postgresInstance.master, { schema }),
-
-        // @ts-expect-error Drizzle typings doesnt seem right.
-        this.postgresInstance.slaves.map(x => drizzle(x, { schema }))
+        [this.postgresInstance.slaves.shift()!, this.postgresInstance.slaves]
     );
 
     public stores = new StoreRegistry();
