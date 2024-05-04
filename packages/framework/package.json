@@ -33,8 +33,8 @@
     "@types/amqplib": "^0.10.5"
   },
   "dependencies": {
-    "@discordjs/builders": "^1.7.0",
-    "@discordjs/collection": "^2.0.0",
+    "@discordjs/builders": "^1.8.0",
+    "@discordjs/collection": "^2.1.0",
     "@nezuchan/core": "workspace:^",
     "@sapphire/lexure": "^1.1.7",
     "@sapphire/pieces": "^4.2.2",

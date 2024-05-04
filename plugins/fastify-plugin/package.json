@@ -41,8 +41,8 @@
   "author": "KagChi",
   "license": "GPL-3.0",
   "dependencies": {
-    "@discordjs/collection": "^2.0.0",
-    "@fastify/middie": "^8.3.0",
+    "@discordjs/collection": "^2.1.0",
+    "@fastify/middie": "^8.3.1",
     "@nezuchan/core": "workspace:^",
     "@nezuchan/framework": "workspace:^",
     "@sapphire/pieces": "^4.2.2",

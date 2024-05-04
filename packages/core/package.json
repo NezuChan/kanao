@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@cordis/bitfield": "^1.2.0",
-    "@discordjs/rest": "^2.2.0",
+    "@discordjs/rest": "^2.3.0",
     "@nezuchan/constants": "^0.9.1",
     "@nezuchan/decorators": "^0.3.0",
     "@nezuchan/kanao-schema": "workspace:^",
@@ -45,7 +45,7 @@
     "@sapphire/utilities": "^3.15.3",
     "amqp-connection-manager": "^4.1.14",
     "discord-api-types": "^0.37.83",
-    "drizzle-orm": "^0.30.9",
+    "drizzle-orm": "^0.30.10",
     "tslib": "^2.6.2"
   }
 }
