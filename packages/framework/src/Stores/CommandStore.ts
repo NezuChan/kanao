@@ -1,6 +1,6 @@
 import { AliasStore } from "@sapphire/pieces";
 import type { APIApplicationCommandOption, RESTPostAPIApplicationCommandsJSONBody } from "discord-api-types/v10";
-import { Routes } from "discord-api-types/v10.js";
+import { Routes } from "discord-api-types/v10";
 import { Events } from "../Utilities/EventEnums.js";
 import { Command } from "./Command.js";
 
