@@ -80,8 +80,8 @@ importers:
   packages/framework:
     dependencies:
       '@discordjs/builders':
-        specifier: ^1.8.0
-        version: 1.8.0
+        specifier: ^1.8.1
+        version: 1.8.1
       '@discordjs/collection':
         specifier: ^2.1.0
         version: 2.1.0
@@ -457,8 +457,8 @@ packages:
     resolution: {integrity: sha512-f4JAj+ixVfOWacVpe3LktNsOYhZ+oaoBkciJ6wWFLqLk/xHEfxUlBwcNwrZM5ck1mklV+uK1nAmKEhBHf66xRg==}
     deprecated: see https://github.com/cordis-lib/cordis#deprecation
 
-  '@discordjs/builders@1.8.0':
-    resolution: {integrity: sha512-NHj5LucA0Td8g0RMbMP6wfvra4QRyvKp7bE/PEMACGcfsaZkqCi4zPZ83vvkaiqRKVhyoFgRWx9f6ZWtaeM/ww==}
+  '@discordjs/builders@1.8.1':
+    resolution: {integrity: sha512-GkF+HM01FHy+NSoTaUPR8z44otfQgJ1AIsRxclYGUZDyUbdZEFyD/5QVv2Y1Flx6M+B0bQLzg2M9CJv5lGTqpA==}
     engines: {node: '>=16.11.0'}
 
   '@discordjs/collection@1.5.3':
@@ -3949,7 +3949,7 @@ snapshots:
     dependencies:
       tslib: 2.6.2
 
-  '@discordjs/builders@1.8.0':
+  '@discordjs/builders@1.8.1':
     dependencies:
       '@discordjs/formatters': 0.4.0
       '@discordjs/util': 1.1.0
