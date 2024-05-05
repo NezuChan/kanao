@@ -1,5 +1,13 @@
 # @nezuchan/kanao-cache
 
+## 2.0.1
+
+### Patch Changes
+
+- 20dce1f: Fix guild member schema
+- Updated dependencies [20dce1f]
+  - @nezuchan/kanao-schema@0.9.1
+
 ## 2.0.0
 
 ### Major Changes
