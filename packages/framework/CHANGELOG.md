@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.19.1
+
+### Patch Changes
+
+- c6f7f13: Adjust types with @discordjs/builders
+
 ## 0.19.0
 
 ### Minor Changes
