@@ -1,5 +1,11 @@
 # @nezuchan/kanao-gateway
 
+## 5.4.0
+
+### Minor Changes
+
+- 8a7e282: Fix guild member schema and update dependencies
+
 ## 5.3.0
 
 ### Minor Changes
