@@ -1,5 +1,11 @@
 # @nezuchan/kanao-schema
 
+## 0.10.0
+
+### Minor Changes
+
+- 8a7e282: Fix guild member schema and update dependencies
+
 ## 0.9.0
 
 ### Minor Changes

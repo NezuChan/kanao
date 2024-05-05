@@ -1,5 +1,16 @@
 # Change Log
 
+## 0.19.0
+
+### Minor Changes
+
+- 8a7e282: Fix guild member schema and update dependencies
+
+### Patch Changes
+
+- Updated dependencies [8a7e282]
+  - @nezuchan/core@0.19.0
+
 ## 0.18.0
 
 ### Minor Changes

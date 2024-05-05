@@ -1,6 +1,6 @@
 {
   "name": "@nezuchan/kanao-schema",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Cache schema for Kanao Gateway",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
