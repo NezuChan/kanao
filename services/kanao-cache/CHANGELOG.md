@@ -1,5 +1,13 @@
 # @nezuchan/kanao-cache
 
+## 2.1.1
+
+### Patch Changes
+
+- 9ec3d02: Fix drizzle schema migrations not generated earlier
+- Updated dependencies [9ec3d02]
+  - @nezuchan/kanao-schema@0.10.1
+
 ## 2.1.0
 
 ### Minor Changes
