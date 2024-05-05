@@ -1,6 +1,6 @@
 import { AliasStore } from "@sapphire/pieces";
-import type { RESTPostAPIApplicationCommandsJSONBody } from "discord-api-types/v10";
-import { Routes } from "discord-api-types/v10";
+import type { APIApplicationCommandOption } from "discord-api-types/v10";
+import { Routes } from "discord-api-types/v10.js";
 import { Events } from "../Utilities/EventEnums.js";
 import { Command } from "./Command.js";
 
@@ -11,7 +11,7 @@ export class CommandStore extends AliasStore<Command> {
 
     public async postCommands(): Promise<void> {
         const commands = [...this.values()];
-        const registerAbleCommands: RESTPostAPIApplicationCommandsJSONBody[] = [];
+        const registerAbleCommands: APIApplicationCommandOption[] = [];
 
         for (const command of commands) {
             if (command.options.chatInput) {
