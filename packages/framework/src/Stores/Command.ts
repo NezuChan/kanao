@@ -6,7 +6,7 @@ import { Lexer, PrefixedStrategy } from "@sapphire/lexure";
 import type { AliasPieceOptions, LoaderPieceContext } from "@sapphire/pieces";
 import { AliasPiece } from "@sapphire/pieces";
 import type { Awaitable } from "@sapphire/utilities";
-import type { APIApplicationCommandOption } from "discord-api-types/v10";
+import type { APIApplicationCommandOption, RESTPostAPIApplicationCommandsJSONBody } from "discord-api-types/v10";
 import { PermissionFlagsBits } from "discord-api-types/v10";
 import type { CommandContext } from "../Lib/CommandContext.js";
 import type { FlagStrategyOptions } from "../Lib/FlagUnorderedStrategy.js";
@@ -94,8 +94,8 @@ export type CommandOptions = AliasPieceOptions & FlagStrategyOptions & {
     quotes?: [string, string][];
     strategy?: IUnorderedStrategy;
     preconditions?: PreconditionEntryResolvable[];
-    chatInput?: APIApplicationCommandOption;
-    contextMenu?: APIApplicationCommandOption;
+    chatInput?: APIApplicationCommandOption | RESTPostAPIApplicationCommandsJSONBody;
+    contextMenu?: APIApplicationCommandOption | RESTPostAPIApplicationCommandsJSONBody;
     meta?: CommandMeta;
     clientPermissions?: {
         voice?: bigint[];
