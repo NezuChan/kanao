@@ -286,7 +286,7 @@ export class GuildCreateListener extends Listener {
                     suppress: voiceState.suppress
                 })
                 .onConflictDoUpdate({
-                    target: [voiceStates.memberId, voiceStates.guildId],
+                    target: [voiceStates.guildId, voiceStates.memberId],
                     set: {
                         channelId: sql`EXCLUDED.channel_id`,
                         sessionId: sql`EXCLUDED.session_id`,
