@@ -1,5 +1,5 @@
 {
-  "id": "ef39418c-c6bf-47b7-8468-58ccbc774352",
+  "id": "4f478895-0de3-4070-970f-622798d50990",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -11,8 +11,8 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": true,
-          "notNull": true
+          "primaryKey": false,
+          "notNull": false
         },
         "guild_id": {
           "name": "guild_id",
@@ -75,17 +75,17 @@
           "notNull": false
         }
       },
-      "indexes": {
-        "members_guildId_idx": {
-          "name": "members_guildId_idx",
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "members_guild_id_id_pk": {
+          "name": "members_guild_id_id_pk",
           "columns": [
-            "guild_id"
-          ],
-          "isUnique": false
+            "guild_id",
+            "id"
+          ]
         }
       },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
     "users": {

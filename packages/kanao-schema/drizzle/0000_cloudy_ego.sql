@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS "members" (
-	"id" text PRIMARY KEY NOT NULL,
+	"id" text,
 	"guild_id" text,
 	"nick" text,
 	"avatar" text,
@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS "members" (
 	"deaf" boolean,
 	"mute" boolean,
 	"pending" boolean,
-	"communication_disabled_until" text
+	"communication_disabled_until" text,
+	CONSTRAINT "members_guild_id_id_pk" PRIMARY KEY("guild_id","id")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "users" (
@@ -153,7 +154,6 @@ CREATE TABLE IF NOT EXISTS "messages" (
 	"position" integer
 );
 --> statement-breakpoint
-CREATE INDEX IF NOT EXISTS "members_guildId_idx" ON "members" ("guild_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "member_roles_guildId_idx" ON "member_roles" ("guild_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "roles_guildId_idx" ON "roles" ("guild_id");--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "channels_guildId_idx" ON "channels" ("guild_id");--> statement-breakpoint
