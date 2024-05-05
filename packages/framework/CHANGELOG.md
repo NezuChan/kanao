@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.19.2
+
+### Patch Changes
+
+- d175c04: fix ApplicationCommand type with @discordjs/builders
+
 ## 0.19.1
 
 ### Patch Changes
