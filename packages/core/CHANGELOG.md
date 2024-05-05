@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.19.1
+
+### Patch Changes
+
+- 9ec3d02: Fix drizzle schema migrations not generated earlier
+- Updated dependencies [9ec3d02]
+  - @nezuchan/kanao-schema@0.10.1
+
 ## 0.19.0
 
 ### Minor Changes

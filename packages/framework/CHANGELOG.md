@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.19.4
+
+### Patch Changes
+
+- Updated dependencies [9ec3d02]
+  - @nezuchan/core@0.19.1
+
 ## 0.19.3
 
 ### Patch Changes
