@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.19.3
+
+### Patch Changes
+
+- e21139d: fix imports in CommandStore
+
 ## 0.19.2
 
 ### Patch Changes
