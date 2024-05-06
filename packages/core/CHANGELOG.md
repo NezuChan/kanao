@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.19.2
+
+### Patch Changes
+
+- c4ed932: Fix cache query
+
 ## 0.19.1
 
 ### Patch Changes

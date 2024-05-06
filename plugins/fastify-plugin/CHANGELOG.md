@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.14.5
+
+### Patch Changes
+
+- Updated dependencies [c4ed932]
+  - @nezuchan/core@0.19.2
+  - @nezuchan/framework@0.19.5
+
 ## 0.14.4
 
 ### Patch Changes
