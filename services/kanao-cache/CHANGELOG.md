@@ -1,5 +1,11 @@
 # @nezuchan/kanao-cache
 
+## 2.1.2
+
+### Patch Changes
+
+- c4ed932: Fix cache query
+
 ## 2.1.1
 
 ### Patch Changes
