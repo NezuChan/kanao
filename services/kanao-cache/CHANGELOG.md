@@ -1,5 +1,11 @@
 # @nezuchan/kanao-cache
 
+## 2.1.3
+
+### Patch Changes
+
+- fa8c171: Node.js update
+
 ## 2.1.2
 
 ### Patch Changes
