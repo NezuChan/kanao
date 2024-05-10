@@ -1,5 +1,11 @@
 # @nezuchan/kanao-gateway
 
+## 5.4.1
+
+### Patch Changes
+
+- fa8c171: Node.js update
+
 ## 5.4.0
 
 ### Minor Changes
