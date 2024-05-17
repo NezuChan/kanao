@@ -33,7 +33,7 @@
   "author": "KagChi",
   "license": "GPL-3.0",
   "devDependencies": {
-    "drizzle-kit": "^0.21.0",
+    "drizzle-kit": "^0.21.2",
     "pg": "^8.11.5"
   },
   "dependencies": {

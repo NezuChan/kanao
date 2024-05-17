@@ -17,7 +17,7 @@
   "license": "GPL-3.0",
   "optionalDependencies": {
     "ioredis": "^5.4.1",
-    "pino-loki": "^2.2.1"
+    "pino-loki": "^2.3.0"
   },
   "dependencies": {
     "@nezuchan/constants": "^0.9.1",
@@ -29,24 +29,24 @@
     "@skyra/start-banner": "^2.0.1",
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.4",
-    "discord-api-types": "^0.37.83",
+    "discord-api-types": "^0.37.84",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.30.10",
     "gradient-string": "^2.0.2",
     "pg": "^8.11.5",
-    "pino": "^9.0.0",
+    "pino": "^9.1.0",
     "pino-pretty": "^11.0.0",
     "tslib": "^2.6.2"
   },
   "devDependencies": {
     "@swc/cli": "^0.3.12",
-    "@swc/core": "^1.5.5",
+    "@swc/core": "^1.5.7",
     "@types/amqplib": "^0.10.5",
     "@types/gradient-string": "^1.1.6",
-    "@types/node": "^20.12.11",
+    "@types/node": "^20.12.12",
     "@types/pg": "^8.11.6",
-    "drizzle-kit": "^0.21.0",
-    "rimraf": "^5.0.5",
+    "drizzle-kit": "^0.21.2",
+    "rimraf": "^5.0.7",
     "typescript": "^5.4.5"
   }
 }
