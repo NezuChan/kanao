@@ -68,7 +68,7 @@ importers:
         version: 0.37.83
       drizzle-orm:
         specifier: ^0.30.10
-        version: 0.30.10(@opentelemetry/api@1.8.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.6)(better-sqlite3@9.6.0)(pg@8.11.5)(postgres@3.4.4)
+        version: 0.30.10(@opentelemetry/api@1.8.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.6)(better-sqlite3@10.0.0)(pg@8.11.5)(postgres@3.4.4)
       tslib:
         specifier: ^2.6.2
         version: 2.6.2
@@ -121,7 +121,7 @@ importers:
     dependencies:
       drizzle-orm:
         specifier: ^0.30.10
-        version: 0.30.10(@opentelemetry/api@1.8.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.6)(better-sqlite3@9.6.0)(pg@8.11.5)(postgres@3.4.4)
+        version: 0.30.10(@opentelemetry/api@1.8.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.6)(better-sqlite3@10.0.0)(pg@8.11.5)(postgres@3.4.4)
       tslib:
         specifier: ^2.6.2
         version: 2.6.2
@@ -197,7 +197,7 @@ importers:
         version: 16.4.5
       drizzle-orm:
         specifier: ^0.30.10
-        version: 0.30.10(@opentelemetry/api@1.8.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.6)(better-sqlite3@9.6.0)(pg@8.11.5)(postgres@3.4.4)
+        version: 0.30.10(@opentelemetry/api@1.8.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.6)(better-sqlite3@10.0.0)(pg@8.11.5)(postgres@3.4.4)
       gradient-string:
         specifier: ^2.0.2
         version: 2.0.2
@@ -291,8 +291,8 @@ importers:
         specifier: ^0.10.4
         version: 0.10.4
       better-sqlite3:
-        specifier: ^9.6.0
-        version: 9.6.0
+        specifier: ^10.0.0
+        version: 10.0.0
       bufferutil:
         specifier: ^4.0.8
         version: 4.0.8
@@ -307,7 +307,7 @@ importers:
         version: 16.4.5
       drizzle-orm:
         specifier: ^0.30.10
-        version: 0.30.10(@opentelemetry/api@1.8.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.6)(better-sqlite3@9.6.0)(pg@8.11.5)(postgres@3.4.4)
+        version: 0.30.10(@opentelemetry/api@1.8.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.6)(better-sqlite3@10.0.0)(pg@8.11.5)(postgres@3.4.4)
       gradient-string:
         specifier: ^2.0.2
         version: 2.0.2
@@ -1340,8 +1340,8 @@ packages:
     resolution: {integrity: sha512-pbnl5XzGBdrFU/wT4jqmJVPn2B6UHPBOhzMQkY/SPUPB6QtUXtmBHBIwCbXJol93mOpGMnQyP/+BB19q04xj7g==}
     engines: {node: '>=4'}
 
-  better-sqlite3@9.6.0:
-    resolution: {integrity: sha512-yR5HATnqeYNVnkaUTf4bOP2dJSnyhP4puJN/QPRyx4YkBEEUxib422n2XzPqDEHjQQqazoYoADdAm5vE15+dAQ==}
+  better-sqlite3@10.0.0:
+    resolution: {integrity: sha512-rOz0JY8bt9oMgrFssP7GnvA5R3yln73y/NizzWqy3WlFth8Ux8+g4r/N9fjX97nn4X1YX6MTER2doNpTu5pqiA==}
 
   bin-check@4.1.0:
     resolution: {integrity: sha512-b6weQyEUKsDGFlACWSIOfveEnImkJyK/FGW6FAG42loyoquvjdtOIqO6yBFzHyqyVVhNgNkQxxx09SFLK28YnA==}
@@ -4766,7 +4766,7 @@ snapshots:
     dependencies:
       is-windows: 1.0.2
 
-  better-sqlite3@9.6.0:
+  better-sqlite3@10.0.0:
     dependencies:
       bindings: 1.5.0
       prebuild-install: 7.1.1
@@ -5112,12 +5112,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.30.10(@opentelemetry/api@1.8.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.6)(better-sqlite3@9.6.0)(pg@8.11.5)(postgres@3.4.4):
+  drizzle-orm@0.30.10(@opentelemetry/api@1.8.0)(@types/better-sqlite3@7.6.10)(@types/pg@8.11.6)(better-sqlite3@10.0.0)(pg@8.11.5)(postgres@3.4.4):
     optionalDependencies:
       '@opentelemetry/api': 1.8.0
       '@types/better-sqlite3': 7.6.10
       '@types/pg': 8.11.6
-      better-sqlite3: 9.6.0
+      better-sqlite3: 10.0.0
       pg: 8.11.5
       postgres: 3.4.4
 
