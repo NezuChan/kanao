@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.19.3
+
+### Patch Changes
+
+- 09478df: Create own channel for query
+
 ## 0.19.2
 
 ### Patch Changes
