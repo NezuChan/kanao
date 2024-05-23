@@ -29,13 +29,13 @@
     "@skyra/start-banner": "^2.0.1",
     "amqp-connection-manager": "^4.1.14",
     "amqplib": "^0.10.4",
-    "discord-api-types": "^0.37.84",
+    "discord-api-types": "^0.37.85",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.30.10",
     "gradient-string": "^2.0.2",
     "pg": "^8.11.5",
     "pino": "^9.1.0",
-    "pino-pretty": "^11.0.0",
+    "pino-pretty": "^11.1.0",
     "tslib": "^2.6.2"
   },
   "devDependencies": {
