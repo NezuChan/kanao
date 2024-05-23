@@ -11,4 +11,4 @@
 
 </div>
 
-Being used in production by NezukoChan, Musical Tune, and more.
+Being used in production by Musical Tune, and more.
