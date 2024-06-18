@@ -36,7 +36,7 @@ export class CommandContext {
 
             return this.interaction.reply(options);
         }
-        return this.message.client.sendMessage(options, this.message.channelId);
+        return this.message.client.sendMessage(options, this.message.channelId!);
     }
 
     public get guildId(): string | undefined {
