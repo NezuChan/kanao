@@ -16,15 +16,15 @@ import { clientId, storeLogs, lokiHost, databaseUrl, amqp, databaseConnectionLim
 export class KanaoCache extends EventEmitter {
     public cacheQueue = createAmqpChannel(amqp, {
         setup: async (channel: Channel) => this.setupCacheQueue(channel)
-    });
+    }, { connectionOptions: { timeout: 360_000 } });
 
     public rpcQueue = createAmqpChannel(amqp, {
         setup: async (channel: Channel) => this.setupRpc(channel)
-    });
+    }, { connectionOptions: { timeout: 360_000 } });
 
     public queryRpcQueue = createAmqpChannel(amqp, {
         setup: async (channel: Channel) => this.setupQueryRpc(channel)
-    });
+    }, { connectionOptions: { timeout: 360_000 } });
 
     public logger = createLogger("kanao-cache", clientId, storeLogs, lokiHost);
 
@@ -57,6 +57,13 @@ export class KanaoCache extends EventEmitter {
     }
 
     public async setupCacheQueue(channel: Channel): Promise<void> {
+        channel.on("close", () => {
+            if ("sendMessage" in channel && "sendOrEnqueue" in channel && channel.sendMessage === channel.sendOrEnqueue) {
+                // @ts-expect-error Reconnect workaround
+                this.cacheQueue._onConnect({ connection: this.cacheQueue._connectionManager.connection });
+            }
+        });
+
         await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "topic", { durable: false });
 
         // Used for receiving receive events from the gateway
@@ -78,6 +85,13 @@ export class KanaoCache extends EventEmitter {
     }
 
     public async setupQueryRpc(channel: Channel): Promise<void> {
+        channel.on("close", () => {
+            if ("sendMessage" in channel && "sendOrEnqueue" in channel && channel.sendMessage === channel.sendOrEnqueue) {
+                // @ts-expect-error Reconnect workaround
+                this.queryRpcQueue._onConnect({ connection: this.queryRpcQueue._connectionManager.connection });
+            }
+        });
+
         const rpc = new RoutedQueue(`${GatewayExchangeRoutes.REQUEST}.query`, clientId, "cache-query");
         await channel.assertQueue(rpc.queue, { durable: false, autoDelete: true });
         await channel.bindQueue(rpc.queue, RabbitMQ.GATEWAY_EXCHANGE, rpc.key);
@@ -117,6 +131,13 @@ export class KanaoCache extends EventEmitter {
     }
 
     public async setupRpc(channel: Channel): Promise<void> {
+        channel.on("close", () => {
+            if ("sendMessage" in channel && "sendOrEnqueue" in channel && channel.sendMessage === channel.sendOrEnqueue) {
+                // @ts-expect-error Reconnect workaround
+                this.rpcQueue._onConnect({ connection: this.rpcQueue._connectionManager.connection });
+            }
+        });
+
         // Used for Counts RPC
         const rpc = new RoutedQueue(`${GatewayExchangeRoutes.REQUEST}.counts`, clientId, "cache-rpc");
         await channel.assertQueue(rpc.queue, { durable: false });

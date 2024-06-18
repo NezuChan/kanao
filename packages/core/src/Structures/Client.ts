@@ -61,12 +61,19 @@ export class Client extends EventEmitter {
     public connect(): void {
         this.amqp = createAmqpChannel(this.options.amqpUrl, {
             setup: async (channel: Channel) => this.setupAmqp(channel)
-        });
+        }, { connectionOptions: { timeout: 360_000 } });
 
         this.rest.setToken(this.options.token!);
     }
 
     public async setupAmqp(channel: Channel): Promise<void> {
+        channel.on("close", () => {
+            if ("sendMessage" in channel && "sendOrEnqueue" in channel && channel.sendMessage === channel.sendOrEnqueue) {
+                // @ts-expect-error Reconnect workaround
+                this.amqp._onConnect({ connection: this.amqp._connectionManager.connection });
+            }
+        });
+
         await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "topic", { durable: false });
 
         const routing = new RoutedQueue(GatewayExchangeRoutes.DISPATCH, this.clientId, this.options.instanceName);

@@ -129,6 +129,13 @@ export class NezuGateway extends EventEmitter {
     public setupAmqp(): void {
         const amqpChannel = createAmqpChannel(amqp, {
             setup: async (channel: Channel) => {
+                channel.on("close", () => {
+                    if ("sendMessage" in channel && "sendOrEnqueue" in channel && channel.sendMessage === channel.sendOrEnqueue) {
+                        // @ts-expect-error Reconnect workaround
+                        amqpChannel._onConnect({ connection: amqpChannel._connectionManager.connection });
+                    }
+                });
+
                 await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "topic", { durable: false });
 
                 // Used for Stats RPC
@@ -163,7 +170,7 @@ export class NezuGateway extends EventEmitter {
                     }
                 });
             }
-        });
+        }, { connectionOptions: { timeout: 360_000 } });
 
         amqpChannel.on("error", err => this.logger.error(err, "AMQP Channel on main process Error"));
         amqpChannel.on("close", () => this.logger.warn("AMQP Channel on main process Closed"));
