@@ -101,6 +101,13 @@ export class ProcessBootstrapper {
 
         const amqpChannel = createAmqpChannel(amqp, {
             setup: async (channel: Channel) => {
+                channel.on("close", () => {
+                    if ("sendMessage" in channel && "sendOrEnqueue" in channel && channel.sendMessage === channel.sendOrEnqueue) {
+                        // @ts-expect-error Reconnect workaround
+                        amqpChannel._onConnect({ connection: amqpChannel._connectionManager.connection });
+                    }
+                });
+
                 await channel.assertExchange(RabbitMQ.GATEWAY_EXCHANGE, "topic", { durable: false });
                 await channel.assertQueue(routing.queue, { durable: false, autoDelete: true });
                 await channel.consume(routing.queue, async m => this.onConsumeMessage(channel, m));
@@ -109,7 +116,7 @@ export class ProcessBootstrapper {
                     this.data.shardIds.map(async shardId => channel.bindQueue(routing.queue, RabbitMQ.GATEWAY_EXCHANGE, routing.shard(shardId).key))
                 );
             }
-        });
+        }, { connectionOptions: { timeout: 360_000 } });
 
         amqpChannel.on("error", err => this.logger.error(err, `AMQP Channel on process ${this.data.processId} Error`));
         amqpChannel.on("close", () => this.logger.warn(`AMQP Channel on process ${this.data.processId} Closed`));
