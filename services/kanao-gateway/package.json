@@ -57,6 +57,5 @@
     "ioredis": "^5.4.1",
     "pino-loki": "^2.3.0",
     "zlib-sync": "^0.1.9"
-  },
-  "packageManager": "pnpm@9.3.0"
+  }
 }

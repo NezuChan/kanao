@@ -39,6 +39,5 @@
   "dependencies": {
     "drizzle-orm": "^0.30.10",
     "tslib": "^2.6.2"
-  },
-  "packageManager": "pnpm@9.3.0"
+  }
 }

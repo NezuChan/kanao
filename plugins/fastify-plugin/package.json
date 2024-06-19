@@ -49,6 +49,5 @@
     "@sapphire/result": "^2.6.6",
     "@sapphire/utilities": "^3.16.2",
     "fastify": "^4.27.0"
-  },
-  "packageManager": "pnpm@9.3.0"
+  }
 }
