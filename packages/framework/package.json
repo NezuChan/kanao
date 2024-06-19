@@ -33,7 +33,7 @@
     "@types/amqplib": "^0.10.5"
   },
   "dependencies": {
-    "@discordjs/builders": "^1.8.1",
+    "@discordjs/builders": "^1.8.2",
     "@discordjs/collection": "^2.1.0",
     "@nezuchan/core": "workspace:^",
     "@sapphire/lexure": "^1.1.7",
@@ -41,8 +41,8 @@
     "@sapphire/result": "^2.6.6",
     "@sapphire/utilities": "^3.16.2",
     "amqplib": "^0.10.4",
-    "discord-api-types": "^0.37.85",
+    "discord-api-types": "^0.37.90",
     "gen-esm-wrapper": "^1.1.3",
-    "tslib": "^2.6.2"
+    "tslib": "^2.6.3"
   }
 }
