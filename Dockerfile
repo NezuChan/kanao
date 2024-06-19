@@ -11,7 +11,7 @@ ARG SCOPE
 WORKDIR /prepare
 
 # Scoped install for monorepo
-RUN pnpm setup && pnpm add --global turbo
+RUN npm install --global turbo
 COPY . .
 RUN turbo prune --scope=${SCOPE} --docker
 RUN cp -r tsconfig* /prepare/out/json
