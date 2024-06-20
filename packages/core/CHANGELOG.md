@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.19.4
+
+### Patch Changes
+
+- 87e6b83: amqp reconnect workaround
+- Updated dependencies [87e6b83]
+  - @nezuchan/kanao-schema@0.10.2
+
 ## 0.19.3
 
 ### Patch Changes
