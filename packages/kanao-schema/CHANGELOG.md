@@ -1,5 +1,11 @@
 # @nezuchan/kanao-schema
 
+## 0.10.2
+
+### Patch Changes
+
+- 87e6b83: amqp reconnect workaround
+
 ## 0.10.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @nezuchan/kanao-gateway
 
+## 5.4.2
+
+### Patch Changes
+
+- 87e6b83: amqp reconnect workaround
+
 ## 5.4.1
 
 ### Patch Changes

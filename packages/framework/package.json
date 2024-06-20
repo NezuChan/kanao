@@ -1,6 +1,6 @@
 {
   "name": "@nezuchan/framework",
-  "version": "0.19.6",
+  "version": "0.19.7",
   "description": "A Commands framework for @nezuchan/nezu-gateway.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

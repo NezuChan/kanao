@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.19.7
+
+### Patch Changes
+
+- 87e6b83: amqp reconnect workaround
+- Updated dependencies [87e6b83]
+  - @nezuchan/core@0.19.4
+
 ## 0.19.6
 
 ### Patch Changes
