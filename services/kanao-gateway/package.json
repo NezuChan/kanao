@@ -48,7 +48,7 @@
     "@types/dockerode": "^3.3.29",
     "@types/gradient-string": "^1.1.6",
     "@types/node": "^20.14.7",
-    "@vladfrangu/async_event_emitter": "^2.2.4",
+    "@vladfrangu/async_event_emitter": "^2.3.0",
     "drizzle-kit": "^0.22.7",
     "rimraf": "^5.0.7",
     "typescript": "^5.5.2"
