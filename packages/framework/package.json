@@ -37,7 +37,7 @@
     "@discordjs/collection": "^2.1.0",
     "@nezuchan/core": "workspace:^",
     "@sapphire/lexure": "^1.1.7",
-    "@sapphire/pieces": "^4.2.2",
+    "@sapphire/pieces": "^4.3.0",
     "@sapphire/result": "^2.6.6",
     "@sapphire/utilities": "^3.16.2",
     "amqplib": "^0.10.4",
