@@ -49,8 +49,8 @@ importers:
         specifier: ^0.7.0
         version: 0.7.0(amqplib@0.10.4)
       '@sapphire/pieces':
-        specifier: ^4.2.2
-        version: 4.2.2
+        specifier: ^4.3.0
+        version: 4.3.0
       '@sapphire/result':
         specifier: ^2.6.6
         version: 2.6.6
@@ -92,8 +92,8 @@ importers:
         specifier: ^1.1.7
         version: 1.1.7
       '@sapphire/pieces':
-        specifier: ^4.2.2
-        version: 4.2.2
+        specifier: ^4.3.0
+        version: 4.3.0
       '@sapphire/result':
         specifier: ^2.6.6
         version: 2.6.6
@@ -148,8 +148,8 @@ importers:
         specifier: workspace:^
         version: link:../../packages/framework
       '@sapphire/pieces':
-        specifier: ^4.2.2
-        version: 4.2.2
+        specifier: ^4.3.0
+        version: 4.3.0
       '@sapphire/result':
         specifier: ^2.6.6
         version: 2.6.6
@@ -172,8 +172,8 @@ importers:
         specifier: ^0.7.0
         version: 0.7.0(amqplib@0.10.4)
       '@sapphire/pieces':
-        specifier: ^4.2.2
-        version: 4.2.2
+        specifier: ^4.3.0
+        version: 4.3.0
       '@sapphire/result':
         specifier: ^2.6.6
         version: 2.6.6
@@ -267,8 +267,8 @@ importers:
         specifier: ^0.7.0
         version: 0.7.0(amqplib@0.10.4)
       '@sapphire/pieces':
-        specifier: ^4.2.2
-        version: 4.2.2
+        specifier: ^4.3.0
+        version: 4.3.0
       '@sapphire/result':
         specifier: ^2.6.6
         version: 2.6.6
@@ -901,8 +901,8 @@ packages:
     resolution: {integrity: sha512-6PqU2/V+w1k4DHbZ8erIH+iaT/kAmLfReiWNUURt1akfrPTWqlVYWfuxkHXF0JMPk53r4NIkZoitiWwGUtPF+Q==}
     engines: {node: '>=v14.0.0', npm: '>=7.0.0'}
 
-  '@sapphire/pieces@4.2.2':
-    resolution: {integrity: sha512-DvAC+zTgm5o41D6iX+jBjMp+rRmoHPKNYnav6v6vQLTxBJb+iFMmup9ZREiuXdrh1ejrmVRZojnnI59xQgezwQ==}
+  '@sapphire/pieces@4.3.0':
+    resolution: {integrity: sha512-cjxMRN9Lvgd2c/RLKj4I1qWvj9lRDQIHYplMlmqgiL+tFetv8j5Y7D/xNXcX0xVenU93O1L6plYf7DmWMt/M4w==}
     engines: {node: '>=v14.0.0', npm: '>=7.0.0'}
 
   '@sapphire/result@2.6.6':
@@ -4254,7 +4254,7 @@ snapshots:
 
   '@nezuchan/decorators@0.3.0':
     dependencies:
-      '@sapphire/pieces': 4.2.2
+      '@sapphire/pieces': 4.3.0
       '@sapphire/utilities': 3.16.2
 
   '@nezuchan/utilities@0.7.0(amqplib@0.10.4)':
@@ -4293,7 +4293,7 @@ snapshots:
     dependencies:
       '@sapphire/result': 2.6.6
 
-  '@sapphire/pieces@4.2.2':
+  '@sapphire/pieces@4.3.0':
     dependencies:
       '@discordjs/collection': 1.5.3
       '@sapphire/utilities': 3.16.2
