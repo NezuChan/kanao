@@ -51,7 +51,7 @@
     "@vladfrangu/async_event_emitter": "^2.3.0",
     "drizzle-kit": "^0.22.7",
     "rimraf": "^5.0.7",
-    "typescript": "^5.5.2"
+    "typescript": "^5.5.3"
   },
   "optionalDependencies": {
     "ioredis": "^5.4.1",
