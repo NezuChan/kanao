@@ -48,6 +48,6 @@
     "@sapphire/pieces": "^4.3.1",
     "@sapphire/result": "^2.6.6",
     "@sapphire/utilities": "^3.16.2",
-    "fastify": "^4.28.0"
+    "fastify": "^4.28.1"
   }
 }
