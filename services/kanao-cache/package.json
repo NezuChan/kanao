@@ -46,7 +46,7 @@
     "@types/node": "^20.14.7",
     "@types/pg": "^8.11.6",
     "drizzle-kit": "^0.22.7",
-    "rimraf": "^5.0.7",
+    "rimraf": "^6.0.1",
     "typescript": "^5.5.3"
   }
 }
