@@ -13,8 +13,8 @@
   "author": "",
   "license": "GPL-3.0",
   "devDependencies": {
-    "@hazmi35/eslint-config": "^13.3.1",
-    "eslint": "^8.57.0",
+    "@hazmi35/eslint-config": "^14.0.1",
+    "eslint": "^9.7.0",
     "rimraf": "^5.0.7",
     "turbo": "^2.0.4",
     "typescript": "^5.5.3"
