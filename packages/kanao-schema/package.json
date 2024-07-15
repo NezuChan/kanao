@@ -33,11 +33,11 @@
   "author": "KagChi",
   "license": "GPL-3.0",
   "devDependencies": {
-    "drizzle-kit": "^0.22.7",
+    "drizzle-kit": "^0.23.0",
     "pg": "^8.12.0"
   },
   "dependencies": {
-    "drizzle-orm": "^0.31.2",
+    "drizzle-orm": "^0.32.0",
     "tslib": "^2.6.3"
   }
 }
