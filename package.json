@@ -15,12 +15,12 @@
   "devDependencies": {
     "@hazmi35/eslint-config": "^13.3.1",
     "eslint": "^8.57.0",
-    "rimraf": "^5.0.7",
-    "turbo": "^2.0.4",
+    "rimraf": "^5.0.9",
+    "turbo": "^2.0.6",
     "typescript": "^5.5.3"
   },
   "dependencies": {
-    "@changesets/cli": "^2.27.5"
+    "@changesets/cli": "^2.27.7"
   },
-  "packageManager": "pnpm@9.4.0"
+  "packageManager": "pnpm@9.5.0"
 }
